@@ -1,5 +1,5 @@
 /**
- * Cell takes a type of block and return a div with the good className
+ * Cell takes a type of tetris block and return a div with the good className
  *
  * @param {Block | EmptyCell} type - type is for the color of the block
  * @returns {JSX.Element} - a cell of the grid

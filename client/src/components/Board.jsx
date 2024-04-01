@@ -1,7 +1,7 @@
 import Cell from './Cell';
 
 /**
- * Board takes a board and return a div of it
+ * Create the board div
  *
  * @param {string[][]} currentBoard - the board
  * @returns {JSX.Element} - return a div with all the cell of the board

@@ -15,6 +15,12 @@ const createBoard = () => {
     return returnArray;
 };
 
+/**
+ * Page for the tetris game
+ *
+ * @param {}
+ * @returns {JSX.Element} - Tetris game
+ */
 export const Tetris = () => {
     const [board, setBoard] = useState(createBoard());
     const [score, setScore] = useState(0);

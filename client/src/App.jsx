@@ -1,11 +1,15 @@
-import { Tetris } from './pages/Tetris';
+import { useHashNavigation } from './hooks/useHashNavigation';
+import { Pages } from './pages/Pages';
 
-function App() {
+const App = () => {
+    const { page } = useHashNavigation();
+
     return (
-        <>
-            <Tetris />
-        </>
+        <div>
+            <div className={'header'}>TETRIS</div>
+            <Pages page={page} />
+        </div>
     );
-}
+};
 
 export default App;
