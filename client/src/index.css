@@ -138,6 +138,11 @@ h1 {
     filter: blur(5px);
 }
 
+.icon {
+    font-size: 24px;
+    color: var(--primary-color);
+}
+
 /* Tetris game css */
 .app {
     display: grid;

@@ -31,7 +31,9 @@ export const Tetris = () => {
             <Board currentBoard={board} />
             <div className="controls">
                 <h2>Score: {score}</h2>
-                <Button className="btn">Quit</Button>
+                <Button className="btn" onClick={() => (location.hash = '#home')}>
+                    Quit
+                </Button>
             </div>
         </div>
     );
