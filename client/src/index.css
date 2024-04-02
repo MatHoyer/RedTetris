@@ -1,3 +1,8 @@
+:root {
+    --primary-color: #ee2b47;
+    --secondary-color: hsl(222.2, 84%, 4.9%);
+}
+
 *,
 *::before,
 *::after {
@@ -7,7 +12,7 @@
 }
 
 body {
-    background-color: hsl(222.2, 84%, 4.9%);
+    background-color: var(--secondary-color);
     font-family: Arial, Helvetica, sans-serif;
     color: rgb(245, 245, 245);
     height: 100vh;
@@ -48,8 +53,7 @@ h1 {
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: center;
-    background-color: #0f056b;
-    color: white;
+    background-color: var(--primary-color);
 }
 
 /* Personnalise l'apparence de la barre de défilement */
@@ -59,7 +63,7 @@ h1 {
 
 /* Personnalise l'apparence du curseur de la barre de défilement */
 .scrollable-div::-webkit-scrollbar-thumb {
-    background-color: #0f056b;
+    background-color: var(--primary-color);
 }
 
 /* Personnalise l'apparence de la piste de la barre de défilement */
@@ -68,7 +72,8 @@ h1 {
 }
 
 .btn {
-    background-color: #4caf50;
+    background-color: var(--primary-color);
+    opacity: 0.6;
     border: none;
     color: white;
     padding: 15px 32px;
@@ -79,6 +84,7 @@ h1 {
     margin: 4px 2px;
     cursor: pointer;
     border-radius: 4px;
+    transition: opacity 0.3s;
 }
 
 .btn:disabled {
@@ -87,7 +93,7 @@ h1 {
 }
 
 .btn:not(:disabled):hover {
-    background-color: #45a049;
+    opacity: 1;
 }
 
 .form {
@@ -126,8 +132,7 @@ h1 {
     right: 0;
     bottom: 0;
     left: 0;
-    background: url('https://st2.depositphotos.com/1439706/5679/v/450/depositphotos_56794337-stock-illustration-dark-tetris-background.jpg')
-        no-repeat center center;
+    background: url('background.jpg') no-repeat center center;
     background-size: cover;
     opacity: 0.2;
     filter: blur(5px);
