@@ -19,6 +19,7 @@ export const useHashNavigation = () => {
     }, [hash]);
 
     const cleanedHash = hash.replace('#', '').toLowerCase() || 'home';
+    const splittedHash = cleanedHash.split('[');
 
-    return { page: cleanedHash };
+    return { page: splittedHash[0], param: splittedHash[1] || '' };
 };
