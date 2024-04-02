@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 
+/**
+ *
+ * @returns {Object}
+ */
 export const useHashNavigation = () => {
     const [hash, setHash] = useState(location.hash);
 
@@ -12,7 +16,7 @@ export const useHashNavigation = () => {
         return () => {
             window.removeEventListener('hashchange', handleHashChange);
         };
-    });
+    }, [hash]);
 
     const cleanedHash = hash.replace('#', '').toLowerCase() || 'home';
 

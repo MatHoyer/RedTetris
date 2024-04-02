@@ -8,8 +8,22 @@ import { Button } from '../components/Button';
 export const Home = () => {
     return (
         <>
-            <Button onClick={() => (location.hash = 'solo')}>Solo</Button>
-            <Button onClick={() => (location.hash = 'online')}>Online</Button>
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                    gap: '20px',
+                }}
+            >
+                <Button className="btn" onClick={() => (location.hash = 'solo')}>
+                    Solo
+                </Button>
+                <Button className="btn" onClick={() => (location.hash = 'online')}>
+                    Online
+                </Button>
+            </div>
         </>
     );
 };

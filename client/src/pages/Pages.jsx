@@ -1,5 +1,7 @@
 import { Home } from './Home';
 import { NotFound } from './NotFound';
+import { Online } from './Online';
+import { Solo } from './Solo';
 import { Tetris } from './Tetris';
 
 /**
@@ -11,6 +13,8 @@ import { Tetris } from './Tetris';
 export const Pages = ({ page }) => {
     console.log(page);
     if (page === 'home') return <Home />;
+    if (page === 'solo') return <Solo />;
+    if (page === 'online') return <Online />;
     if (page === 'tetris') return <Tetris />;
     return <NotFound page={page} />;
 };

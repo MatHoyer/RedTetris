@@ -1,3 +1,4 @@
+import { Navbar } from './components/NavBar';
 import { useHashNavigation } from './hooks/useHashNavigation';
 import { Pages } from './pages/Pages';
 
@@ -6,7 +7,7 @@ const App = () => {
 
     return (
         <div>
-            <div className={'header'}>TETRIS</div>
+            <Navbar />
             <Pages page={page} />
         </div>
     );
