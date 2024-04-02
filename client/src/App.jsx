@@ -8,7 +8,9 @@ const App = () => {
     return (
         <div>
             <Navbar />
-            <Pages page={page} />
+            <div style={{ height: 'calc(100vh - 65px)' }}>
+                <Pages page={page} />
+            </div>
         </div>
     );
 };

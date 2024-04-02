@@ -7,9 +7,9 @@
 export const NotFound = ({ page }) => {
     return (
         <>
-            <h1>Page Introuvable</h1>
-            <p>
-                La page demandee: {page}, n'existe pas {':('}
+            <h1>Page not found</h1>
+            <p style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80%' }}>
+                The page: '{page}' doesn't exist
             </p>
         </>
     );

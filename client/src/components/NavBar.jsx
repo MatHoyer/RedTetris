@@ -11,7 +11,7 @@ export const Navbar = () => {
     return (
         <nav>
             <a href="#home">
-                <img src="RedTetris-logo.png" alt="logo" style={{ width: '100px' }} />
+                <img src="RedTetris-logo.png" alt="logo" style={{ width: '100px', margin: '10px' }} />
             </a>
         </nav>
     );

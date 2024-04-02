@@ -31,7 +31,7 @@ export const Tetris = () => {
             <Board currentBoard={board} />
             <div className="controls">
                 <h2>Score: {score}</h2>
-                <Button>Quit</Button>
+                <Button className="btn">Quit</Button>
             </div>
         </div>
     );
