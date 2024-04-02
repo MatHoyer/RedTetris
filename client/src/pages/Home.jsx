@@ -14,15 +14,28 @@ export const Home = () => {
                     justifyContent: 'center',
                     alignItems: 'center',
                     height: '100%',
-                    gap: '20px',
                 }}
+                className="background-image"
             >
-                <Button className="btn" onClick={() => (location.hash = 'solo')}>
-                    Solo
-                </Button>
-                <Button className="btn" onClick={() => (location.hash = 'online')}>
-                    Online
-                </Button>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginBottom: '10%',
+                        flexDirection: 'column',
+                    }}
+                >
+                    <img src="RedTetris-logo.png" alt="Title" />
+                    <div style={{ display: 'flex', gap: '20px' }}>
+                        <Button style={{ zIndex: 2 }} className="btn" onClick={() => (location.hash = 'solo')}>
+                            Solo
+                        </Button>
+                        <Button style={{ zIndex: 2 }} className="btn" onClick={() => (location.hash = 'online')}>
+                            Online
+                        </Button>
+                    </div>
+                </div>
             </div>
         </>
     );

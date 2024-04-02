@@ -115,6 +115,24 @@ h1 {
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+.background-image {
+    position: relative;
+}
+
+.background-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: url('https://st2.depositphotos.com/1439706/5679/v/450/depositphotos_56794337-stock-illustration-dark-tetris-background.jpg')
+        no-repeat center center;
+    background-size: cover;
+    opacity: 0.2;
+    filter: blur(5px);
+}
+
 /* Tetris game css */
 .app {
     display: grid;
