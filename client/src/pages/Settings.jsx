@@ -14,9 +14,9 @@ const Key = ({ element, text }) => {
 
 export const Settings = () => {
     return (
-        <>
+        <div>
             <h1 style={{ marginBottom: '10px' }}>Settings</h1>
-            <div style={{ display: 'grid', placeItems: 'center', height: '30vh' }}>
+            <div style={{ display: 'grid', placeItems: 'center', height: '30px' }}>
                 <table>
                     <tbody>
                         <Key element={faArrowUp} text="Rotate" />
@@ -26,6 +26,6 @@ export const Settings = () => {
                     </tbody>
                 </table>
             </div>
-        </>
+        </div>
     );
 };

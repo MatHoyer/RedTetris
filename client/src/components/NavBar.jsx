@@ -55,13 +55,15 @@ export const Navbar = () => {
                             backgroundColor: 'black',
                             padding: '20px',
                             borderRadius: '10px',
-                            zIndex: 10,
+                            width: '160px',
+                            height: '350px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
                         }}
                     >
                         <Settings />
-                        <div>
-                            <Button onClick={handleClose}>Close</Button>
-                        </div>
+                        <Button onClick={handleClose}>Close</Button>
                     </div>
                 </div>
             )}
