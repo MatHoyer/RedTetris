@@ -10,7 +10,7 @@ const TabLine = ({ name, nbPlayers, status }) => {
                 <td>{nbPlayers}</td>
                 <td>{status ? 'in game' : 'waiting...'}</td>
                 <td>
-                    <Button className="btn">Join</Button>
+                    <Button>Join</Button>
                 </td>
             </tr>
         </>
@@ -23,9 +23,7 @@ export const Online = () => {
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', marginBottom: '20px' }}>
-                <Button className="btn" onClick={() => (location.hash = '#create-game')}>
-                    Create Game
-                </Button>
+                <Button onClick={() => (location.hash = '#create-game')}>Create Game</Button>
             </div>
             <div className="scrollable-div" style={{ maxHeight: '65%', overflowY: 'auto' }}>
                 <table className="centered-table">

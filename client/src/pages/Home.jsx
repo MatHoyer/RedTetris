@@ -28,10 +28,10 @@ export const Home = () => {
                 >
                     <img src="RedTetris-logo.png" alt="Title" />
                     <div style={{ display: 'flex', gap: '20px' }}>
-                        <Button style={{ zIndex: 2 }} className="btn" onClick={() => (location.hash = 'solo')}>
+                        <Button style={{ zIndex: 2 }} onClick={() => (location.hash = 'solo')}>
                             Solo
                         </Button>
-                        <Button style={{ zIndex: 2 }} className="btn" onClick={() => (location.hash = 'online')}>
+                        <Button style={{ zIndex: 2 }} onClick={() => (location.hash = 'online')}>
                             Online
                         </Button>
                     </div>

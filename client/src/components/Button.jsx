@@ -5,5 +5,5 @@
  * @returns {JSX.Element}
  */
 export const Button = ({ ...props }) => {
-    return <button {...props}></button>;
+    return <button className="btn" {...props}></button>;
 };

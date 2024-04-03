@@ -32,12 +32,7 @@ export const CreateGame = () => {
                     />
                 </div>
                 <div>
-                    <Button
-                        disabled={data.name === ''}
-                        style={{ display: 'block', width: '100%' }}
-                        className="btn"
-                        type="submit"
-                    >
+                    <Button disabled={data.name === ''} style={{ display: 'block', width: '100%' }} type="submit">
                         Create
                     </Button>
                 </div>
