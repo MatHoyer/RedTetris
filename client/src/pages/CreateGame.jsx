@@ -17,7 +17,18 @@ export const CreateGame = () => {
             <form className="form" onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="name">Name of the game: </label>
-                    <input type="text" id="name" className="form-control" onChange={handleChange} />
+                    <input
+                        type="text"
+                        id="name"
+                        onChange={handleChange}
+                        style={{
+                            padding: '5px',
+                            borderRadius: '5px',
+                            border: 'none',
+                            backgroundColor: '#333',
+                            color: 'white',
+                        }}
+                    />
                 </div>
                 <div className="form-group">
                     <label htmlFor="number">Max number of players: {data.number} </label>
