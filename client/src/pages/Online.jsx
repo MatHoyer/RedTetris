@@ -2,6 +2,7 @@ import { Button } from '../components/Button';
 import data from '../../public/MOCK_DATA.json';
 import { useState } from 'react';
 import { useToggle } from '../hooks/useToggle';
+import { InputCheckbox, InputText } from '../components/Inputs';
 
 const TabLine = ({ name, nbPlayers, status }) => {
     return (
@@ -10,7 +11,7 @@ const TabLine = ({ name, nbPlayers, status }) => {
             <td>{nbPlayers}</td>
             <td>{status ? 'in game' : 'waiting...'}</td>
             <td>
-                <Button>Join</Button>
+                <Button disabled={status}>Join</Button>
             </td>
         </tr>
     );
@@ -28,17 +29,7 @@ export const Online = () => {
 
     return (
         <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label htmlFor="inGame" style={{ color: 'white', textAlign: 'center' }}>
-                    <input
-                        type="checkbox"
-                        id="inGame"
-                        defaultChecked
-                        onChange={toggleShowInGame}
-                        style={{ marginRight: '10px' }}
-                    />
-                    Hide games currently playing
-                </label>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
                 <div
                     style={{
                         display: 'flex',
@@ -48,23 +39,14 @@ export const Online = () => {
                         marginBottom: '10px',
                     }}
                 >
-                    <label htmlFor="research" style={{ color: 'white' }}>
-                        Research:
-                    </label>
-                    <input
-                        type="text"
-                        id="research"
-                        value={research}
+                    <InputText
+                        id={research}
+                        label="research: "
                         onChange={(e) => setResearch(e.target.value)}
-                        style={{
-                            padding: '5px',
-                            borderRadius: '5px',
-                            border: 'none',
-                            backgroundColor: '#333',
-                            color: 'white',
-                        }}
+                        value={research}
                     />
                 </div>
+                <InputCheckbox id="gameCheck" handleChange={toggleShowInGame} label="Hide game in playing state" />
             </div>
             <div className="scrollable-div" style={{ maxHeight: '65%', overflowY: 'auto' }}>
                 <table className="centered-table">

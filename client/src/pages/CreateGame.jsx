@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '../components/Button';
+import { InputRange, InputText } from '../components/Inputs';
 
 export const CreateGame = () => {
     const [data, setData] = useState({ name: '', number: 2 });
@@ -16,30 +17,16 @@ export const CreateGame = () => {
         <div>
             <form className="form" onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label htmlFor="name">Name of the game: </label>
-                    <input
-                        type="text"
-                        id="name"
-                        onChange={handleChange}
-                        style={{
-                            padding: '5px',
-                            borderRadius: '5px',
-                            border: 'none',
-                            backgroundColor: '#333',
-                            color: 'white',
-                        }}
-                    />
+                    <InputText id="name" handleChange={handleChange} label="Name of the game: " />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="number">Max number of players: {data.number} </label>
-                    <input
-                        type="range"
+                    <InputRange
                         id="number"
-                        className="form-control"
-                        defaultValue={data.number}
+                        handleChange={handleChange}
+                        defaultValue={2}
                         min={2}
                         max={10}
-                        onChange={handleChange}
+                        label={`Max number of players: ${data.number} `}
                     />
                 </div>
                 <div>

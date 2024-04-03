@@ -1,11 +1,18 @@
 import { Button } from '../components/Button';
 
+export const Register = ({ setRegistered }) => {
+    return <h1>register</h1>;
+};
+
+export const Login = ({ setRegistered }) => {
+    return <h1>login</h1>;
+};
+
 /**
- * Home page
  *
  * @returns {JSX.Element}
  */
-export const Home = () => {
+export const LoginHub = () => {
     return (
         <div
             style={{
@@ -27,11 +34,11 @@ export const Home = () => {
             >
                 <img src="RedTetris-logo.png" alt="Title" />
                 <div style={{ display: 'flex', gap: '20px' }}>
-                    <Button style={{ zIndex: 2 }} onClick={() => (location.hash = 'solo')}>
-                        Solo
+                    <Button style={{ zIndex: 2 }} onClick={() => (location.hash = 'login')}>
+                        Login
                     </Button>
-                    <Button style={{ zIndex: 2 }} onClick={() => (location.hash = 'online')}>
-                        Online
+                    <Button style={{ zIndex: 2 }} onClick={() => (location.hash = 'register')}>
+                        Register
                     </Button>
                 </div>
             </div>

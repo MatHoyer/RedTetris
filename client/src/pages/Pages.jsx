@@ -1,6 +1,7 @@
 import { useHashNavigation } from '../hooks/useHashNavigation';
 import { CreateGame } from './CreateGame';
 import { Home } from './Home';
+import { Login, Register, LoginHub } from './LoginHub';
 import { NotFound } from './NotFound';
 import { Online } from './Online';
 import { Settings } from './Settings';
@@ -11,9 +12,14 @@ import { Tetris } from './Tetris';
  *
  * @returns {JSX.Element} - The page requested
  */
-export const Pages = () => {
+export const Pages = ({ registered, setRegistered }) => {
     const { page, param } = useHashNavigation();
     console.log(page);
+    // if (!registered) {
+    //     if (page === 'login') return <Login setRegistered={setRegistered} />;
+    //     if (page === 'register') return <Register setRegistered={setRegistered} />;
+    //     return <LoginHub />;
+    // }
     if (page === 'home') return <Home />;
     if (page === 'settings') return <Settings />;
     if (page === 'solo') return <Tetris />;
