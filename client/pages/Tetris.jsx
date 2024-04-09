@@ -2,6 +2,21 @@ import { useState } from 'react'
 import { Board } from '../components/Board'
 import { EmptyCell } from '../globals'
 import { Button } from '../components/Button'
+import { useSocketContext } from '../hooks/useSocketContext.js'
+import events from '../../events/index.js'
+import { createGame } from '../events/index.js'
+
+const createBoard = () => {
+  const returnArray = Array(20)
+    .fill(null)
+    .map(() => Array(10).fill(EmptyCell))
+
+  returnArray[1][1] = 'cell J'
+  returnArray[1][2] = 'cell J'
+  returnArray[1][3] = 'cell J'
+
+  return returnArray
+}
 
 /**
  * Page for the tetris game
@@ -10,7 +25,11 @@ import { Button } from '../components/Button'
  * @returns {JSX.Element} - Tetris game
  */
 export const Tetris = () => {
+  const [board, setBoard] = useState(createBoard())
   const [score, setScore] = useState(0)
+
+  const { socket } = useSocketContext()
+  socket.emit(events.NEW_GAME, createGame(''))
 
   return (
     <div className="app">
