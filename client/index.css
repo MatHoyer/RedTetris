@@ -178,7 +178,7 @@ input[type='range']:focus::-webkit-slider-runnable-track {
     right: 0;
     bottom: 0;
     left: 0;
-    background: url('background.png') no-repeat center center;
+    background: url('/client/assets/background.png') no-repeat center center;
     background-size: cover;
     opacity: 0.2;
     filter: blur(5px);
