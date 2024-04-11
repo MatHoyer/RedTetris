@@ -6,7 +6,6 @@ import { Provider } from 'react-redux'
 import { store } from './redux'
 
 const App = () => {
-  const [registered, setRegistered] = useState(false)
   const socketio = io()
   console.log('socketio', socketio)
   return (
@@ -14,7 +13,7 @@ const App = () => {
       <div>
         <Navbar />
         <div style={{ height: 'calc(100vh - 65px)' }}>
-          <Pages registered={registered} setRegistered={setRegistered} />
+          <Pages />
         </div>
       </div>
     </Provider>
