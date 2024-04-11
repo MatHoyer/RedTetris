@@ -19,22 +19,26 @@ const userSlice = createSlice({
   },
   reducers: {
     changeName: (state, action) => {
-      //{ type: 'user/changeName', payload: { name: string } }
-      state.name = action.payload.name
+      //{ type: 'user/changeName', payload: string }
+      state.name = action.payload
     },
   },
 })
+
+export const { changeName } = userSlice.actions
 
 const boardSlice = createSlice({
   name: 'board',
   initialState: createBoard(),
   reducers: {
     updateBoard: (state, action) => {
-      //{ type: 'board/updateBoard', payload: { board: int[][] } }
-      state = action.payload.board
+      //{ type: 'board/updateBoard', payload: int[][] }
+      state = action.payload
     },
   },
 })
+
+export const { updateBoard } = boardSlice.actions
 
 export const store = configureStore({
   reducer: {

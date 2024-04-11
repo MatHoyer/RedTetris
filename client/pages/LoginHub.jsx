@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Button } from '../components/Button'
 import { InputText } from '../components/Inputs'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
+import { changeName } from '../redux'
 
 /**
  *
@@ -9,7 +10,6 @@ import { useDispatch, useSelector } from 'react-redux'
  */
 export const LoginHub = () => {
   const [text, setText] = useState('')
-  const user = useSelector((state) => state.user)
 
   const dispatch = useDispatch()
 
@@ -43,10 +43,7 @@ export const LoginHub = () => {
           <Button onClick={() => (location.hash = 'login')}>Login</Button>
           <Button
             onClick={() => {
-              dispatch({
-                type: 'user/changeName',
-                payload: { name: text },
-              })
+              dispatch(changeName(text))
               location.hash = 'home'
             }}
           >
