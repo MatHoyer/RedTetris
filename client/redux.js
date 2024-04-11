@@ -12,6 +12,19 @@ const createBoard = () => {
   return returnArray
 }
 
+const userSlice = createSlice({
+  name: 'user',
+  initialState: {
+    name: '',
+  },
+  reducers: {
+    changeName: (state, action) => {
+      //{ type: 'user/changeName', payload: { name: string } }
+      state.name = action.payload.name
+    },
+  },
+})
+
 const boardSlice = createSlice({
   name: 'board',
   initialState: createBoard(),
@@ -26,5 +39,6 @@ const boardSlice = createSlice({
 export const store = configureStore({
   reducer: {
     board: boardSlice.reducer,
+    user: userSlice.reducer,
   },
 })
