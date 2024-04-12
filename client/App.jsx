@@ -19,7 +19,7 @@ const App = () => {
     return () => {
       socket.off(events.GAME_CREATED)
     }
-  })
+  }, [])
 
   return (
     <Provider store={store}>
