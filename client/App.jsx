@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Navbar } from './components/NavBar'
 import { Pages } from './pages/Pages'
 import { io } from 'socket.io-client'
