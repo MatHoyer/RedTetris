@@ -11,8 +11,6 @@ export const Lobby = () => {
     { name: 'player4', owner: false },
   ]
 
-  console.log(user.name)
-
   const playersForTab = players.map((player) => ({
     name: player.name,
     status: player.owner ? 'owner' : '',

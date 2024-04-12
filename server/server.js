@@ -6,6 +6,7 @@ import { GameManager } from './gamemanager.js'
 import { Logger } from './logger.js'
 import events from '../events/index.js'
 import { createGame } from './io/create-game.js'
+import { updateGameList } from './io/updateGameList.js'
 
 const port = process.env.APP_PORT || 3004
 
@@ -22,6 +23,7 @@ async function createMainServer() {
     socket.on(events.NEW_GAME, (evt) =>
       createGame(io, socket, gameManager, logger, evt)
     )
+    socket.on(events.UPDATE_GAMES_LIST, () => updateGameList(io, gameManager))
 
     socket.on('disconnect', () => logger.info(`client left`))
   })

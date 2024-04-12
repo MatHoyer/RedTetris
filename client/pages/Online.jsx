@@ -1,27 +1,42 @@
 import { Button } from '../components/Button'
 import data from '../assets/data.json'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useToggle } from '../hooks/useToggle'
 import { InputCheckbox, InputText } from '../components/Inputs'
 import { Table } from '../components/Table'
 
+import socket from '../socket'
+import events from '../../events'
+import { useSelector } from 'react-redux'
+
 export const Online = () => {
   const { toggle: showInGame, setToggle: toggleShowInGame } = useToggle(true)
   const [research, setResearch] = useState('')
+  const gamesList = useSelector((state) => state.gamesList)
 
-  const filteredData = data
-    .filter((cell) => {
-      if (research && !cell.name.toLowerCase().includes(research.toLowerCase()))
-        return false
-      if (showInGame && cell.status) return false
-      return true
-    })
-    .map((cell) => ({
-      name: cell.name,
-      nbPlayers: cell.nbPlayers,
-      status: cell.status ? 'in game' : 'waiting...',
-      join: <Button disabled={cell.status}>Join</Button>,
-    }))
+  useEffect(() => {
+    socket.emit(events.UPDATE_GAMES_LIST)
+  }, [])
+
+  let filteredData = []
+  if (gamesList) {
+    filteredData = gamesList
+      .filter((cell) => {
+        if (
+          research &&
+          !cell.name.toLowerCase().includes(research.toLowerCase())
+        )
+          return false
+        if (showInGame && cell.status) return false
+        return true
+      })
+      .map((cell) => ({
+        name: cell.name,
+        maxPlayers: cell.maxPlayers,
+        status: cell.status ? 'in game' : 'waiting...',
+        join: <Button disabled={cell.status}>Join</Button>,
+      }))
+  }
 
   return (
     <>

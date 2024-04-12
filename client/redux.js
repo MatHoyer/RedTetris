@@ -18,18 +18,18 @@ const userSlice = createSlice({
 export const { changeName } = userSlice.actions
 
 // ================GameList================
-const gameListSlice = createSlice({
-  name: 'gameList',
+const gamesListSlice = createSlice({
+  name: 'gamesList',
   initialState: [],
   reducers: {
-    updateGameList: (state, action) => {
-      //{ type: 'gameList/updateGameList', payload: Game[] }
-      state = action.payload
+    updateGamesList: (state, action) => {
+      //{ type: 'gamesList/updateGamesList', payload: Game[] }
+      return action.payload
     },
   },
 })
 
-export const { updateGameList } = gameListSlice.actions
+export const { updateGamesList } = gamesListSlice.actions
 
 // ================Board================
 const createBoard = () => {
@@ -61,6 +61,7 @@ export const { updateBoard } = boardSlice.actions
 export const store = configureStore({
   reducer: {
     user: userSlice.reducer,
+    gamesList: gamesListSlice.reducer,
     board: boardSlice.reducer,
   },
 })

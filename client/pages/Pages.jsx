@@ -17,7 +17,6 @@ import { useSelector } from 'react-redux'
 export const Pages = () => {
   const user = useSelector((state) => state.user)
   const { page, param } = useHashNavigation()
-  console.log(page)
   if (user.name === '') return <LoginHub />
   if (page === 'home') return <Home />
   if (page === 'settings') return <Settings />

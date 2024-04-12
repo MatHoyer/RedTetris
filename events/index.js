@@ -7,6 +7,7 @@
 export const createNewGame = (name, maxPlayers) => ({
   name,
   maxPlayers,
+  status: false,
 })
 
 /**
