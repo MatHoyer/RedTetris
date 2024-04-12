@@ -3,15 +3,16 @@ import { randomUUID } from 'crypto'
 export class Game {
   constructor(logger, name, owner, maxPlayers, gravitySpeed = 300) {
     this._logger = logger
+    this.created = new Date()
     this.id = randomUUID()
     this._players = []
     this._grativyLoop = null
     this._gravitySpeed = gravitySpeed
-    this._started = false
+    this.started = false
     this._currentPiece = null
-    this._name = name
-    this._owner = owner
-    this._maxPlayers = maxPlayers
+    this.name = name
+    this.owner = owner
+    this.maxPlayers = maxPlayers
   }
 
   addPlayer(player) {
