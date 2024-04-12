@@ -4,6 +4,8 @@ import { Server } from 'socket.io'
 import { createServer as createViteServer } from 'vite'
 import { GameManager } from './gamemanager.js'
 import { Logger } from './logger.js'
+import events from '../events/index.js'
+import { createGame } from './io/create-game.js'
 
 const port = process.env.APP_PORT || 3004
 
@@ -12,7 +14,17 @@ async function createMainServer() {
   const server = http.createServer(app)
   const logger = new Logger(console)
   const io = new Server(server)
-  new GameManager(logger, io)
+  const gameManager = new GameManager(logger, io)
+
+  io.on('connection', (socket) => {
+    const p = gameManager.createPlayer(logger, null, socket)
+    socket.emit(events.PLAYER_CREATED, { id: p.id })
+    socket.on(events.NEW_GAME, (evt) =>
+      createGame(io, socket, gameManager, evt)
+    )
+
+    socket.on('disconnect', () => logger.info(`client left`))
+  })
 
   const vite = await createViteServer({
     server: {
@@ -25,7 +37,7 @@ async function createMainServer() {
   })
   app.use(vite.middlewares)
   server.listen(port, () => {
-    console.log(`RedTetriss running on http://localhost:${port}`)
+    console.log(`RedTetris running on http://localhost:${port}`)
   })
 }
 createMainServer()
