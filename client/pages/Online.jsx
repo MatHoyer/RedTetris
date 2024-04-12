@@ -1,5 +1,5 @@
 import { Button } from '../components/Button'
-import data from '../assets/data.json'
+// import data from '../assets/data.json'
 import { useEffect, useState } from 'react'
 import { useToggle } from '../hooks/useToggle'
 import { InputCheckbox, InputText } from '../components/Inputs'
@@ -13,6 +13,7 @@ export const Online = () => {
   const { toggle: showInGame, setToggle: toggleShowInGame } = useToggle(true)
   const [research, setResearch] = useState('')
   const gamesList = useSelector((state) => state.gamesList)
+  const user = useSelector((state) => state.user)
 
   useEffect(() => {
     socket.emit(events.UPDATE_GAMES_LIST)
@@ -34,7 +35,14 @@ export const Online = () => {
         name: cell.name,
         maxPlayers: cell.maxPlayers,
         status: cell.status ? 'in game' : 'waiting...',
-        join: <Button disabled={cell.status}>Join</Button>,
+        join: (
+          <Button
+            disabled={cell.status}
+            onClick={() => (location.hash = cell.id + `[${user.name}]`)}
+          >
+            Join
+          </Button>
+        ),
       }))
   }
 

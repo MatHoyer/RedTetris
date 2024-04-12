@@ -15,7 +15,7 @@ const App = () => {
     })
     socket.on(events.UPDATE_GAMES_LIST, (games) => {
       const cleanedGames = games.map((game) => {
-        const { createdAt, id, ...gameCleanup } = game
+        const { createdAt, ...gameCleanup } = game
         return gameCleanup
       })
       dispatch(updateGamesList(cleanedGames))
