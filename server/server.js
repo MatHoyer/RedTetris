@@ -20,7 +20,7 @@ async function createMainServer() {
     const p = gameManager.createPlayer(logger, null, socket)
     socket.emit(events.PLAYER_CREATED, { id: p.id })
     socket.on(events.NEW_GAME, (evt) =>
-      createGame(io, socket, gameManager, evt)
+      createGame(io, socket, gameManager, logger, evt)
     )
 
     socket.on('disconnect', () => logger.info(`client left`))

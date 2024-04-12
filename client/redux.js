@@ -17,6 +17,20 @@ const userSlice = createSlice({
 
 export const { changeName } = userSlice.actions
 
+// ================GameList================
+const gameListSlice = createSlice({
+  name: 'gameList',
+  initialState: [],
+  reducers: {
+    updateGameList: (state, action) => {
+      //{ type: 'gameList/updateGameList', payload: Game[] }
+      state = action.payload
+    },
+  },
+})
+
+export const { updateGameList } = gameListSlice.actions
+
 // ================Board================
 const createBoard = () => {
   const returnArray = Array(20)

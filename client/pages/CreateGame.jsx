@@ -2,26 +2,11 @@ import { useEffect, useState } from 'react'
 import { Button } from '../components/Button'
 import { InputRange, InputText } from '../components/Inputs'
 
-import events from '../../events/index.js'
-import { createGame } from '../events/index.js'
+import { events, createNewGame } from '../../events/index.js'
 import socket from '../socket.js'
 
 export const CreateGame = () => {
   const [data, setData] = useState({ name: '', number: 2 })
-
-  useEffect(() => {
-    socket.on(events.GAME_CREATED, (game) => {
-      location.hash = 'lobby'
-    })
-
-    return () => {
-      socket.off(events.GAME_CREATED)
-    }
-  }, [])
-
-  const createGameSocket = (roomName) => {
-    socket.emit(events.NEW_GAME, createGame(roomName))
-  }
 
   const handleChange = (event) => {
     setData({ ...data, [event.target.id]: event.target.value })
@@ -29,7 +14,7 @@ export const CreateGame = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    createGameSocket(data.name)
+    socket.emit(events.NEW_GAME, createNewGame(data.name, data.number))
   }
 
   return (
