@@ -26,19 +26,9 @@ export const Home = () => {
         }}
       >
         <img src="/client/assets/RedTetris-logo.png" alt="Title" />
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <Button
-            style={{ zIndex: 2 }}
-            onClick={() => (location.hash = 'solo')}
-          >
-            Solo
-          </Button>
-          <Button
-            style={{ zIndex: 2 }}
-            onClick={() => (location.hash = 'online')}
-          >
-            Online
-          </Button>
+        <div style={{ display: 'flex', gap: '20px', zIndex: 2 }}>
+          <Button onClick={() => (location.hash = 'solo')}>Solo</Button>
+          <Button onClick={() => (location.hash = 'online')}>Online</Button>
         </div>
       </div>
     </div>

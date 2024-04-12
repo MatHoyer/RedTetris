@@ -1,17 +1,7 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit'
+import { io } from 'socket.io-client'
 
-const createBoard = () => {
-  const returnArray = Array(20)
-    .fill(null)
-    .map(() => Array(10).fill(0))
-
-  returnArray[1][1] = 1
-  returnArray[1][2] = 1
-  returnArray[1][3] = 1
-
-  return returnArray
-}
-
+// ================User================
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -27,6 +17,19 @@ const userSlice = createSlice({
 
 export const { changeName } = userSlice.actions
 
+// ================Board================
+const createBoard = () => {
+  const returnArray = Array(20)
+    .fill(null)
+    .map(() => Array(10).fill(0))
+
+  returnArray[1][1] = 1
+  returnArray[1][2] = 1
+  returnArray[1][3] = 1
+
+  return returnArray
+}
+
 const boardSlice = createSlice({
   name: 'board',
   initialState: createBoard(),
@@ -40,9 +43,10 @@ const boardSlice = createSlice({
 
 export const { updateBoard } = boardSlice.actions
 
+// ================Store================
 export const store = configureStore({
   reducer: {
-    board: boardSlice.reducer,
     user: userSlice.reducer,
+    board: boardSlice.reducer,
   },
 })
