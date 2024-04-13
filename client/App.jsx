@@ -2,10 +2,11 @@ import { Navbar } from './components/NavBar'
 import { Pages } from './pages/Pages'
 import { useDispatch, useSelector } from 'react-redux'
 import { changeName, changeNav, updateGamesList } from './redux'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import socket from './socket'
 import { events } from '../events/index.js'
+import { Text } from './components/Text.jsx'
 
 const App = () => {
   const dispatch = useDispatch()
@@ -48,6 +49,7 @@ const App = () => {
       socket.off(events.UPDATE_GAMES_LIST)
       socket.off(events.PLAYER_UPDATED)
       socket.off(events.JOIN_GAME)
+      socket.off(events.JOIN_GAME_FAILED)
     }
   }, [user])
 

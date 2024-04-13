@@ -33,11 +33,11 @@ export const Online = () => {
       })
       .map((cell) => ({
         name: cell.name,
-        maxPlayers: cell.maxPlayers,
+        maxPlayers: `${cell.players.length}/${cell.maxPlayers}`,
         status: cell.status ? 'in game' : 'waiting...',
         join: (
           <Button
-            disabled={cell.status}
+            disabled={cell.status || cell.maxPlayers <= cell.players.length}
             onClick={() => socket.emit(events.JOIN_GAME, cell.id)}
           >
             Join
