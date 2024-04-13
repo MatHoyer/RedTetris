@@ -1,19 +1,23 @@
 import { Button } from '../components/Button'
 import { Table } from '../components/Table'
 import { useSelector } from 'react-redux'
+import { NotFound } from './NotFound'
 
 export const Lobby = () => {
   const user = useSelector((state) => state.user)
-  const players = [
-    { name: 'player1', owner: true },
-    { name: 'player2', owner: false },
-    { name: 'player3', owner: false },
-    { name: 'player4', owner: false },
-  ]
+  const gamesList = useSelector((state) => state.gamesList)
+  const nav = useSelector((state) => state.nav)
+  const goodGame = gamesList.find((game) => game.id === nav.hash) || {
+    players: [],
+  }
+  const players = goodGame.players
 
+  if (players.length === 0 || players.every((player) => player !== user.name)) {
+    return <NotFound />
+  }
   const playersForTab = players.map((player) => ({
-    name: player.name,
-    status: player.owner ? 'owner' : '',
+    name: player,
+    status: goodGame.owner === player ? 'owner' : '',
   }))
 
   return (

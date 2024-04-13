@@ -1,4 +1,3 @@
-import { useHashNavigation } from '../hooks/useHashNavigation'
 import { CreateGame } from './CreateGame'
 import { Home } from './Home'
 import { Lobby } from './Lobby'
@@ -15,14 +14,15 @@ import { useSelector } from 'react-redux'
  * @returns {JSX.Element} - The page requested
  */
 export const Pages = () => {
+  const nav = useSelector((state) => state.nav)
   const user = useSelector((state) => state.user)
-  const { page, param } = useHashNavigation()
+
   if (user.name === '') return <LoginHub />
-  if (page === 'home') return <Home />
-  if (page === 'settings') return <Settings />
-  if (page === 'solo') return <Tetris />
-  if (page === 'online') return <Online />
-  if (page === 'create-game') return <CreateGame />
-  if (page === 'lobby') return <Lobby />
-  return <NotFound page={page} />
+  if (nav.hash === 'home') return <Home />
+  if (nav.hash === 'settings') return <Settings />
+  if (nav.hash === 'solo') return <Tetris />
+  if (nav.hash === 'online') return <Online />
+  if (nav.hash === 'create-game') return <CreateGame />
+  if (nav.hash === 'lobby' || nav.param === user.name) return <Lobby />
+  return <NotFound page={nav.hash + `[${nav.param}]`} />
 }

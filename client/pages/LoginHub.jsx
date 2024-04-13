@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Button } from '../components/Button'
 import { InputText } from '../components/Inputs'
-import { useDispatch } from 'react-redux'
-import { changeName } from '../redux'
+import socket from '../socket'
+import events from '../../events/index.js'
 
 /**
  *
@@ -10,8 +10,6 @@ import { changeName } from '../redux'
  */
 export const LoginHub = () => {
   const [text, setText] = useState('')
-
-  const dispatch = useDispatch()
 
   return (
     <div
@@ -43,8 +41,8 @@ export const LoginHub = () => {
           <Button onClick={() => (location.hash = 'login')}>Login</Button>
           <Button
             onClick={() => {
-              dispatch(changeName(text))
               location.hash = 'home'
+              socket.emit(events.PLAYER_UPDATED, text)
             }}
           >
             Register

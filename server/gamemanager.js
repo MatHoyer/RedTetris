@@ -10,6 +10,7 @@ export class GameManager {
 
   createNewGame(logger, name, owner, maxPlayers) {
     const game = new Game(logger, name, owner, maxPlayers)
+    game.addPlayer(owner)
     this.games.push(game)
     return game
   }
