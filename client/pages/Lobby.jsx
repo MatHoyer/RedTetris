@@ -30,7 +30,7 @@ export const Lobby = () => {
           gap: '20px',
         }}
       >
-        {user.name === 'player1' && <Button>Start</Button>}
+        {user.name === goodGame.owner && <Button>Start</Button>}
       </div>
       <div
         className="scrollable-div"

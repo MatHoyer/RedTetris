@@ -8,7 +8,7 @@ import {
 export const joinGame = (io, socket, gameManager, id) => {
   const player = gameManager.getPlayerFromSocket(socket)
   const game = gameManager.getGameById(id)
-  game.addPlayer(player)
+  if (game.isPlayerInGame(player)) game.addPlayer(player)
   socket.emit(events.JOIN_GAME, gameToPayload(game))
   updateGameList(io, gameManager)
   broadCastUpdateGameList(socket, gameManager)

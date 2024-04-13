@@ -19,6 +19,10 @@ export class Game {
     this._players.push(player)
   }
 
+  isPlayerInGame(player) {
+    return this._players.every((p) => p.id !== player.id)
+  }
+
   updatePlayerBoards(players) {
     for (const player of players) {
       player.updateBoard()
