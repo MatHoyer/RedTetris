@@ -21,15 +21,10 @@ const App = () => {
     }
 
     const gameCreatedIo = (game) => {
-      console.log('gameCreatedIo', game.id)
       location.hash = game.id + `[${user.name}]`
     }
 
     const updateGamesListIo = (games) => {
-      console.log(
-        'updateGamesListIo',
-        games.map((game) => game.id)
-      )
       const cleanedGames = games.map((game) => {
         const { createdAt, ...gameCleanup } = game
         return gameCleanup
@@ -45,11 +40,14 @@ const App = () => {
     socket.on(events.GAME_CREATED, gameCreatedIo)
     socket.on(events.UPDATE_GAMES_LIST, updateGamesListIo)
     socket.on(events.PLAYER_UPDATED, updatePlayer)
+    socket.on(events.JOIN_GAME, gameCreatedIo)
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
       socket.off(events.GAME_CREATED)
       socket.off(events.UPDATE_GAMES_LIST)
+      socket.off(events.PLAYER_UPDATED)
+      socket.off(events.JOIN_GAME)
     }
   }, [user])
 

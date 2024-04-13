@@ -38,7 +38,7 @@ export const Online = () => {
         join: (
           <Button
             disabled={cell.status}
-            onClick={() => (location.hash = cell.id + `[${user.name}]`)}
+            onClick={() => socket.emit(events.JOIN_GAME, cell.id)}
           >
             Join
           </Button>

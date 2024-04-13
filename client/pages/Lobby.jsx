@@ -13,7 +13,7 @@ export const Lobby = () => {
   const players = goodGame.players
 
   if (players.length === 0 || players.every((player) => player !== user.name)) {
-    return <NotFound />
+    return <NotFound page={nav.hash + `[${nav.param}]`} />
   }
   const playersForTab = players.map((player) => ({
     name: player,

@@ -28,4 +28,8 @@ export class GameManager {
   getPlayerFromId(id) {
     return this.players.find((p) => p.id === id)
   }
+
+  getGameById(id) {
+    return this.games.find((g) => g.id === id)
+  }
 }
