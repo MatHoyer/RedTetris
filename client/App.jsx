@@ -21,10 +21,15 @@ const App = () => {
     }
 
     const gameCreatedIo = (game) => {
+      console.log('gameCreatedIo', game.id)
       location.hash = game.id + `[${user.name}]`
     }
 
     const updateGamesListIo = (games) => {
+      console.log(
+        'updateGamesListIo',
+        games.map((game) => game.id)
+      )
       const cleanedGames = games.map((game) => {
         const { createdAt, ...gameCleanup } = game
         return gameCleanup
