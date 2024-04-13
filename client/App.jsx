@@ -29,7 +29,6 @@ const App = () => {
         const { createdAt, ...gameCleanup } = game
         return gameCleanup
       })
-      console.log('games', cleanedGames)
       dispatch(updateGamesList(cleanedGames))
     }
 

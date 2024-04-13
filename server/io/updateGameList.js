@@ -1,7 +1,6 @@
 import events from '../../events/index.js'
 
 export const gameToPayload = (game) => {
-  console.log('players', game._players)
   return {
     id: game.id,
     createdAt: game.created,
