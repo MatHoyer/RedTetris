@@ -29,6 +29,7 @@ const App = () => {
 
     const updatePlayer = (playerName) => {
       dispatch(changeName(playerName))
+      navigate('/')
     }
 
     socket.on(events.GAME_CREATED, gameCreatedIo)
@@ -41,7 +42,6 @@ const App = () => {
       socket.off(events.UPDATE_GAMES_LIST)
       socket.off(events.PLAYER_UPDATED)
       socket.off(events.JOIN_GAME)
-      socket.off(events.JOIN_GAME_FAILED)
     }
   }, [user])
 

@@ -15,6 +15,10 @@ export class GameManager {
     return game
   }
 
+  removeGame(game) {
+    this.games = this.games.filter((g) => g.id !== game.id)
+  }
+
   createPlayer(logger, name, socket) {
     const player = new Player(logger, name, socket)
     this.players.push(player)

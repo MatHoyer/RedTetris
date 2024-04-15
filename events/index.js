@@ -17,6 +17,7 @@ const GAME_CREATED = 'game_created'
 const GAME_ENDED = 'game_ended'
 const UPDATE_GAMES_LIST = 'update_games_list'
 const JOIN_GAME = 'join_game'
+const LEAVE_GAME = 'leave_game'
 
 const PLAYER_CREATED = 'player_created'
 const PLAYER_UPDATED = 'player_updated'
@@ -27,6 +28,7 @@ export const events = {
   GAME_ENDED,
   UPDATE_GAMES_LIST,
   JOIN_GAME,
+  LEAVE_GAME,
   PLAYER_CREATED,
   PLAYER_UPDATED,
 }

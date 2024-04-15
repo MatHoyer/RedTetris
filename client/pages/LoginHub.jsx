@@ -41,15 +41,13 @@ export const LoginHub = () => {
           <Link to="/login">
             <Button>Login</Button>
           </Link>
-          <Link to="/">
-            <Button
-              onClick={() => {
-                socket.emit(events.PLAYER_UPDATED, text)
-              }}
-            >
-              Register
-            </Button>
-          </Link>
+          <Button
+            onClick={() => {
+              socket.emit(events.PLAYER_UPDATED, text)
+            }}
+          >
+            Register
+          </Button>
         </div>
       </div>
     </div>
