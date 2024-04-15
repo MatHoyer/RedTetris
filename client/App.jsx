@@ -47,9 +47,12 @@ const App = () => {
 
   return (
     <div>
-      <Navbar />
-      <div style={{ height: 'calc(100vh - 65px)' }}>
-        <Pages />
+      <div className="background-image" />
+      <div>
+        <Navbar />
+        <div style={{ height: 'calc(100vh - 65px)' }}>
+          <Pages />
+        </div>
       </div>
     </div>
   )

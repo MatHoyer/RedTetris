@@ -168,17 +168,15 @@ input[type='range']:focus::-webkit-slider-runnable-track {
 }
 
 .background-image {
-  position: relative;
-}
-
-.background-image::before {
-  content: '';
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-  background: url('/client/assets/background.png') no-repeat center center;
+  z-index: -1;
+  background-image: url('/client/assets/background.png');
+  background-repeat: no-repeat;
+  background-position: center center;
   background-size: cover;
   opacity: 0.2;
   filter: blur(5px);

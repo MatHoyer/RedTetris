@@ -15,7 +15,6 @@ export const Home = () => {
         alignItems: 'center',
         height: '100%',
       }}
-      className="background-image"
     >
       <div
         style={{
@@ -27,7 +26,7 @@ export const Home = () => {
         }}
       >
         <img src="/client/assets/RedTetris-logo.png" alt="Title" />
-        <div style={{ display: 'flex', gap: '20px', zIndex: 2 }}>
+        <div style={{ display: 'flex', gap: '20px' }}>
           <Link to="/solo">
             <Button>Solo</Button>
           </Link>

@@ -36,7 +36,12 @@ export const Navbar = () => {
         />
       </Link>
       <FontAwesomeIcon
-        style={{ position: 'absolute', top: '10px', right: '10px' }}
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          cursor: 'pointer',
+        }}
         icon={faCog}
         className="icon"
         onClick={handleClick}

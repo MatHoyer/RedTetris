@@ -20,7 +20,7 @@ export class Game {
   }
 
   isPlayerInGame(player) {
-    return this._players.every((p) => p.id !== player.id)
+    return this._players.every((p) => p.name !== player.name)
   }
 
   updatePlayerBoards(players) {

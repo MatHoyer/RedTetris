@@ -20,7 +20,6 @@ export const LoginHub = () => {
         alignItems: 'center',
         height: '100%',
       }}
-      className="background-image"
     >
       <div
         style={{
@@ -32,7 +31,7 @@ export const LoginHub = () => {
         }}
       >
         <img src="/client/assets/RedTetris-logo.png" alt="Title" />
-        <div style={{ display: 'flex', gap: '20px', zIndex: 2 }}>
+        <div style={{ display: 'flex', gap: '20px' }}>
           <InputText
             id="nameSelect"
             onChange={(e) => setText(e.target.value)}
