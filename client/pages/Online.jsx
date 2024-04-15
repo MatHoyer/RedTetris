@@ -8,6 +8,7 @@ import { Table } from '../components/Table'
 import socket from '../socket'
 import events from '../../events'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 
 export const Online = () => {
   const { toggle: showInGame, setToggle: toggleShowInGame } = useToggle(true)
@@ -92,9 +93,9 @@ export const Online = () => {
           marginBottom: '20px',
         }}
       >
-        <Button onClick={() => (location.hash = '#create-game')}>
-          Create Game
-        </Button>
+        <Link to="/create-game">
+          <Button>Create Game</Button>
+        </Link>
       </div>
     </>
   )

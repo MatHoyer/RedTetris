@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Board } from '../components/Board'
 import { EmptyCell } from '../globals'
 import { Button } from '../components/Button'
+import { Link } from 'react-router-dom'
 // import events from '../../events/index.js'
 // import { createGame } from '../events/index.js'
 
@@ -37,7 +38,9 @@ export const Tetris = () => {
       <Board />
       <div className="controls">
         <h2>Score: {score}</h2>
-        <Button onClick={() => (location.hash = '#home')}>Quit</Button>
+        <Link to="/">
+          <Button>Quit</Button>
+        </Link>
       </div>
     </div>
   )

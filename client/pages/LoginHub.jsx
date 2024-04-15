@@ -3,6 +3,7 @@ import { Button } from '../components/Button'
 import { InputText } from '../components/Inputs'
 import socket from '../socket'
 import events from '../../events/index.js'
+import { Link } from 'react-router-dom'
 
 /**
  *
@@ -38,15 +39,18 @@ export const LoginHub = () => {
             label="Select you're username"
             value={text}
           />
-          <Button onClick={() => (location.hash = 'login')}>Login</Button>
-          <Button
-            onClick={() => {
-              location.hash = 'home'
-              socket.emit(events.PLAYER_UPDATED, text)
-            }}
-          >
-            Register
-          </Button>
+          <Link to="/login">
+            <Button>Login</Button>
+          </Link>
+          <Link to="/">
+            <Button
+              onClick={() => {
+                socket.emit(events.PLAYER_UPDATED, text)
+              }}
+            >
+              Register
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

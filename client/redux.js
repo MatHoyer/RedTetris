@@ -1,23 +1,4 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit'
-import { io } from 'socket.io-client'
-
-// ================Nav================
-const navSlice = createSlice({
-  name: 'nav',
-  initialState: {
-    hash: 'home',
-    param: '',
-  },
-  reducers: {
-    changeNav: (state, action) => {
-      //{ type: 'nav/changeNav', payload: {hash: string, param: string} }
-      state.hash = action.payload.hash
-      state.param = action.payload.param
-    },
-  },
-})
-
-export const { changeNav } = navSlice.actions
 
 // ================User================
 const userSlice = createSlice({
@@ -78,7 +59,6 @@ export const { updateBoard } = boardSlice.actions
 // ================Store================
 export const store = configureStore({
   reducer: {
-    nav: navSlice.reducer,
     user: userSlice.reducer,
     gamesList: gamesListSlice.reducer,
     board: boardSlice.reducer,

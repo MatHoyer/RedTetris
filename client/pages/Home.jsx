@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 
 /**
@@ -27,8 +28,12 @@ export const Home = () => {
       >
         <img src="/client/assets/RedTetris-logo.png" alt="Title" />
         <div style={{ display: 'flex', gap: '20px', zIndex: 2 }}>
-          <Button onClick={() => (location.hash = 'solo')}>Solo</Button>
-          <Button onClick={() => (location.hash = 'online')}>Online</Button>
+          <Link to="/solo">
+            <Button>Solo</Button>
+          </Link>
+          <Link to="/online">
+            <Button>Online</Button>
+          </Link>
         </div>
       </div>
     </div>

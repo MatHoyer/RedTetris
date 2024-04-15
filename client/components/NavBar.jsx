@@ -3,6 +3,7 @@ import { faCog } from '@fortawesome/free-solid-svg-icons'
 import { useState } from 'react'
 import { Button } from './Button'
 import { Settings } from '../pages/Settings'
+import { Link } from 'react-router-dom'
 
 const NavLink = ({ ...props }) => {
   return (
@@ -27,13 +28,13 @@ export const Navbar = () => {
 
   return (
     <nav>
-      <a href="#home">
+      <Link to="/">
         <img
           src="/client/assets/RedTetris-logo.png"
           alt="logo"
           style={{ width: '100px', margin: '10px' }}
         />
-      </a>
+      </Link>
       <FontAwesomeIcon
         style={{ position: 'absolute', top: '10px', right: '10px' }}
         icon={faCog}
