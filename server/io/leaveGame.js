@@ -12,8 +12,11 @@ export const leaveGame = (io, socket, gameManager, id) => {
     return
   }
   game.removePlayer(player)
-  if (game._players.length === 0 || game.owner === player.name) {
+  if (game._players.length === 0) {
     gameManager.removeGame(game)
+  } else if (game.owner.name === player.name) {
+    const newOwner = game._players[0]
+    game.owner = newOwner
   }
   // socket.emit(events.LEAVE_GAME, gameToPayload(game))
   updateGameList(io, gameManager)

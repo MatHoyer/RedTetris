@@ -28,8 +28,12 @@ const App = () => {
     }
 
     const updatePlayer = (playerName) => {
-      dispatch(changeName(playerName))
-      navigate('/')
+      if (playerName !== 'error') {
+        dispatch(changeName(playerName))
+        navigate('/')
+      } else {
+        alert('Name already taken, please choose another one.')
+      }
     }
 
     socket.on(events.GAME_CREATED, gameCreatedIo)

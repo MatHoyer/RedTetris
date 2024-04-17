@@ -36,4 +36,8 @@ export class GameManager {
   getGameById(id) {
     return this.games.find((g) => g.id === id)
   }
+
+  isPlayerNameGood(name) {
+    return this.players.every((player) => player.name !== name)
+  }
 }

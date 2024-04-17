@@ -26,8 +26,7 @@ export const Lobby = () => {
     }
 
     const handleBeforeUnload = (event) => {
-      event.preventDefault()
-      event.returnValue = 'Are you sure you want to leave the page?'
+      leaveRoom()
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
 
