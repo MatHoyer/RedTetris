@@ -7,11 +7,21 @@ import { Text } from './Text'
  */
 const TableLine = ({ lineObj }) => {
   return (
-    <tr>
+    <div
+      style={{
+        gridTemplateColumns: `repeat(${
+          Object.keys(lineObj).length
+        }, minmax(100px, 1fr))`,
+        // backgroundColor: 'var(--secondary-color)',
+      }}
+      className="grid-row"
+    >
       {Object.keys(lineObj).map((key) => (
-        <td key={key}>{lineObj[key]}</td>
+        <div key={key} className="grid-cell">
+          {lineObj[key]}
+        </div>
       ))}
-    </tr>
+    </div>
   )
 }
 
@@ -26,21 +36,29 @@ export const Table = ({ linesObj }) => {
   }
 
   return (
-    <table className="centered-table">
-      <thead style={{ position: 'sticky', top: '0px', zIndex: 3 }}>
-        <tr>
+    <div>
+      <div className="grid-table">
+        <div
+          style={{
+            gridTemplateColumns: `repeat(${
+              Object.keys(linesObj[0]).length
+            }, minmax(200px, 1fr))`,
+            backgroundColor: 'var(--primary-color)',
+          }}
+          className="grid-header"
+        >
           {Object.keys(linesObj[0]).map((key) => (
-            <th key={key} style={{ width: '20%' }}>
+            <div key={key} className="grid-cell">
               {key}
-            </th>
+            </div>
           ))}
-        </tr>
-      </thead>
-      <tbody>
-        {linesObj.map((lineObj, i) => (
-          <TableLine key={i} lineObj={lineObj} />
-        ))}
-      </tbody>
-    </table>
+        </div>
+        <div className="grid-body">
+          {linesObj.map((lineObj, i) => (
+            <TableLine key={i} lineObj={lineObj} />
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }

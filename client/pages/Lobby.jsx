@@ -59,10 +59,19 @@ export const Lobby = () => {
         {user.name === goodGame.owner && <Button>Start</Button>}
       </div>
       <div
-        className="scrollable-div"
-        style={{ maxHeight: '65%', overflowY: 'auto' }}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '20px',
+        }}
       >
-        <Table linesObj={playersForTab} />
+        <div
+          className="scrollable-div"
+          style={{ maxHeight: '65%', overflowY: 'auto' }}
+        >
+          <Table linesObj={playersForTab} />
+        </div>
       </div>
     </>
   )

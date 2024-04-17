@@ -48,7 +48,7 @@ export const Online = () => {
   }
 
   return (
-    <>
+    <div>
       <div
         style={{
           display: 'flex',
@@ -80,10 +80,19 @@ export const Online = () => {
         />
       </div>
       <div
-        className="scrollable-div"
-        style={{ maxHeight: '65%', overflowY: 'auto' }}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignContent: 'center',
+          marginBottom: '20px',
+        }}
       >
-        <Table linesObj={filteredData} />
+        <div
+          className="scrollable-div"
+          style={{ maxHeight: '65%', overflowY: 'auto' }}
+        >
+          <Table linesObj={filteredData} />
+        </div>
       </div>
       <div
         style={{
@@ -97,6 +106,6 @@ export const Online = () => {
           <Button>Create Game</Button>
         </Link>
       </div>
-    </>
+    </div>
   )
 }

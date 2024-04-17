@@ -130,6 +130,7 @@ h1 {
   box-shadow: none;
 }
 
+/* range input */
 input[type='range'] {
   -webkit-appearance: none;
   width: 100%;
@@ -167,6 +168,42 @@ input[type='range']:focus::-webkit-slider-runnable-track {
   background: var(--secondary-color);
 }
 
+/* checkbox input */
+/* Style de base pour la case à cocher */
+input[type='checkbox'] {
+  appearance: none;
+  background-color: #f2f2f2;
+  border: 2px solid #cdd1da;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  height: 20px;
+  width: 20px;
+  transition: all 0.5s ease;
+}
+
+/* Style pour la case à cocher quand elle est cochée */
+input[type='checkbox']:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Style pour le signe de vérification */
+input[type='checkbox']:checked::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* background image tetris */
 .background-image {
   position: absolute;
   top: 0;
@@ -182,9 +219,28 @@ input[type='range']:focus::-webkit-slider-runnable-track {
   filter: blur(5px);
 }
 
+/* settings icons */
 .icon {
   font-size: 24px;
   color: var(--primary-color);
+}
+
+/* tableau */
+.grid-table {
+  display: grid;
+  width: 50%;
+}
+
+.grid-header,
+.grid-row {
+  display: grid;
+  align-items: center;
+}
+
+.grid-cell {
+  /* border: 1px solid #ccc; */
+  padding: 10px;
+  text-align: center;
 }
 
 /* Tetris game css */
