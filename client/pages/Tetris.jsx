@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Board } from '../components/Board'
 import { EmptyCell } from '../globals'
 import { Button } from '../components/Button'
-import { useSocketContext } from '../hooks/useSocketContext.js'
-import events from '../../events/index.js'
-import { createGame } from '../events/index.js'
+import { Link } from 'react-router-dom'
+// import events from '../../events/index.js'
+// import { createGame } from '../events/index.js'
 
 const createBoard = () => {
   const returnArray = Array(20)
@@ -25,11 +25,10 @@ const createBoard = () => {
  * @returns {JSX.Element} - Tetris game
  */
 export const Tetris = () => {
-  const [board, setBoard] = useState(createBoard())
   const [score, setScore] = useState(0)
 
-  const { socket } = useSocketContext()
-  socket.emit(events.NEW_GAME, createGame(''))
+  // const { socket } = useSocketContext()
+  // socket.emit(events.NEW_GAME, createGame(''))
 
   return (
     <div className="app">
@@ -39,7 +38,9 @@ export const Tetris = () => {
       <Board />
       <div className="controls">
         <h2>Score: {score}</h2>
-        <Button onClick={() => (location.hash = '#home')}>Quit</Button>
+        <Link to="/">
+          <Button>Quit</Button>
+        </Link>
       </div>
     </div>
   )

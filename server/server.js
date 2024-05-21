@@ -6,6 +6,10 @@ import { GameManager } from './gamemanager.js'
 import { Logger } from './logger.js'
 import events from '../events/index.js'
 import { createGame } from './io/create-game.js'
+import { updateGameList } from './io/updateGameList.js'
+import { updatePlayerName } from './io/updatePlayer.js'
+import { joinGame } from './io/joinGame.js'
+import { leaveGame } from './io/leaveGame.js'
 
 const port = process.env.APP_PORT || 3004
 
@@ -20,8 +24,18 @@ async function createMainServer() {
     const p = gameManager.createPlayer(logger, null, socket)
     socket.emit(events.PLAYER_CREATED, { id: p.id })
     socket.on(events.NEW_GAME, (evt) =>
-      createGame(io, socket, gameManager, evt)
+      createGame(io, socket, gameManager, logger, evt)
     )
+    socket.on(events.UPDATE_GAMES_LIST, () => updateGameList(io, gameManager))
+    socket.on(events.PLAYER_UPDATED, (evt) =>
+      updatePlayerName(socket, gameManager, evt)
+    )
+    socket.on(events.JOIN_GAME, (evt) => {
+      joinGame(io, socket, gameManager, evt)
+    })
+    socket.on(events.LEAVE_GAME, (evt) => {
+      leaveGame(io, socket, gameManager, evt)
+    })
 
     socket.on('disconnect', () => logger.info(`client left`))
   })

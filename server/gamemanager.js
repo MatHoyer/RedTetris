@@ -10,8 +10,13 @@ export class GameManager {
 
   createNewGame(logger, name, owner, maxPlayers) {
     const game = new Game(logger, name, owner, maxPlayers)
+    game.addPlayer(owner)
     this.games.push(game)
     return game
+  }
+
+  removeGame(game) {
+    this.games = this.games.filter((g) => g.id !== game.id)
   }
 
   createPlayer(logger, name, socket) {
@@ -26,5 +31,13 @@ export class GameManager {
 
   getPlayerFromId(id) {
     return this.players.find((p) => p.id === id)
+  }
+
+  getGameById(id) {
+    return this.games.find((g) => g.id === id)
+  }
+
+  isPlayerNameGood(name) {
+    return this.players.every((player) => player.name !== name)
   }
 }

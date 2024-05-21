@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 
 /**
@@ -14,7 +15,6 @@ export const Home = () => {
         alignItems: 'center',
         height: '100%',
       }}
-      className="background-image"
     >
       <div
         style={{
@@ -27,18 +27,12 @@ export const Home = () => {
       >
         <img src="/client/assets/RedTetris-logo.png" alt="Title" />
         <div style={{ display: 'flex', gap: '20px' }}>
-          <Button
-            style={{ zIndex: 2 }}
-            onClick={() => (location.hash = 'solo')}
-          >
-            Solo
-          </Button>
-          <Button
-            style={{ zIndex: 2 }}
-            onClick={() => (location.hash = 'online')}
-          >
-            Online
-          </Button>
+          <Link to="/solo">
+            <Button>Solo</Button>
+          </Link>
+          <Link to="/online">
+            <Button>Online</Button>
+          </Link>
         </div>
       </div>
     </div>

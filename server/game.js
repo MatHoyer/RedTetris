@@ -19,6 +19,14 @@ export class Game {
     this._players.push(player)
   }
 
+  removePlayer(player) {
+    this._players = this._players.filter((p) => p.name !== player.name)
+  }
+
+  isPlayerInGame(player) {
+    return this._players.every((p) => p.name !== player.name)
+  }
+
   updatePlayerBoards(players) {
     for (const player of players) {
       player.updateBoard()
