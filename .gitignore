@@ -25,3 +25,4 @@ dist-ssr
 
 vite.config.js.timestamp*
 coverage
+.vscode/
