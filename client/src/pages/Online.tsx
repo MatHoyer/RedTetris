@@ -1,11 +1,11 @@
-import { Button } from '../components/Button';
+import { Button } from '../components/Button.tsx';
 // import data from '../assets/data.json'
 import { useEffect, useState } from 'react';
-import { useToggle } from '../hooks/useToggle';
-import { InputCheckbox, InputText } from '../components/Inputs';
-import { Table } from '../components/Table';
+import { useToggle } from '../hooks/useToggle.ts';
+import { InputCheckbox, InputText } from '../components/Inputs.tsx';
+import { Table } from '../components/Table.tsx';
 
-import socket from '../socket';
+import socket from '../socket.ts';
 // import events from '../../events'
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';

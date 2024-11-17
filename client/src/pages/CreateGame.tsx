@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button } from '../components/Button';
-import { InputRange, InputText } from '../components/Inputs';
+import { Button } from '../components/Button.tsx';
+import { InputRange, InputText } from '../components/Inputs.tsx';
 
 import socket from '../socket.js';
 // import { Events } from '../../../events/index';

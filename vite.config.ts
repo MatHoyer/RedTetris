@@ -14,7 +14,6 @@ export default defineConfig({
       input: {
         main: 'client/src/main.jsx',
       },
-
     },
     lib: {
       entry: 'public/index.html',

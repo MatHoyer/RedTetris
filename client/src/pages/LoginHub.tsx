@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '../components/Button';
-import { InputText } from '../components/Inputs';
-import socket from '../socket';
+import { Button } from '../components/Button.tsx';
+import { InputText } from '../components/Inputs.tsx';
+import socket from '../socket.ts';
 // import events from '../../events/index.js'
 import { Link } from 'react-router-dom';
 

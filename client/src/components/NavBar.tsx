@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { useState } from 'react';
-import { Button } from './Button';
-import { Settings } from '../pages/Settings';
+import { Button } from './Button.tsx';
+import { Settings } from '../pages/Settings.tsx';
 import { Link } from 'react-router-dom';
 
 const NavLink = ({ ...props }) => {
