@@ -1,4 +1,4 @@
-import { Text } from './Text'
+import { Text } from './Text.tsx';
 
 /**
  *
@@ -9,9 +9,7 @@ const TableLine = ({ lineObj }) => {
   return (
     <div
       style={{
-        gridTemplateColumns: `repeat(${
-          Object.keys(lineObj).length
-        }, minmax(100px, 1fr))`,
+        gridTemplateColumns: `repeat(${Object.keys(lineObj).length}, minmax(100px, 1fr))`,
         // backgroundColor: 'var(--secondary-color)',
       }}
       className="grid-row"
@@ -22,8 +20,8 @@ const TableLine = ({ lineObj }) => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
 /**
  *
@@ -32,7 +30,7 @@ const TableLine = ({ lineObj }) => {
  */
 export const Table = ({ linesObj }) => {
   if (linesObj === undefined || linesObj === null || linesObj.length === 0) {
-    return <Text>No data</Text>
+    return <Text>No data</Text>;
   }
 
   return (
@@ -40,9 +38,7 @@ export const Table = ({ linesObj }) => {
       <div className="grid-table">
         <div
           style={{
-            gridTemplateColumns: `repeat(${
-              Object.keys(linesObj[0]).length
-            }, minmax(200px, 1fr))`,
+            gridTemplateColumns: `repeat(${Object.keys(linesObj[0]).length}, minmax(200px, 1fr))`,
             backgroundColor: 'var(--primary-color)',
           }}
           className="grid-header"
@@ -60,5 +56,5 @@ export const Table = ({ linesObj }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

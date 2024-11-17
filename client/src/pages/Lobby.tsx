@@ -1,11 +1,11 @@
-import { Button } from '../components/Button';
-import { Table } from '../components/Table';
+import { Button } from '../components/Button.tsx';
+import { Table } from '../components/Table.tsx';
 import { useSelector } from 'react-redux';
-import { NotFound } from './NotFound';
+import { NotFound } from './NotFound.tsx';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
-import socket from '../socket';
+import socket from '../socket.ts';
 // import { Events } from '../../../events/index';
 
 export const Lobby = () => {

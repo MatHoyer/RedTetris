@@ -1,5 +1,5 @@
-import Cell from './Cell'
-import { useSelector } from 'react-redux'
+import Cell from './Cell.tsx';
+import { useSelector } from 'react-redux';
 
 /**
  * Create the board div
@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux'
  * @returns {JSX.Element} - return a div with all the cell of the board
  */
 export const Board = () => {
-  const board = useSelector((state) => state.board)
+  const board = useSelector((state) => state.board);
 
   return (
     <div className="board">
@@ -20,7 +20,7 @@ export const Board = () => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default Board
+export default Board;

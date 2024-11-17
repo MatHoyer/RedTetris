@@ -1,14 +1,31 @@
 {
-    "extends": "../tsconfig.json",
+    "include": [
+        "src/**/*",
+        "../events/index.ts"
+    ],
     "compilerOptions": {
-        "module": "ESNext",
-        "target": "ESNext",
-        "outDir": "dist",
-        "allowJs": true,
+        "allowJs": false,
+        "checkJs": false,
+        "target": "ES2020",
+        "useDefineForClassFields": true,
         "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ]
-    }
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "module": "ESNext",
+        "skipLibCheck": true,
+        /* Bundler mode */
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "noEmit": true,
+        "jsx": "react-jsx",
+        /* Linting */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+    },
 }

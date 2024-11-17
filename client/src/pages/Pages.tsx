@@ -1,12 +1,12 @@
 import { Navigate, Outlet, Route, Routes, useNavigate, useParams } from 'react-router-dom';
-import { CreateGame } from './CreateGame';
-import { Home } from './Home';
-import { Lobby } from './Lobby';
-import { LoginHub } from './LoginHub';
-import { NotFound } from './NotFound';
-import { Online } from './Online';
-import { Settings } from './Settings';
-import { Tetris } from './Tetris';
+import { CreateGame } from './CreateGame.tsx';
+import { Home } from './Home.tsx';
+import { Lobby } from './Lobby.tsx';
+import { LoginHub } from './LoginHub.tsx';
+import { NotFound } from './NotFound.tsx';
+import { Online } from './Online.tsx';
+import { Settings } from './Settings.tsx';
+import { Tetris } from './Tetris.tsx';
 import { useSelector } from 'react-redux';
 
 const PrivateRoute = () => {
