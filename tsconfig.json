@@ -1,0 +1,19 @@
+{
+  "include": [
+    "events/**/*",
+    "client/src/**/*",
+    "server/src/**/*"
+  ],
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "incremental": true
+  }
+}
