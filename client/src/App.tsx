@@ -1,11 +1,9 @@
-import { Navbar } from './components/NavBar';
-import { Pages } from './pages/Pages.jsx';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Navbar } from './components/NavBar';
+import { Pages } from './pages/Pages';
 import { changeName, updateGamesList } from './redux';
-import { useEffect, useState } from 'react';
 
-import socket from './socket';
-import { Text } from './components/Text.jsx';
 import { useNavigate } from 'react-router-dom';
 
 const App = () => {

@@ -1,4 +1,5 @@
-import { Navigate, Outlet, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { CreateGame } from './CreateGame';
 import { Home } from './Home';
 import { Lobby } from './Lobby';
@@ -7,7 +8,6 @@ import { NotFound } from './NotFound';
 import { Online } from './Online';
 import { Settings } from './Settings';
 import { Tetris } from './Tetris';
-import { useSelector } from 'react-redux';
 
 const PrivateRoute = () => {
   const user = useSelector((state) => state.user);
@@ -18,11 +18,6 @@ const PrivateRoute = () => {
   return <Outlet />;
 };
 
-/**
- * Get the right page from hash
- *
- * @returns {JSX.Element} - The page requested
- */
 export const Pages = () => {
   return (
     <Routes>

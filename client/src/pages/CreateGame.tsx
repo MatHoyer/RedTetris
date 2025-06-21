@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../components/Button';
 import { InputRange, InputText } from '../components/Inputs';
-
-import socket from '../socket.js';
-// import { Events } from '../../../events/index';
 
 export const CreateGame = () => {
   const [data, setData] = useState({ name: '', number: 2 });

@@ -1,10 +1,10 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
   define: {
-    'process.env': {}
+    'process.env': {},
   },
   publicDir: 'public',
   root: 'client',
@@ -12,9 +12,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: 'client/src/main.jsx',
+        main: 'client/src/main.tsx',
       },
-
     },
     lib: {
       entry: 'public/index.html',
@@ -22,7 +21,7 @@ export default defineConfig({
     },
     outDir: 'dist',
     emptyOutDir: true,
-    cssMinify: true,
+    // cssMinify: true,
     watch: {
       include: 'client/src/**',
       exclude: 'node_modules/**',

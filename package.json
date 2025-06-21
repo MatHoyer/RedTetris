@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev:server": "APP_PORT=3004 tsx watch --tsconfig server/tsconfig.json server/src/index.ts",
-    "dev:client": "NODE_ENV=development vite build --watch",
+    "dev:server": "tsx watch --tsconfig server/tsconfig.json server/src/index.ts",
+    "dev:client": "vite build --watch",
     "build": "vite build && cp -r client/dist server/public",
     "lint": "eslint . --ext ts,tsx",
     "preview": "vite preview",

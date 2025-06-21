@@ -1,13 +1,7 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom';
 
-/**
- * Not found page
- *
- * @param {page} string - Wanted page
- * @returns {JSX.Element}
- */
-export const NotFound = ({ page }) => {
-  const url = useLocation()
+export const NotFound = () => {
+  const url = useLocation();
 
   return (
     <>
@@ -23,5 +17,5 @@ export const NotFound = ({ page }) => {
         The page: '{url.pathname}' doesn't exist
       </p>
     </>
-  )
-}
+  );
+};
