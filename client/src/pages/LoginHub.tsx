@@ -1,13 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Events } from '../../../events/index';
 import { Button } from '../components/Button';
 import { InputText } from '../components/Inputs';
-// import events from '../../events/index.js'
-import { Link } from 'react-router-dom';
+import socket from '../socket';
 
-/**
- *
- * @returns {JSX.Element}
- */
 export const LoginHub = () => {
   const [text, setText] = useState('');
 
@@ -42,7 +39,7 @@ export const LoginHub = () => {
           </Link>
           <Button
             onClick={() => {
-              // socket.emit(events.PLAYER_UPDATED, text);
+              socket.emit(Events.UPDATE_PLAYER, text);
             }}
           >
             Register

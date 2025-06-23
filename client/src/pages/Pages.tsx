@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import type { RootState } from '../redux';
 import { CreateGame } from './CreateGame';
 import { Home } from './Home';
 import { Lobby } from './Lobby';
@@ -10,10 +11,10 @@ import { Settings } from './Settings';
 import { Tetris } from './Tetris';
 
 const PrivateRoute = () => {
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state: RootState) => state.user);
 
-  if (user.name === '') {
-    return <Navigate to="/login-hub"></Navigate>;
+  if (user.id === '') {
+    return <Navigate to="/login-hub" replace />;
   }
   return <Outlet />;
 };
@@ -33,14 +34,4 @@ export const Pages = () => {
       </Route>
     </Routes>
   );
-  // const nav = useSelector((state) => state.nav)
-
-  // if (user.name === '') return <LoginHub />
-  // if (nav.hash === 'home') return <Home />
-  // if (nav.hash === 'settings') return <Settings />
-  // if (nav.hash === 'solo') return <Tetris />
-  // if (nav.hash === 'online') return <Online />
-  // if (nav.hash === 'create-game') return <CreateGame />
-  // if (nav.hash === 'lobby' || nav.param === user.name) return <Lobby />
-  // return <NotFound page={nav.hash + `[${nav.param}]`} />
 };

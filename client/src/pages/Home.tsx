@@ -1,11 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 
-/**
- * Home page
- *
- * @returns {JSX.Element}
- */
 export const Home = () => {
   return (
     <div

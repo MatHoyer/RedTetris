@@ -1,47 +1,42 @@
-import { Button } from '../components/Button';
-// import data from '../assets/data.json'
 import { useEffect, useState } from 'react';
-import { useToggle } from '../hooks/useToggle';
-import { InputCheckbox, InputText } from '../components/Inputs';
-import { Table } from '../components/Table';
-
-import socket from '../socket';
-// import events from '../../events'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { Events, type TGame } from '../../../events';
+import { Button } from '../components/Button';
+import { InputCheckbox, InputText } from '../components/Inputs';
+import { Table, TableCell, TableLine } from '../components/Table';
+import { useToggle } from '../hooks/useToggle';
+import { updateGamesList, type RootState } from '../redux';
+import socket from '../socket';
 
 export const Online = () => {
   const { toggle: showInGame, setToggle: toggleShowInGame } = useToggle(true);
   const [research, setResearch] = useState('');
-  const gamesList = useSelector((state) => state.gamesList);
-  const user = useSelector((state) => state.user);
+  const gamesList = useSelector((state: RootState) => state.gamesList);
+  const [filteredData, setFilteredData] = useState<TGame[]>([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    // socket.emit(events.UPDATE_GAMES_LIST);
+    socket.emit(Events.UPDATE_GAMES_LIST);
+
+    socket.on(Events.UPDATED_GAME_LIST, ({ sessions }) => {
+      dispatch(updateGamesList(sessions));
+    });
+
+    return () => {
+      socket.off(Events.UPDATED_GAME_LIST);
+    };
   }, []);
 
-  let filteredData = [];
-  if (gamesList) {
-    filteredData = gamesList
-      .filter((cell) => {
-        if (research && !cell.name.toLowerCase().includes(research.toLowerCase())) return false;
-        if (showInGame && cell.status) return false;
+  useEffect(() => {
+    setFilteredData(
+      gamesList.filter((game) => {
+        if (research && !game.admin.toLowerCase().includes(research.toLowerCase())) return false;
+        if (showInGame && game.active) return false;
         return true;
       })
-      .map((cell) => ({
-        name: cell.name,
-        maxPlayers: `${cell.players.length}/${cell.maxPlayers}`,
-        status: cell.status ? 'in game' : 'waiting...',
-        join: (
-          <Button
-            disabled={cell.status || cell.maxPlayers <= cell.players.length}
-            // onClick={() => socket.emit(events.JOIN_GAME, cell.id)}
-          >
-            Join
-          </Button>
-        ),
-      }));
-  }
+    );
+  }, [gamesList, research, showInGame]);
 
   return (
     <div>
@@ -49,22 +44,12 @@ export const Online = () => {
         style={{
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center',
+          alignItems: 'end',
           gap: '20px',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '10px',
-          }}
-        >
-          <InputText id={research} label="research: " onChange={(e) => setResearch(e.target.value)} value={research} />
-        </div>
-        <InputCheckbox id="gameCheck" handleChange={toggleShowInGame} label="Hide game in playing state" />
+        <InputText id={research} label="research: " onChange={(e) => setResearch(e.target.value)} value={research} />
+        <InputCheckbox id="gameCheck" onChange={toggleShowInGame} label="Hide game in playing state" />
       </div>
       <div
         style={{
@@ -74,8 +59,22 @@ export const Online = () => {
           marginBottom: '20px',
         }}
       >
-        <div className="scrollable-div" style={{ maxHeight: '65%', overflowY: 'auto' }}>
-          <Table linesObj={filteredData} />
+        <div className="scrollable-div" style={{ maxHeight: '65%', overflowY: 'auto', width: '100%' }}>
+          <Table header={['id', 'admin', 'players', 'is active', '']}>
+            {filteredData.map((lineData: TGame) => (
+              <TableLine key={lineData.id}>
+                <TableCell>{lineData.id}</TableCell>
+                <TableCell>{lineData.admin}</TableCell>
+                <TableCell>
+                  {lineData.players.length}/{lineData.maxPlayers}
+                </TableCell>
+                <TableCell>{lineData.active}</TableCell>
+                <TableCell>
+                  <Button>yop</Button>
+                </TableCell>
+              </TableLine>
+            ))}
+          </Table>
         </div>
       </div>
       <div

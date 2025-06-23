@@ -5,7 +5,14 @@ export const InputCheckbox: React.FC<{ id: string; label: string } & React.Compo
   label,
 }) => {
   return (
-    <label htmlFor={id} style={{ color: 'white', textAlign: 'center' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignContent: 'center',
+        gap: 2,
+      }}
+    >
       <input
         type="checkbox"
         id={id}
@@ -15,8 +22,10 @@ export const InputCheckbox: React.FC<{ id: string; label: string } & React.Compo
           color: 'var(--primary-color)',
         }}
       />
-      {label}
-    </label>
+      <label htmlFor={id} style={{ color: 'white', textAlign: 'center' }}>
+        {label}
+      </label>
+    </div>
   );
 };
 

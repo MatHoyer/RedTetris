@@ -1,12 +1,13 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faArrowUp,
   faArrowDown,
   faArrowLeft,
   faArrowRight,
-} from '@fortawesome/free-solid-svg-icons'
+  faArrowUp,
+  type IconDefinition,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const Key = ({ element, text }) => {
+const Key: React.FC<{ element: IconDefinition; text: string }> = ({ element, text }) => {
   return (
     <tr style={{ height: '50px' }}>
       <td style={{ paddingRight: '10px' }}>
@@ -14,8 +15,8 @@ const Key = ({ element, text }) => {
       </td>
       <td style={{ userSelect: 'none' }}>{text}</td>
     </tr>
-  )
-}
+  );
+};
 
 export const Settings = () => {
   return (
@@ -32,5 +33,5 @@ export const Settings = () => {
         </table>
       </div>
     </div>
-  )
-}
+  );
+};

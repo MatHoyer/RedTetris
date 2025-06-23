@@ -1,60 +1,58 @@
-import { configureStore, createSlice } from '@reduxjs/toolkit'
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import type { TGame } from '../../events';
 
 // ================User================
 const userSlice = createSlice({
   name: 'user',
   initialState: {
-    name: '',
+    id: '',
   },
   reducers: {
-    changeName: (state, action) => {
-      //{ type: 'user/changeName', payload: string }
-      state.name = action.payload
+    changeId: (state, action) => {
+      state.id = action.payload;
     },
   },
-})
+});
 
-export const { changeName } = userSlice.actions
+export const { changeId } = userSlice.actions;
 
 // ================GameList================
 const gamesListSlice = createSlice({
   name: 'gamesList',
-  initialState: [],
+  initialState: [] as TGame[],
   reducers: {
     updateGamesList: (state, action) => {
-      //{ type: 'gamesList/updateGamesList', payload: Game[] }
-      return action.payload
+      return action.payload;
     },
   },
-})
+});
 
-export const { updateGamesList } = gamesListSlice.actions
+export const { updateGamesList } = gamesListSlice.actions;
 
 // ================Board================
 const createBoard = () => {
   const returnArray = Array(20)
     .fill(null)
-    .map(() => Array(10).fill(0))
+    .map(() => Array(10).fill(0));
 
-  returnArray[1][1] = 1
-  returnArray[1][2] = 1
-  returnArray[1][3] = 1
+  returnArray[1][1] = 1;
+  returnArray[1][2] = 1;
+  returnArray[1][3] = 1;
 
-  return returnArray
-}
+  return returnArray;
+};
 
 const boardSlice = createSlice({
   name: 'board',
   initialState: createBoard(),
   reducers: {
     updateBoard: (state, action) => {
-      //{ type: 'board/updateBoard', payload: int[][] }
-      state = action.payload
+      state = action.payload;
     },
   },
-})
+});
 
-export const { updateBoard } = boardSlice.actions
+export const { updateBoard } = boardSlice.actions;
 
 // ================Store================
 export const store = configureStore({
@@ -63,4 +61,7 @@ export const store = configureStore({
     gamesList: gamesListSlice.reducer,
     board: boardSlice.reducer,
   },
-})
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

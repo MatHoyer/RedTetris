@@ -8,7 +8,9 @@ export class GameManager {
   playerIdCounter: number;
 
   constructor() {
-    this.sessions = {};
+    this.sessions = {
+      1: new GameSession(1, 5, new Player(0, 'server', null)),
+    };
     this.sessionIdCounter = 0;
     this.players = {};
     this.playerIdCounter = 0;

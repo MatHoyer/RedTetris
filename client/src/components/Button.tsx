@@ -1,9 +1,5 @@
-/**
- * Button works like an html button
- *
- * @param {}
- * @returns {JSX.Element}
- */
-export const Button = ({ ...props }) => {
-    return <button className="btn" {...props}></button>;
+import type React from 'react';
+
+export const Button: React.FC<React.ComponentProps<'button'>> = ({ ...props }) => {
+  return <button className="btn" {...props}></button>;
 };

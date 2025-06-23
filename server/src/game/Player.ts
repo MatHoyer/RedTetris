@@ -19,6 +19,10 @@ export class Player {
     this.alive = true;
   }
 
+  updatePlayer(name: string) {
+    this.name = name;
+  }
+
   start() {
     this.stop();
     this.tickInterval = setInterval(this.tick, this.tickRate);

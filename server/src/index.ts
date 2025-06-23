@@ -1,15 +1,16 @@
 import express from 'express';
 import http from 'http';
+import { dirname, join } from 'path';
 import { Server } from 'socket.io';
-import { GameManager } from './game/GameManager.js';
 import {
   ClientToServerEvents,
   Events,
   InterServerEvents,
   ServerToClientEvents,
   SocketData,
+  TGame,
 } from '../../events/index.js';
-import { dirname, join } from 'path';
+import { GameManager } from './game/GameManager.js';
 
 const port = process.env.APP_PORT || 3004;
 
@@ -27,12 +28,34 @@ async function createMainServer() {
     if (!playerId) return;
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
 
+    socket.on(Events.UPDATE_PLAYER, ({ name }) => {
+      const user = gameManager.getPlayer(socket.id);
+      user.updatePlayer(name);
+      socket.emit(Events.PLAYER_UPDATED, { id: user.id, name: user.name });
+    });
+
+    socket.on(Events.UPDATE_GAMES_LIST, () => {
+      const games = gameManager.getGameSessions().map((game) => {
+        const { tetromino: _, ...filteredGame } = game;
+
+        return {
+          ...filteredGame,
+          admin: filteredGame.admin.name,
+          players: filteredGame.players.map((player) => ({
+            id: player.id,
+            name: player.name,
+          })),
+        };
+      });
+      console.log(games);
+      socket.emit(Events.UPDATED_GAME_LIST, { sessions: games as TGame[] });
+    });
+
     socket.on(Events.NEW_GAME, ({ maxPlayers }) => {
       const admin = gameManager.getPlayer(socket.id);
       const sessionId = gameManager.createGameSession(admin, maxPlayers);
       if (!sessionId) {
         socket.emit(Events.ERROR, { message: 'Invalid max players' });
-
         return;
       }
 

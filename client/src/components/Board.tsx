@@ -1,14 +1,8 @@
-import Cell from './Cell'
-import { useSelector } from 'react-redux'
+import { useSelector } from 'react-redux';
+import Cell from './Cell';
 
-/**
- * Create the board div
- *
- * @param {string[][]} currentBoard - the board
- * @returns {JSX.Element} - return a div with all the cell of the board
- */
 export const Board = () => {
-  const board = useSelector((state) => state.board)
+  const board = useSelector((state) => state.board);
 
   return (
     <div className="board">
@@ -20,7 +14,7 @@ export const Board = () => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default Board
+export default Board;
