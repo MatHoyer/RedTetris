@@ -1,31 +1,25 @@
-import { Button } from '../components/Button';
-import { Table } from '../components/Table';
-import { useSelector } from 'react-redux';
-import { NotFound } from './NotFound';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
-
+import { useSelector } from 'react-redux';
+import { useLocation, useParams } from 'react-router-dom';
+import { Events } from '../../../events';
+import { Button } from '../components/Button';
+import { Table, TableCell, TableLine } from '../components/Table';
+import type { RootState } from '../redux';
 import socket from '../socket';
-// import { Events } from '../../../events/index';
+import { NotFound } from './NotFound';
 
 export const Lobby = () => {
   const nav = useParams();
-  const user = useSelector((state) => state.user);
-  const gamesList = useSelector((state) => state.gamesList);
+  const user = useSelector((state: RootState) => state.user);
+  const gamesList = useSelector((state: RootState) => state.gamesList);
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const goodGame = gamesList.find((game) => game.id === nav.roomId) || {
-    players: [],
-  };
-  const players = goodGame.players;
 
   useEffect(() => {
     const leaveRoom = () => {
-      // socket.emit(Events.LEAVE_GAME, nav.roomId);
+      socket.emit(Events.LEAVE_GAME, { gameId: nav.roomId });
     };
 
-    const handleBeforeUnload = (event) => {
+    const handleBeforeUnload = () => {
       leaveRoom();
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -36,13 +30,19 @@ export const Lobby = () => {
     };
   }, [location.pathname]);
 
-  if (players.length === 0 || players.every((player) => player !== user.name)) {
+  if (!nav.roomId) return <NotFound />;
+
+  const goodGame = gamesList.find((game) => game.id === +nav.roomId!);
+  if (!goodGame) return <NotFound />;
+
+  const players = goodGame.players;
+  if (players.length === 0 || players.every((player) => player.id !== user.id)) {
     return <NotFound />;
   }
 
   const playersForTab = players.map((player) => ({
-    name: player,
-    status: goodGame.owner === player ? 'owner' : '',
+    ...player,
+    status: goodGame.admin.id === player.id ? 'owner' : '',
   }));
 
   return (
@@ -55,7 +55,7 @@ export const Lobby = () => {
           gap: '20px',
         }}
       >
-        {user.name === goodGame.owner && <Button>Start</Button>}
+        {user.id === goodGame.admin.id && <Button>Start</Button>}
       </div>
       <div
         style={{
@@ -66,10 +66,16 @@ export const Lobby = () => {
         }}
       >
         <div className="scrollable-div" style={{ maxHeight: '65%', overflowY: 'auto' }}>
-          <Table linesObj={playersForTab} />
+          <Table header={['Name', 'Status']}>
+            {playersForTab.map((player) => (
+              <TableLine key={player.id}>
+                <TableCell>{player.name}</TableCell>
+                <TableCell>{player.status}</TableCell>
+              </TableLine>
+            ))}
+          </Table>
         </div>
       </div>
     </>
   );
-  return <div></div>;
 };

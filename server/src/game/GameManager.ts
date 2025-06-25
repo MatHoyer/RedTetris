@@ -9,7 +9,7 @@ export class GameManager {
 
   constructor() {
     this.sessions = {
-      1: new GameSession(1, 5, new Player(0, 'server', null)),
+      1000: new GameSession(1000, 5, new Player(-1, 'server', null)),
     };
     this.sessionIdCounter = 0;
     this.players = {};
@@ -35,6 +35,7 @@ export class GameManager {
 
   addPlayerToSession(sessionId: number, player: Player) {
     if (!this.sessions[sessionId]) return;
+    if (this.sessions[sessionId].isPlayerInGame(player.id)) return;
     this.sessions[sessionId].addPlayer(player);
   }
 
@@ -70,6 +71,9 @@ export class GameManager {
     const player = this.players[socketId];
     for (const session of Object.values(this.sessions)) {
       session.removePlayer(player.id);
+      if (!session.players.length) {
+        this.endGameSession(session.id);
+      }
     }
     delete this.players[socketId];
     return player.id;

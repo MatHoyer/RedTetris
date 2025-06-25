@@ -39,7 +39,7 @@ export const LoginHub = () => {
           </Link>
           <Button
             onClick={() => {
-              socket.emit(Events.UPDATE_PLAYER, text);
+              socket.emit(Events.UPDATE_PLAYER, { name: text });
             }}
           >
             Register

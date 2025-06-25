@@ -1,6 +1,9 @@
 export type TGame = {
   id: number;
-  admin: string;
+  admin: {
+    id: number;
+    name: string;
+  };
   active: boolean;
   maxPlayers: number;
   players: {
@@ -18,6 +21,7 @@ export enum Events {
   UPDATE_GAMES_LIST = 'update_games_list',
   UPDATED_GAME_LIST = 'updated_game_list',
   JOIN_GAME = 'join_game',
+  GAME_JOINED = 'game_joined',
   LEAVE_GAME = 'leave_game',
   PLAYER_CREATED = 'player_created',
   UPDATE_PLAYER = 'update_player',
@@ -28,7 +32,8 @@ export enum Events {
 }
 
 export interface ServerToClientEvents {
-  [Events.GAME_CREATED]: (evt: { name: string; maxPlayers: number }) => void;
+  [Events.GAME_CREATED]: (evt: { gameId: number }) => void;
+  [Events.GAME_JOINED]: (evt: { gameId: number }) => void;
   [Events.GAME_ENDED]: () => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
@@ -38,7 +43,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  [Events.NEW_GAME]: (evt: { name: string; maxPlayers: number }) => void;
+  [Events.NEW_GAME]: (evt: { maxPlayers: number }) => void;
   [Events.UPDATE_PLAYER]: (evt: { name: string }) => void;
   [Events.UPDATE_GAMES_LIST]: () => void;
   [Events.JOIN_GAME]: (evt: { gameId: number }) => void;

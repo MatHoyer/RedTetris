@@ -1,12 +1,13 @@
+import { Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Events, type TGame } from '../../../events';
 import { Button } from '../components/Button';
 import { InputCheckbox, InputText } from '../components/Inputs';
 import { Table, TableCell, TableLine } from '../components/Table';
 import { useToggle } from '../hooks/useToggle';
-import { updateGamesList, type RootState } from '../redux';
+import { type RootState } from '../redux';
 import socket from '../socket';
 
 export const Online = () => {
@@ -14,24 +15,15 @@ export const Online = () => {
   const [research, setResearch] = useState('');
   const gamesList = useSelector((state: RootState) => state.gamesList);
   const [filteredData, setFilteredData] = useState<TGame[]>([]);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     socket.emit(Events.UPDATE_GAMES_LIST);
-
-    socket.on(Events.UPDATED_GAME_LIST, ({ sessions }) => {
-      dispatch(updateGamesList(sessions));
-    });
-
-    return () => {
-      socket.off(Events.UPDATED_GAME_LIST);
-    };
   }, []);
 
   useEffect(() => {
     setFilteredData(
       gamesList.filter((game) => {
-        if (research && !game.admin.toLowerCase().includes(research.toLowerCase())) return false;
+        if (research && !game.admin.name.toLowerCase().includes(research.toLowerCase())) return false;
         if (showInGame && game.active) return false;
         return true;
       })
@@ -59,22 +51,48 @@ export const Online = () => {
           marginBottom: '20px',
         }}
       >
-        <div className="scrollable-div" style={{ maxHeight: '65%', overflowY: 'auto', width: '100%' }}>
-          <Table header={['id', 'admin', 'players', 'is active', '']}>
-            {filteredData.map((lineData: TGame) => (
-              <TableLine key={lineData.id}>
-                <TableCell>{lineData.id}</TableCell>
-                <TableCell>{lineData.admin}</TableCell>
-                <TableCell>
-                  {lineData.players.length}/{lineData.maxPlayers}
-                </TableCell>
-                <TableCell>{lineData.active}</TableCell>
-                <TableCell>
-                  <Button>yop</Button>
-                </TableCell>
-              </TableLine>
-            ))}
-          </Table>
+        <div
+          className="scrollable-div"
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            maxHeight: '65%',
+            overflowY: 'auto',
+            width: '100%',
+          }}
+        >
+          {filteredData.length ? (
+            <Table header={['id', 'admin', 'players', 'is active', '']}>
+              {filteredData.map((lineData: TGame) => (
+                <TableLine key={lineData.id}>
+                  <TableCell>{lineData.id}</TableCell>
+                  <TableCell>{lineData.admin.name}</TableCell>
+                  <TableCell>
+                    {lineData.players.length}/{lineData.maxPlayers}
+                  </TableCell>
+                  <TableCell>{lineData.active ? <Check /> : <X />}</TableCell>
+                  <TableCell>
+                    <Button
+                      disabled={lineData.players.length === lineData.maxPlayers}
+                      onClick={() => {
+                        socket.emit(Events.JOIN_GAME, { gameId: lineData.id });
+                      }}
+                    >
+                      Join
+                    </Button>
+                  </TableCell>
+                </TableLine>
+              ))}
+            </Table>
+          ) : (
+            <div
+              style={{
+                marginTop: '20px',
+              }}
+            >
+              No games
+            </div>
+          )}
         </div>
       </div>
       <div

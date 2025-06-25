@@ -34,22 +34,28 @@ async function createMainServer() {
       socket.emit(Events.PLAYER_UPDATED, { id: user.id, name: user.name });
     });
 
-    socket.on(Events.UPDATE_GAMES_LIST, () => {
+    socket.on(Events.JOIN_GAME, ({ gameId }) => {
+      const user = gameManager.getPlayer(socket.id);
+      if (!user) return;
+      gameManager.addPlayerToSession(gameId, user);
+    });
+
+    const updateGamesList = () => {
       const games = gameManager.getGameSessions().map((game) => {
         const { tetromino: _, ...filteredGame } = game;
 
         return {
           ...filteredGame,
-          admin: filteredGame.admin.name,
+          admin: { id: filteredGame.admin.id, name: filteredGame.admin.name },
           players: filteredGame.players.map((player) => ({
             id: player.id,
             name: player.name,
           })),
         };
       });
-      console.log(games);
       socket.emit(Events.UPDATED_GAME_LIST, { sessions: games as TGame[] });
-    });
+    };
+    socket.on(Events.UPDATE_GAMES_LIST, updateGamesList);
 
     socket.on(Events.NEW_GAME, ({ maxPlayers }) => {
       const admin = gameManager.getPlayer(socket.id);
@@ -59,13 +65,29 @@ async function createMainServer() {
         return;
       }
 
-      socket.emit(Events.GAME_CREATED, { name: 'New Game', maxPlayers });
+      socket.emit(Events.GAME_CREATED, { gameId: sessionId });
+    });
+
+    socket.on(Events.JOIN_GAME, ({ gameId }) => {
+      const user = gameManager.getPlayer(socket.id);
+      if (!user) return;
+      gameManager.addPlayerToSession(gameId, user);
+      updateGamesList();
+      socket.emit(Events.GAME_JOINED, { gameId });
+    });
+
+    socket.on(Events.LEAVE_GAME, ({ gameId }) => {
+      const user = gameManager.getPlayer(socket.id);
+      if (!user) return;
+      gameManager.removePlayerFromSession(gameId, user.id);
+      updateGamesList();
     });
 
     socket.on('disconnect', () => {
       console.log('Disconnect', socket.id);
       const playerId = gameManager.removePlayer(socket.id);
       if (!playerId) return;
+      updateGamesList();
       io.emit(Events.PLAYER_DISCONNECTED, { id: playerId });
     });
   });

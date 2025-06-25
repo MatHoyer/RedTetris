@@ -30,6 +30,10 @@ export class GameSession {
     return this.players.length >= this.maxPlayers;
   }
 
+  isPlayerInGame(playerId: number) {
+    return this.players.some((p) => p.id === playerId);
+  }
+
   addPlayer(player: Player) {
     if (this.isFull()) return;
     this.players.push(player);
@@ -37,6 +41,9 @@ export class GameSession {
 
   removePlayer(playerId: number) {
     this.players = this.players.filter((p) => p.id !== playerId);
+    if (!this.players.length) {
+      this.end();
+    }
   }
 
   start() {

@@ -5,16 +5,20 @@ import type { TGame } from '../../events';
 const userSlice = createSlice({
   name: 'user',
   initialState: {
-    id: '',
+    id: -1,
+    name: '',
   },
   reducers: {
     changeId: (state, action) => {
       state.id = action.payload;
     },
+    changeName: (state, action) => {
+      state.name = action.payload;
+    },
   },
 });
 
-export const { changeId } = userSlice.actions;
+export const { changeId, changeName } = userSlice.actions;
 
 // ================GameList================
 const gamesListSlice = createSlice({

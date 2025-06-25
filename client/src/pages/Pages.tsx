@@ -13,7 +13,7 @@ import { Tetris } from './Tetris';
 const PrivateRoute = () => {
   const user = useSelector((state: RootState) => state.user);
 
-  if (user.id === '') {
+  if (user.id === -1) {
     return <Navigate to="/login-hub" replace />;
   }
   return <Outlet />;
