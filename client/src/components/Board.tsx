@@ -1,15 +1,16 @@
 import { useSelector } from 'react-redux';
+import type { RootState } from '../redux';
 import Cell from './Cell';
 
 export const Board = () => {
-  const board = useSelector((state) => state.board);
+  const board = useSelector((state: RootState) => state.board);
 
   return (
     <div className="board">
       {board.map((row, rowIndex) => (
         <div className="row" key={`${rowIndex}`}>
           {row.map((cell, colIndex) => (
-            <Cell key={`${rowIndex}-${colIndex}`} type={'c' + cell} />
+            <Cell key={`${rowIndex}-${colIndex}`} type={cell} />
           ))}
         </div>
       ))}

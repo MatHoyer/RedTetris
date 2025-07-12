@@ -7,8 +7,7 @@ import socket from '../socket';
 export const CreateGame = () => {
   const [maxPlayers, setMaxPlayers] = useState(2);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     socket.emit(Events.NEW_GAME, { maxPlayers });
   };
 

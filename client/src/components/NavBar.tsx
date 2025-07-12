@@ -1,13 +1,9 @@
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings } from '../pages/Settings';
 import { Button } from './Button';
-
-const NavLink: React.FC<React.ComponentProps<'a'>> = ({ ...props }) => {
-  return <a className="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4" {...props}></a>;
-};
 
 export const Navbar = () => {
   const [openSettings, setOpenSettings] = useState(false);

@@ -65,6 +65,7 @@ async function createMainServer() {
         return;
       }
 
+      updateGamesList();
       socket.emit(Events.GAME_CREATED, { gameId: sessionId });
     });
 
