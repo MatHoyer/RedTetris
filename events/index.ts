@@ -1,3 +1,5 @@
+import { Board } from '../server/src/game/Board';
+
 export type TGame = {
   id: number;
   admin: {
@@ -20,6 +22,7 @@ export enum Events {
   GAME_ENDED = 'game_ended',
   UPDATE_GAMES_LIST = 'update_games_list',
   UPDATED_GAME_LIST = 'updated_game_list',
+  UPDATED_BOARD = 'updated_board',
   JOIN_GAME = 'join_game',
   GAME_JOINED = 'game_joined',
   GAME_START = 'game_start',
@@ -40,6 +43,7 @@ export interface ServerToClientEvents {
   [Events.GAME_STARTED]: (evt: { gameId: number }) => void;
   [Events.GAME_ENDED]: () => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
+  [Events.UPDATED_BOARD]: (evt: { board: Board['grid'] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
   [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;
   [Events.PLAYER_DISCONNECTED]: (evt: { id: number }) => void;

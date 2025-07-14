@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io';
+import { Events } from '../../../events/index.js';
 import { Board } from './Board.js';
 
 export class Player {
@@ -27,15 +28,16 @@ export class Player {
   }
 
   start() {
+    console.log('start');
     this.stop();
-    this.tickInterval = setInterval(this.tick, this.tickRate);
+    this.alive = true;
+    this.tickInterval = setInterval(() => this.tick(), this.tickRate);
   }
 
   tick() {
-    if (!this.board.moveCurrPieceDown()) {
-      this.alive = false;
-      this.stop();
-    } else this.board.moveCurrPieceDown();
+    console.log('tick', this.board);
+    this.board.moveCurrPieceDown();
+    this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
   }
 
   stop() {

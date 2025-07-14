@@ -66,5 +66,6 @@ export const handleManageGame = (socket: Socket, gameManager: GameManager) => {
     if (!user) return;
     const game = gameManager.getGameSession(gameId);
     game.broadcast(Events.GAME_STARTED, { gameId });
+    game.start();
   });
 };

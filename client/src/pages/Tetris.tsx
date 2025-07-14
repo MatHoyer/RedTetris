@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 import { Events } from '../../../events';
@@ -13,6 +13,12 @@ export const Tetris = () => {
   const nav = useParams();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
+
+  useEffect(() => {
+    socket.on(Events.UPDATED_BOARD, ({ board }) => {
+      console.log(board);
+    });
+  }, []);
 
   if (!nav.roomId) return <NotFound />;
 
