@@ -22,11 +22,24 @@ async function createMainServer() {
   const gameManager = new GameManager();
 
   io.on('connection', (socket) => {
+    const originalSocketEmit = socket.emit.bind(socket);
+
+    // Logger for emit
+    socket.emit = function (event, ...args) {
+      console.log(`[socket.emit]`, event, args);
+      return originalSocketEmit(event, ...args);
+    };
+
     console.log('New connection', socket.id);
     console.log('Number of players:', io.sockets.sockets.size);
     const playerId = gameManager.createNewPlayer(socket.id);
     if (!playerId) return;
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
+
+    // Logger for on
+    socket.onAny((event, ...args) => {
+      console.log(`[socket.on] event: ${event}`, args);
+    });
 
     socket.on(Events.UPDATE_PLAYER, ({ name }) => {
       const user = gameManager.getPlayer(socket.id);

@@ -12,7 +12,6 @@ const App = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
-  const gamesList = useSelector((state: RootState) => state.gamesList);
 
   useEffect(() => {
     socket.on(Events.PLAYER_UPDATED, ({ id, name }: { id: string; name: string }) => {
@@ -39,7 +38,7 @@ const App = () => {
       socket.off(Events.GAME_CREATED);
       socket.off(Events.GAME_JOINED);
     };
-  }, [user, gamesList]);
+  }, []);
 
   return (
     <div>

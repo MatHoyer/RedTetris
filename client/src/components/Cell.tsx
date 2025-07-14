@@ -1,7 +1,7 @@
 import type React from 'react';
-import { Block } from '../globals';
+import type { TCell } from '../globals';
 
-export const Cell: React.FC<{ type: keyof typeof Block }> = ({ type }) => {
+export const Cell: React.FC<{ type: TCell }> = ({ type }) => {
   return <div className={`cell ${type}`} />;
 };
 

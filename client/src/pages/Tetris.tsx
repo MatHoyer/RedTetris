@@ -2,27 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Board } from '../components/Board';
 import { Button } from '../components/Button';
-import { EmptyCell } from '../globals';
-// import events from '../../events/index.js'
-// import { createGame } from '../events/index.js'
-
-const createBoard = () => {
-  const returnArray = Array(20)
-    .fill(null)
-    .map(() => Array(10).fill(EmptyCell));
-
-  returnArray[1][1] = 'cell J';
-  returnArray[1][2] = 'cell J';
-  returnArray[1][3] = 'cell J';
-
-  return returnArray;
-};
 
 export const Tetris = () => {
   const [score, setScore] = useState(0);
-
-  // const { socket } = useSocketContext()
-  // socket.emit(events.NEW_GAME, createGame(''))
 
   return (
     <div className="app">

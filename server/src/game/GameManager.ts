@@ -18,7 +18,7 @@ export class GameManager {
 
   createGameSession(admin: Player, maxPlayers: number) {
     if (maxPlayers < 1 || maxPlayers > 8) return;
-    const sessionId = this.sessionIdCounter++;
+    const sessionId = ++this.sessionIdCounter;
     const session = new GameSession(sessionId, maxPlayers, admin);
     this.sessions[sessionId] = session;
 
@@ -42,6 +42,9 @@ export class GameManager {
   removePlayerFromSession(sessionId: number, playerId: number) {
     if (this.sessions[sessionId]) {
       this.sessions[sessionId].removePlayer(playerId);
+      if (this.sessions[sessionId].players.length === 0) {
+        this.endGameSession(sessionId);
+      }
     }
   }
 

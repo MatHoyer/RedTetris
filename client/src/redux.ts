@@ -1,5 +1,6 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit';
 import type { TGame } from '../../events';
+import { Block, EmptyCell, type TCell } from './globals';
 
 // ================User================
 const userSlice = createSlice({
@@ -37,11 +38,11 @@ export const { updateGamesList } = gamesListSlice.actions;
 const createBoard = () => {
   const returnArray = Array(20)
     .fill(null)
-    .map(() => Array(10).fill(0));
+    .map(() => Array(10).fill(EmptyCell)) as TCell[][];
 
-  returnArray[1][1] = 1;
-  returnArray[1][2] = 1;
-  returnArray[1][3] = 1;
+  returnArray[1][1] = Block.I;
+  returnArray[1][2] = Block.I;
+  returnArray[1][3] = Block.I;
 
   return returnArray;
 };

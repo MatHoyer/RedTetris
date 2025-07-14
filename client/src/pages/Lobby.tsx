@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Events } from '../../../events';
 import { Button } from '../components/Button';
 import { Table, TableCell, TableLine } from '../components/Table';
@@ -10,9 +10,9 @@ import { NotFound } from './NotFound';
 
 export const Lobby = () => {
   const nav = useParams();
+  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
-  const location = useLocation();
 
   useEffect(() => {
     const leaveRoom = () => {
@@ -28,7 +28,7 @@ export const Lobby = () => {
       leaveRoom();
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [location.pathname]);
+  }, []);
 
   if (!nav.roomId) return <NotFound />;
 
@@ -60,6 +60,7 @@ export const Lobby = () => {
       <div
         style={{
           display: 'flex',
+          flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           gap: '20px',
@@ -75,6 +76,7 @@ export const Lobby = () => {
             ))}
           </Table>
         </div>
+        <Button onClick={() => navigate('/online')}>Quit</Button>
       </div>
     </>
   );
