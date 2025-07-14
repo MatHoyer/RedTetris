@@ -56,19 +56,26 @@ h1 {
   background-color: var(--primary-color);
 }
 
-/* Personnalise l'apparence de la barre de défilement */
 .scrollable-div::-webkit-scrollbar {
   width: 10px;
 }
 
-/* Personnalise l'apparence du curseur de la barre de défilement */
 .scrollable-div::-webkit-scrollbar-thumb {
   background-color: var(--primary-color);
 }
 
-/* Personnalise l'apparence de la piste de la barre de défilement */
 .scrollable-div::-webkit-scrollbar-track {
   background: lightgrey;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .btn {
@@ -169,7 +176,6 @@ input[type='range']:focus::-webkit-slider-runnable-track {
 }
 
 /* checkbox input */
-/* Style de base pour la case à cocher */
 input[type='checkbox'] {
   appearance: none;
   background-color: #f2f2f2;
@@ -182,13 +188,11 @@ input[type='checkbox'] {
   transition: all 0.5s ease;
 }
 
-/* Style pour la case à cocher quand elle est cochée */
 input[type='checkbox']:checked {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
 }
 
-/* Style pour le signe de vérification */
 input[type='checkbox']:checked::after {
   content: '';
   display: block;
@@ -223,24 +227,6 @@ input[type='checkbox']:checked::after {
 .icon {
   font-size: 24px;
   color: var(--primary-color);
-}
-
-/* tableau */
-.grid-table {
-  display: grid;
-  width: 50%;
-}
-
-.grid-header,
-.grid-row {
-  display: grid;
-  align-items: center;
-}
-
-.grid-cell {
-  /* border: 1px solid #ccc; */
-  padding: 10px;
-  text-align: center;
 }
 
 /* real table css */

@@ -2,7 +2,9 @@ import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Events } from '../../../events';
 import { Settings } from '../pages/Settings';
+import socket from '../socket';
 import { Button } from './Button';
 
 export const Navbar = () => {
@@ -14,7 +16,7 @@ export const Navbar = () => {
 
   return (
     <nav>
-      <Link to="/">
+      <Link to="/" onClick={() => socket.emit(Events.LEAVE_GAMES)}>
         <img src="/assets/RedTetris-logo.png" alt="logo" style={{ width: '100px', margin: '10px' }} />
       </Link>
       <FontAwesomeIcon

@@ -26,11 +26,11 @@ export const Pages = () => {
       <Route path="*" element={<NotFound />} />
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<Home />} />
-        <Route path="/solo" element={<Tetris />} />
         <Route path="/online" element={<Online />} />
         <Route path="/create-game" element={<CreateGame />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/:roomId/:playerName" element={<Lobby />} />
+        <Route path="/:roomId/:playerName/game" element={<Tetris />} />
       </Route>
     </Routes>
   );

@@ -56,6 +56,13 @@ export class GameSession {
     this.players.forEach((p) => p.stop());
   }
 
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  broadcast(event: string, data: any) {
+    for (const player of this.players) {
+      player.socket?.emit(event, data);
+    }
+  }
+
   toPayload() {
     return {
       id: this.id,

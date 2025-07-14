@@ -25,7 +25,7 @@ export const handleManageGame = (socket: Socket, gameManager: GameManager) => {
     gameManager.addPlayerToSession(gameId, user);
   });
 
-  socket.on(Events.UPDATE_GAMES_LIST, updateGamesList);
+  socket.on(Events.UPDATE_GAMES_LIST, () => updateGamesList(socket, gameManager));
 
   socket.on(Events.NEW_GAME, ({ maxPlayers }) => {
     const admin = gameManager.getPlayer(socket.id);
@@ -52,5 +52,19 @@ export const handleManageGame = (socket: Socket, gameManager: GameManager) => {
     if (!user) return;
     gameManager.removePlayerFromSession(gameId, user.id);
     updateGamesList(socket, gameManager);
+  });
+
+  socket.on(Events.LEAVE_GAMES, () => {
+    const user = gameManager.getPlayer(socket.id);
+    if (!user) return;
+    gameManager.removePlayerFromSessions(socket.id);
+    updateGamesList(socket, gameManager);
+  });
+
+  socket.on(Events.GAME_START, ({ gameId }) => {
+    const user = gameManager.getPlayer(socket.id);
+    if (!user) return;
+    const game = gameManager.getGameSession(gameId);
+    game.broadcast(Events.GAME_STARTED, { gameId });
   });
 };

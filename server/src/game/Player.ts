@@ -1,16 +1,19 @@
+import { Socket } from 'socket.io';
 import { Board } from './Board.js';
 
 export class Player {
   id: number;
   name: string;
   socketId: string | null;
+  socket: Socket | null;
   board: Board;
   tickRate: number;
   tickInterval: NodeJS.Timeout | null;
   alive: boolean;
 
-  constructor(id: number, name: string, socketId: string | null) {
+  constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
     this.socketId = socketId || null;
+    this.socket = socket || null;
     this.id = id;
     this.name = name;
     this.board = new Board();

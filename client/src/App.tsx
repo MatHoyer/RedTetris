@@ -32,6 +32,10 @@ const App = () => {
       navigate(`/${gameId}/${user.id}`);
     });
 
+    socket.on(Events.GAME_STARTED, ({ gameId }: { gameId: number }) => {
+      navigate(`/${gameId}/${user.id}/game`);
+    });
+
     return () => {
       socket.off(Events.PLAYER_UPDATED);
       socket.off(Events.UPDATED_GAME_LIST);

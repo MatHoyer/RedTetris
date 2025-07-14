@@ -14,19 +14,15 @@ export const Lobby = () => {
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
 
-  useEffect(() => {
-    const leaveRoom = () => {
-      socket.emit(Events.LEAVE_GAME, { gameId: nav.roomId });
-    };
+  const leaveRoom = () => {
+    socket.emit(Events.LEAVE_GAMES);
+  };
 
-    const handleBeforeUnload = () => {
-      leaveRoom();
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+  useEffect(() => {
+    window.addEventListener('beforeunload', leaveRoom);
 
     return () => {
-      leaveRoom();
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('beforeunload', leaveRoom);
     };
   }, []);
 
@@ -55,7 +51,9 @@ export const Lobby = () => {
           gap: '20px',
         }}
       >
-        {user.id === goodGame.admin.id && <Button>Start</Button>}
+        {user.id === goodGame.admin.id && (
+          <Button onClick={() => socket.emit(Events.GAME_START, { gameId: goodGame.id })}>Start</Button>
+        )}
       </div>
       <div
         style={{
@@ -76,7 +74,14 @@ export const Lobby = () => {
             ))}
           </Table>
         </div>
-        <Button onClick={() => navigate('/online')}>Quit</Button>
+        <Button
+          onClick={() => {
+            leaveRoom();
+            navigate('/online');
+          }}
+        >
+          Quit
+        </Button>
       </div>
     </>
   );

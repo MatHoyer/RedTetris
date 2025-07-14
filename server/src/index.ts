@@ -10,6 +10,7 @@ import {
   SocketData,
 } from '../../events/index.js';
 import { GameManager } from './game/GameManager.js';
+import { handleGame } from './socket/game.js';
 import { handleManageGame, updateGamesList } from './socket/manageGame.js';
 import { handlePlayerEvents } from './socket/player.js';
 
@@ -25,7 +26,7 @@ async function createMainServer() {
   io.on('connection', (socket) => {
     console.log('New connection', socket.id);
     console.log('Number of players:', io.sockets.sockets.size);
-    const playerId = gameManager.createNewPlayer(socket.id);
+    const playerId = gameManager.createNewPlayer(socket);
     if (!playerId) return;
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
 
@@ -44,6 +45,8 @@ async function createMainServer() {
     handlePlayerEvents(socket, gameManager);
 
     handleManageGame(socket, gameManager);
+
+    handleGame(socket, gameManager);
 
     socket.on('disconnect', () => {
       console.log('Disconnect', socket.id);

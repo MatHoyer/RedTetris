@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import { GameSession } from './GameSession.js';
 import { Player } from './Player.js';
 
@@ -52,16 +53,16 @@ export class GameManager {
     return this.sessions[sessionId];
   }
 
-  createNewPlayer(socketId: string) {
-    if (!socketId) return;
+  createNewPlayer(socket: Socket) {
+    if (!socket.id) return;
 
-    if (this.players[socketId]) {
-      return this.players[socketId].id;
+    if (this.players[socket.id]) {
+      return this.players[socket.id].id;
     }
 
     const playerId = this.playerIdCounter++;
-    const player = new Player(playerId, '', socketId);
-    this.players[socketId] = player;
+    const player = new Player(playerId, '', socket.id, socket);
+    this.players[socket.id] = player;
 
     return playerId;
   }
@@ -70,15 +71,17 @@ export class GameManager {
     return this.players[socketId];
   }
 
-  removePlayer(socketId: string) {
+  removePlayerFromSessions(socketId: string) {
     const player = this.players[socketId];
     for (const session of Object.values(this.sessions)) {
-      session.removePlayer(player.id);
-      if (!session.players.length) {
-        this.endGameSession(session.id);
-      }
+      this.removePlayerFromSession(session.id, player.id);
     }
-    delete this.players[socketId];
     return player.id;
+  }
+
+  removePlayer(socketId: string) {
+    const playerId = this.removePlayerFromSessions(socketId);
+    delete this.players[socketId];
+    return playerId;
   }
 }

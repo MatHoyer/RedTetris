@@ -22,7 +22,10 @@ export enum Events {
   UPDATED_GAME_LIST = 'updated_game_list',
   JOIN_GAME = 'join_game',
   GAME_JOINED = 'game_joined',
+  GAME_START = 'game_start',
+  GAME_STARTED = 'game_started',
   LEAVE_GAME = 'leave_game',
+  LEAVE_GAMES = 'leave_games',
   PLAYER_CREATED = 'player_created',
   UPDATE_PLAYER = 'update_player',
   PLAYER_UPDATED = 'player_updated',
@@ -34,6 +37,7 @@ export enum Events {
 export interface ServerToClientEvents {
   [Events.GAME_CREATED]: (evt: { gameId: number }) => void;
   [Events.GAME_JOINED]: (evt: { gameId: number }) => void;
+  [Events.GAME_STARTED]: (evt: { gameId: number }) => void;
   [Events.GAME_ENDED]: () => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
@@ -44,10 +48,12 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   [Events.NEW_GAME]: (evt: { maxPlayers: number }) => void;
+  [Events.GAME_START]: (evt: { gameId: number }) => void;
   [Events.UPDATE_PLAYER]: (evt: { name: string }) => void;
   [Events.UPDATE_GAMES_LIST]: () => void;
   [Events.JOIN_GAME]: (evt: { gameId: number }) => void;
   [Events.LEAVE_GAME]: (evt: { gameId: number }) => void;
+  [Events.LEAVE_GAMES]: () => void;
 }
 
 export interface InterServerEvents {
