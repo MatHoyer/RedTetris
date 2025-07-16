@@ -287,36 +287,50 @@ input[type='checkbox']:checked::after {
 }
 
 .cell.I {
-  background-color: rgb(80, 227, 230);
-  border: 5px solid rgb(53, 143, 145);
+  background: linear-gradient(to bottom right, rgb(80, 227, 230), rgb(53, 143, 145));
+  border: 4px solid rgb(53, 143, 145);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .cell.J {
-  background-color: rgb(36, 95, 223);
-  border: 5px solid rgb(21, 57, 136);
+  background-color: linear-gradient(to bottom right, rgb(36, 95, 223), rgb(21, 57, 136));
+  border: 4px solid rgb(21, 57, 136);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .cell.L {
-  background-color: rgb(223, 173, 36);
-  border: 5px solid rgb(150, 116, 24);
+  background-color: linear-gradient(to bottom right, rgb(223, 173, 36), rgb(150, 116, 24));
+  border: 4px solid rgb(150, 116, 24);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .cell.O {
-  background-color: rgb(223, 217, 36);
-  border: 5px solid rgb(138, 134, 22);
+  background-color: linear-gradient(to bottom right, rgb(223, 217, 36), rgb(138, 134, 22));
+  border: 4px solid rgb(138, 134, 22);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .cell.S {
-  background-color: rgb(48, 211, 56);
-  border: 5px solid rgb(26, 117, 30);
+  background-color: linear-gradient(to bottom right, rgb(48, 211, 56), rgb(26, 117, 30));
+  border: 4px solid rgb(26, 117, 30);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .cell.T {
-  background-color: rgb(132, 61, 198);
-  border: 5px solid rgb(71, 33, 107);
+  background-color: linear-gradient(to bottom right, rgb(132, 61, 198), rgb(71, 33, 107));
+  border: 4px solid rgb(71, 33, 107);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .cell.Z {
-  background-color: rgb(227, 78, 78);
-  border: 5px solid rgb(126, 43, 43);
+  background-color: linear-gradient(to bottom right, rgb(227, 78, 78), rgb(126, 43, 43));
+  border: 4px solid rgb(126, 43, 43);
+  box-shadow: inset -4px -4px 0px rgba(255, 255, 255, 0.3), inset 4px 4px 0px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
 }

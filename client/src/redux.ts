@@ -1,6 +1,6 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit';
 import type { TGame } from '../../events';
-import { Block, EmptyCell, type TCell } from './globals';
+import { EmptyCell, type TCell } from './globals';
 
 // ================User================
 const userSlice = createSlice({
@@ -40,10 +40,6 @@ const createBoard = () => {
     .fill(null)
     .map(() => Array(10).fill(EmptyCell)) as TCell[][];
 
-  returnArray[1][1] = Block.I;
-  returnArray[1][2] = Block.I;
-  returnArray[1][3] = Block.I;
-
   return returnArray;
 };
 
@@ -52,7 +48,7 @@ const boardSlice = createSlice({
   initialState: createBoard(),
   reducers: {
     updateBoard: (state, action) => {
-      state = action.payload;
+      return action.payload;
     },
   },
 });

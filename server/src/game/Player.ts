@@ -28,14 +28,13 @@ export class Player {
   }
 
   start() {
-    console.log('start');
     this.stop();
     this.alive = true;
+    this.board.setCurrPiece('I');
     this.tickInterval = setInterval(() => this.tick(), this.tickRate);
   }
 
   tick() {
-    console.log('tick', this.board);
     this.board.moveCurrPieceDown();
     this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
   }
