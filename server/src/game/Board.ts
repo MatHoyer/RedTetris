@@ -1,18 +1,28 @@
+import { tetrominoes, TTetromino } from '../../../events/index.js';
 import { Piece } from './Piece.js';
 import { Shapes } from './shapes.js';
 
+const GRID_HEIGHT = 20;
+const GRID_WIDTH = 10;
+
 export class Board {
-  grid: number[][];
+  grid: (TTetromino | 'empty')[][];
   currPiece: Piece | null;
   position: [number, number];
 
   constructor() {
-    this.grid = Array.from({ length: 20 }, () => Array.from<number>({ length: 10 }).fill(0));
+    this.grid = Array.from({ length: GRID_HEIGHT }, () =>
+      Array.from<TTetromino | 'empty'>({ length: GRID_WIDTH }).fill('empty')
+    );
     this.currPiece = null;
     this.position = [0, 0];
   }
 
-  setCurrPiece(tetromino: string) {
+  randomNewPiece() {
+    this.setCurrPiece(tetrominoes[Math.floor(Math.random() * tetrominoes.length)]);
+  }
+
+  setCurrPiece(tetromino: TTetromino) {
     this.currPiece = new Piece(tetromino, Shapes[tetromino]);
     this.position = [0, 4]; // middle of the board at the top
   }
@@ -79,7 +89,7 @@ export class Board {
   canMoveCurrPieceDown() {
     if (!this.currPiece) return false;
     const shape = this.currPiece.getCurrentConfig();
-    if (this.position[0] + shape.length >= 20) return false;
+    if (this.position[0] + shape.length >= GRID_HEIGHT) return false;
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (shape[row][col]) {
@@ -117,7 +127,7 @@ export class Board {
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (shape[row][col]) {
-          this.grid[this.position[0] + row][this.position[1] + col] = 0;
+          this.grid[this.position[0] + row][this.position[1] + col] = 'empty';
         }
       }
     }
@@ -140,7 +150,7 @@ export class Board {
     for (let i = 0; i < shape.length; i++) {
       for (let j = 0; j < shape[i].length; j++) {
         if (shape[i][j]) {
-          this.grid[this.position[0] + i][this.position[1] + j] = 1;
+          this.grid[this.position[0] + i][this.position[1] + j] = this.currPiece.shape;
         }
       }
     }
@@ -148,9 +158,9 @@ export class Board {
 
   checkCompleteRows() {
     for (let i = 0; i < this.grid.length; i++) {
-      if (this.grid[i].every((cell) => cell === 1)) {
+      if (this.grid[i].every((cell) => cell !== 'empty')) {
         this.grid.splice(i, 1);
-        this.grid.unshift(Array.from<number>({ length: 10 }).fill(0));
+        this.grid.unshift(Array.from<TTetromino | 'empty'>({ length: GRID_WIDTH }).fill('empty'));
       }
     }
   }

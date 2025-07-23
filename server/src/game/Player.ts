@@ -30,7 +30,7 @@ export class Player {
   start() {
     this.stop();
     this.alive = true;
-    this.board.setCurrPiece('I');
+    this.board.randomNewPiece();
     this.tickInterval = setInterval(() => this.tick(), this.tickRate);
   }
 

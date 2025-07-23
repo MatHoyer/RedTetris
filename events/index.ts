@@ -14,6 +14,11 @@ export type TGame = {
   }[];
 };
 
+export const tetrominoes = ['I', 'O', 'T', 'J', 'L', 'S', 'Z'] as const;
+export type TTetromino = (typeof tetrominoes)[number];
+
+export type TShape = number[][];
+
 export enum Events {
   NEW_GAME = 'new_game',
   GAME_CREATED = 'game_created',

@@ -1,9 +1,11 @@
-export class Piece {
-  shape: string;
-  currRotIdx: number;
-  configs: number[][][];
+import { TShape, TTetromino } from '../../../events/index.js';
 
-  constructor(shape: string, configs: number[][][]) {
+export class Piece {
+  shape: TTetromino;
+  currRotIdx: number;
+  configs: TShape[];
+
+  constructor(shape: TTetromino, configs: TShape[]) {
     this.shape = shape;
     this.currRotIdx = 0;
     this.configs = configs;

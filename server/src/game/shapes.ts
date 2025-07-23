@@ -1,4 +1,6 @@
-export const Shapes: Record<string, number[][][]> = {
+import { TShape, TTetromino } from '../../../events/index.js';
+
+export const Shapes: Record<TTetromino, TShape[]> = {
   I: [
     [
       [1, 1, 1, 1],

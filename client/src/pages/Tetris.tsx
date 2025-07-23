@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
-import { Events } from '../../../events';
+import { Events, type TTetromino } from '../../../events';
 import { Board } from '../components/Board';
 import { Button } from '../components/Button';
-import { Block, EmptyCell } from '../globals';
+import { EmptyCell } from '../globals';
 import { updateBoard, type RootState } from '../redux';
 import socket from '../socket';
 import { NotFound } from './NotFound';
@@ -17,8 +17,8 @@ export const Tetris = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    socket.on(Events.UPDATED_BOARD, ({ board }: { board: number[][] }) => {
-      const arr = board.map((row) => row.map((cell) => (cell ? Block.I : EmptyCell)));
+    socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty')[][] }) => {
+      const arr = board.map((row) => row.map((cell) => cell ?? EmptyCell));
 
       dispatch(updateBoard(arr));
     });

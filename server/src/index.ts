@@ -30,17 +30,17 @@ async function createMainServer() {
     if (!playerId) return;
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
 
-    // Logger for emit
-    const originalSocketEmit = socket.emit.bind(socket);
-    socket.emit = function (event, ...args) {
-      console.log(`[socket.emit]`, event, args);
-      return originalSocketEmit(event, ...args);
-    };
+    // // Logger for emit
+    // const originalSocketEmit = socket.emit.bind(socket);
+    // socket.emit = function (event, ...args) {
+    //   console.log(`[socket.emit]`, event, args);
+    //   return originalSocketEmit(event, ...args);
+    // };
 
-    // Logger for on
-    socket.onAny((event, ...args) => {
-      console.log(`[socket.on] event: ${event}`, args);
-    });
+    // // Logger for on
+    // socket.onAny((event, ...args) => {
+    //   console.log(`[socket.on] event: ${event}`, args);
+    // });
 
     handlePlayerEvents(socket, gameManager);
 
