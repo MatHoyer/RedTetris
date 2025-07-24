@@ -19,17 +19,23 @@ export class Board {
   }
 
   randomNewPiece() {
-    this.setCurrPiece(tetrominoes[Math.floor(Math.random() * tetrominoes.length)]);
+    return this.setCurrPiece(tetrominoes[Math.floor(Math.random() * tetrominoes.length)]);
   }
 
   setCurrPiece(tetromino: TTetromino) {
     this.currPiece = new Piece(tetromino, Shapes[tetromino]);
-    this.position = [0, 4]; // middle of the board at the top
+    this.position = [0, 4];
+    if (!this.canPlaceCurrPiece({})) {
+      return false;
+    }
+    return true;
   }
 
   moveCurrPieceDown() {
+    this.clear();
     if (this.canMoveCurrPieceDown()) {
       this.moveDown();
+      this.draw();
 
       return true;
     }
@@ -39,61 +45,31 @@ export class Board {
   }
 
   moveHorizontal(direction: 'left' | 'right') {
+    this.clear();
+
     if (direction === 'left') {
       if (this.canMoveHorizontal('left')) {
-        this.clear();
-        this.position[1]--;
-        this.draw();
+        this.moveLeft();
       }
     } else {
       if (this.canMoveHorizontal('right')) {
-        this.clear();
-        this.position[1]++;
-        this.draw();
+        this.moveRight();
       }
     }
+
+    this.draw();
   }
 
-  canMoveHorizontal(direction: 'left' | 'right') {
+  canPlaceCurrPiece({ modX = 0, modY = 0 }: { modX?: 0 | 1; modY?: 0 | 1 | -1 }) {
     if (!this.currPiece) return false;
     const shape = this.currPiece.getCurrentConfig();
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (shape[row][col]) {
-          if (direction === 'left') {
-            if (this.grid[this.position[0] + row][this.position[1] + col - 1]) {
-              return false;
-            }
-          } else {
-            if (this.grid[this.position[0] + row][this.position[1] + col + 1]) {
-              return false;
-            }
+          if (modX && this.position[0] + row + modX >= GRID_HEIGHT) {
+            return false;
           }
-        }
-      }
-    }
-
-    return true;
-  }
-
-  rotateCurrPiece() {
-    if (!this.currPiece) return false;
-    if (this.canRotateCurrPiece()) {
-      this.currPiece.rotate();
-      return true;
-    }
-
-    return false;
-  }
-
-  canMoveCurrPieceDown() {
-    if (!this.currPiece) return false;
-    const shape = this.currPiece.getCurrentConfig();
-    if (this.position[0] + shape.length >= GRID_HEIGHT) return false;
-    for (let row = 0; row < shape.length; row++) {
-      for (let col = 0; col < shape[row].length; col++) {
-        if (shape[row][col]) {
-          if (this.grid[this.position[0] + row + 1][this.position[1] + col]) {
+          if (this.grid[this.position[0] + row + modX][this.position[1] + col + modY] !== 'empty') {
             return false;
           }
         }
@@ -101,6 +77,27 @@ export class Board {
     }
 
     return true;
+  }
+
+  canMoveCurrPieceDown() {
+    return this.canPlaceCurrPiece({
+      modX: 1,
+    });
+  }
+
+  canMoveHorizontal(direction: 'left' | 'right') {
+    return this.canPlaceCurrPiece({ modY: direction === 'left' ? -1 : 1 });
+  }
+
+  rotateCurrPiece() {
+    this.clear();
+    if (this.canRotateCurrPiece()) {
+      this.currPiece!.rotate();
+      return true;
+    }
+
+    this.draw();
+    return false;
   }
 
   canRotateCurrPiece() {
@@ -111,7 +108,7 @@ export class Board {
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (nextConf[row][col]) {
-          if (this.grid[this.position[0] + row][this.position[1] + col]) {
+          if (this.grid[this.position[0] + row][this.position[1] + col] !== 'empty') {
             return false;
           }
         }
@@ -134,13 +131,19 @@ export class Board {
   }
 
   moveDown() {
-    this.clear();
     this.position[0]++;
-    this.draw();
+  }
+
+  moveLeft() {
+    this.position[1]--;
+  }
+  moveRight() {
+    this.position[1]++;
   }
 
   lock() {
     this.draw();
+    this.currPiece = null;
     this.checkCompleteRows();
   }
 

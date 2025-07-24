@@ -14,19 +14,64 @@ export const Tetris = () => {
   const nav = useParams();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
+  const [keys, setKeys] = useState<Record<string, boolean>>({
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+  });
   const dispatch = useDispatch();
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        setKeys((prev) => ({
+          ...prev,
+          [e.key]: true,
+        }));
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        setKeys((prev) => ({
+          ...prev,
+          [e.key]: false,
+        }));
+      }
+    };
+
     socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty')[][] }) => {
       const arr = board.map((row) => row.map((cell) => cell ?? EmptyCell));
 
       dispatch(updateBoard(arr));
     });
 
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
     return () => {
       socket.off(Events.UPDATED_BOARD);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
+
+  useEffect(() => {
+    const emitKeys = () => {
+      for (const [key, value] of Object.entries(keys)) {
+        if (value) {
+          socket.emit(key);
+        }
+      }
+    };
+
+    const interval = setInterval(emitKeys, 50);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [keys]);
 
   if (!nav.roomId) return <NotFound />;
 

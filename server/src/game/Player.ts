@@ -11,6 +11,7 @@ export class Player {
   tickRate: number;
   tickInterval: NodeJS.Timeout | null;
   alive: boolean;
+  handleKeys: Record<string, () => void> | null;
 
   constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
     this.socketId = socketId || null;
@@ -21,6 +22,7 @@ export class Player {
     this.tickRate = 200; // ms
     this.tickInterval = null;
     this.alive = true;
+    this.handleKeys = null;
   }
 
   updatePlayer(name: string) {
@@ -29,17 +31,47 @@ export class Player {
 
   start() {
     this.stop();
+
+    if (!this.socket) return;
+
+    const handleKeysWrapper = (keyFn: () => void) => {
+      keyFn();
+      this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
+    };
+
+    this.handleKeys = {
+      ArrowUp: () => handleKeysWrapper(() => this.board.rotateCurrPiece()),
+      ArrowDown: () => handleKeysWrapper(() => this.board.moveCurrPieceDown()),
+      ArrowLeft: () => handleKeysWrapper(() => this.board.moveHorizontal('left')),
+      ArrowRight: () => handleKeysWrapper(() => this.board.moveHorizontal('right')),
+    };
+
+    for (const [key, fn] of Object.entries(this.handleKeys)) {
+      this.socket.on(key, fn);
+    }
+
     this.alive = true;
     this.board.randomNewPiece();
     this.tickInterval = setInterval(() => this.tick(), this.tickRate);
   }
 
   tick() {
-    this.board.moveCurrPieceDown();
+    const pieceUnlocked = this.board.moveCurrPieceDown();
+    if (!pieceUnlocked) {
+      if (!this.board.randomNewPiece()) {
+        this.alive = false;
+        this.stop();
+      }
+    }
     this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
   }
 
   stop() {
+    if (!this.socket || !this.handleKeys) return;
+
+    for (const [key, fn] of Object.entries(this.handleKeys)) {
+      this.socket.off(key, fn);
+    }
     if (this.tickInterval) clearInterval(this.tickInterval);
   }
 

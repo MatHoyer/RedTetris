@@ -12,6 +12,8 @@ export class Piece {
   }
 
   rotate(clockwise = true) {
+    console.log(this.currRotIdx);
+
     if (clockwise) {
       this.currRotIdx = (this.currRotIdx + 1) % this.configs.length;
     } else {

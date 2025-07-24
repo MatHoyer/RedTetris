@@ -38,6 +38,11 @@ export enum Events {
   PLAYER_DISCONNECTED = 'player_disconnected',
   PING = 'ping',
   ERROR = 'error',
+
+  KEY_ROTATE = 'ArrowUp',
+  KEY_DOWN = 'ArrowDown',
+  KEY_LEFT = 'ArrowLeft',
+  KEY_RIGHT = 'ArrowRight',
 }
 
 export interface ServerToClientEvents {
@@ -61,6 +66,11 @@ export interface ClientToServerEvents {
   [Events.JOIN_GAME]: (evt: { gameId: number }) => void;
   [Events.LEAVE_GAME]: (evt: { gameId: number }) => void;
   [Events.LEAVE_GAMES]: () => void;
+
+  [Events.KEY_ROTATE]: () => void;
+  [Events.KEY_DOWN]: () => void;
+  [Events.KEY_LEFT]: () => void;
+  [Events.KEY_RIGHT]: () => void;
 }
 
 export interface InterServerEvents {
