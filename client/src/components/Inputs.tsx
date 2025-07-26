@@ -3,6 +3,7 @@ import type React from 'react';
 export const InputCheckbox: React.FC<{ id: string; label: string } & React.ComponentProps<'input'>> = ({
   id,
   label,
+  ...props
 }) => {
   return (
     <div
@@ -21,6 +22,7 @@ export const InputCheckbox: React.FC<{ id: string; label: string } & React.Compo
           marginRight: '10px',
           color: 'var(--primary-color)',
         }}
+        {...props}
       />
       <label htmlFor={id} style={{ color: 'white', textAlign: 'center' }}>
         {label}

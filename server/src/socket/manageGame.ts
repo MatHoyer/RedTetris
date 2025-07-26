@@ -1,24 +1,12 @@
 import { Server, Socket } from 'socket.io';
-import { Events, TGame } from '../../../events/index.js';
+import { Events } from '../../../events/index.js';
 import { GameManager } from '../game/GameManager.js';
 
-export const updateGamesList = (sendTo: Socket | Server, gameManager: GameManager) => {
-  const games = gameManager.getGameSessions().map((game) => {
-    const { tetromino: _, ...filteredGame } = game;
-
-    return {
-      ...filteredGame,
-      admin: { id: filteredGame.admin.id, name: filteredGame.admin.name },
-      players: filteredGame.players.map((player) => ({
-        id: player.id,
-        name: player.name,
-      })),
-    };
-  });
-  sendTo.emit(Events.UPDATED_GAME_LIST, { sessions: games as TGame[] });
-};
-
-export const handleManageGame = (socket: Socket, gameManager: GameManager) => {
+export const handleManageGame = (
+  socket: Socket,
+  gameManager: GameManager,
+  updateGamesList: (sendTo: Socket | Server, gameManager: GameManager) => void
+) => {
   socket.on(Events.JOIN_GAME, ({ gameId }) => {
     const user = gameManager.getPlayer(socket.id);
     if (!user) return;
@@ -67,5 +55,6 @@ export const handleManageGame = (socket: Socket, gameManager: GameManager) => {
     const game = gameManager.getGameSession(gameId);
     game.broadcast(Events.GAME_STARTED, { gameId });
     game.start();
+    updateGamesList(socket, gameManager);
   });
 };

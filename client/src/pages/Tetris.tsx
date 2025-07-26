@@ -59,6 +59,8 @@ export const Tetris = () => {
 
     return () => {
       socket.off(Events.UPDATED_BOARD);
+      socket.off(Events.UPDATED_SCORE);
+      socket.off(Events.GAME_ENDED);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
     };

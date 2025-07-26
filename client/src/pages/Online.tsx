@@ -30,6 +30,10 @@ export const Online = () => {
     );
   }, [gamesList, research, showInGame]);
 
+  useEffect(() => {
+    console.log(showInGame);
+  }, [showInGame]);
+
   return (
     <div>
       <div
@@ -41,7 +45,7 @@ export const Online = () => {
         }}
       >
         <InputText id={research} label="research: " onChange={(e) => setResearch(e.target.value)} value={research} />
-        <InputCheckbox id="gameCheck" onChange={toggleShowInGame} label="Hide game in playing state" />
+        <InputCheckbox id="gameCheck" onChange={() => toggleShowInGame()} label="Hide game in playing state" />
       </div>
       <div
         style={{
@@ -73,10 +77,14 @@ export const Online = () => {
                   <TableCell>{lineData.active ? <Check /> : <X />}</TableCell>
                   <TableCell>
                     <Button
-                      disabled={lineData.players.length === lineData.maxPlayers}
-                      onClick={() => {
-                        socket.emit(Events.JOIN_GAME, { gameId: lineData.id });
-                      }}
+                      disabled={lineData.players.length === lineData.maxPlayers || lineData.active}
+                      onClick={
+                        lineData.active
+                          ? undefined
+                          : () => {
+                              socket.emit(Events.JOIN_GAME, { gameId: lineData.id });
+                            }
+                      }
                     >
                       Join
                     </Button>
