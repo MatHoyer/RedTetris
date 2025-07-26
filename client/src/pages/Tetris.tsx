@@ -47,6 +47,9 @@ export const Tetris = () => {
 
       dispatch(updateBoard(arr));
     });
+    socket.on(Events.UPDATED_SCORE, ({ score }: { score: number }) => {
+      setScore(score);
+    });
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
       console.log(status);
     });

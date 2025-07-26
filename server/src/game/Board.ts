@@ -9,17 +9,21 @@ export class Board {
   grid: (TTetromino | 'empty')[][];
   currPiece: Piece | null;
   position: [number, number];
+  updateScore: (addScore: number) => void;
 
-  constructor() {
+  constructor(updateScore?: (addScore: number) => void) {
     this.grid = Array.from({ length: GRID_HEIGHT }, () =>
       Array.from<TTetromino | 'empty'>({ length: GRID_WIDTH }).fill('empty')
     );
     this.currPiece = null;
     this.position = [0, 0];
+    this.updateScore = updateScore || (() => {});
   }
 
   randomNewPiece() {
-    return this.setCurrPiece(tetrominoes[Math.floor(Math.random() * tetrominoes.length)]);
+    const canPlace = this.setCurrPiece(tetrominoes[Math.floor(Math.random() * tetrominoes.length)]);
+    if (canPlace) this.draw();
+    return canPlace;
   }
 
   setCurrPiece(tetromino: TTetromino) {
@@ -36,6 +40,7 @@ export class Board {
     if (this.canMoveCurrPieceDown()) {
       this.moveDown();
       this.draw();
+      this.updateScore(1);
 
       return true;
     }
@@ -48,6 +53,7 @@ export class Board {
     this.clear();
     while (this.canMoveCurrPieceDown()) {
       this.moveDown();
+      this.updateScore(2);
     }
     this.lock();
   }
@@ -170,6 +176,7 @@ export class Board {
       if (this.grid[i].every((cell) => cell !== 'empty')) {
         this.grid.splice(i, 1);
         this.grid.unshift(Array.from<TTetromino | 'empty'>({ length: GRID_WIDTH }).fill('empty'));
+        this.updateScore(100);
       }
     }
   }

@@ -11,6 +11,7 @@ export class Player {
   tickRate: number;
   tickInterval: NodeJS.Timeout | null;
   alive: boolean;
+  score: number;
   handleKeys: Record<string, () => void> | null;
 
   constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
@@ -19,9 +20,10 @@ export class Player {
     this.id = id;
     this.name = name;
     this.board = new Board();
-    this.tickRate = 200; // ms
+    this.tickRate = 800; // ms
     this.tickInterval = null;
     this.alive = true;
+    this.score = 0;
     this.handleKeys = null;
   }
 
@@ -29,12 +31,18 @@ export class Player {
     this.name = name;
   }
 
+  updateScore(addScore: number) {
+    this.score += addScore;
+  }
+
   start() {
     this.stop();
-    this.board = new Board();
-    this.sendBoard();
-
     if (!this.socket) return;
+
+    this.score = 0;
+    this.board = new Board(this.updateScore.bind(this));
+    this.board.randomNewPiece();
+    this.sendBoard();
 
     const handleKeysWrapper = (keyFn: () => void) => {
       keyFn();
@@ -54,7 +62,6 @@ export class Player {
     }
 
     this.alive = true;
-    this.board.randomNewPiece();
     this.tickInterval = setInterval(() => this.tick(), this.tickRate);
   }
 
@@ -67,6 +74,7 @@ export class Player {
       }
     }
     this.sendBoard();
+    this.sendScore();
   }
 
   stop() {
@@ -82,6 +90,10 @@ export class Player {
 
   sendBoard() {
     this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
+  }
+
+  sendScore() {
+    this.socket?.emit(Events.UPDATED_SCORE, { score: this.score });
   }
 
   toPayload() {

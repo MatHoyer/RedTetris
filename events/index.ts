@@ -26,6 +26,7 @@ export enum Events {
   UPDATE_GAMES_LIST = 'update_games_list',
   UPDATED_GAME_LIST = 'updated_game_list',
   UPDATED_BOARD = 'updated_board',
+  UPDATED_SCORE = 'updated_score',
   JOIN_GAME = 'join_game',
   GAME_JOINED = 'game_joined',
   GAME_START = 'game_start',
@@ -52,6 +53,7 @@ export interface ServerToClientEvents {
   [Events.GAME_ENDED]: (evt: { status: 'win' | 'loose' }) => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
   [Events.UPDATED_BOARD]: (evt: { board: number[][] }) => void;
+  [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
   [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;
   [Events.PLAYER_DISCONNECTED]: (evt: { id: number }) => void;
