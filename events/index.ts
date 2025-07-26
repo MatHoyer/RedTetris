@@ -49,7 +49,7 @@ export interface ServerToClientEvents {
   [Events.GAME_CREATED]: (evt: { gameId: number }) => void;
   [Events.GAME_JOINED]: (evt: { gameId: number }) => void;
   [Events.GAME_STARTED]: (evt: { gameId: number }) => void;
-  [Events.GAME_ENDED]: () => void;
+  [Events.GAME_ENDED]: (evt: { status: 'win' | 'loose' }) => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
   [Events.UPDATED_BOARD]: (evt: { board: number[][] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;

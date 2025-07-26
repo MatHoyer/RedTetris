@@ -31,15 +31,18 @@ export class Player {
 
   start() {
     this.stop();
+    this.board = new Board();
+    this.sendBoard();
 
     if (!this.socket) return;
 
     const handleKeysWrapper = (keyFn: () => void) => {
       keyFn();
-      this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
+      this.sendBoard();
     };
 
     this.handleKeys = {
+      ' ': () => handleKeysWrapper(() => this.board.hardMoveDown()),
       ArrowUp: () => handleKeysWrapper(() => this.board.rotateCurrPiece()),
       ArrowDown: () => handleKeysWrapper(() => this.board.moveCurrPieceDown()),
       ArrowLeft: () => handleKeysWrapper(() => this.board.moveHorizontal('left')),
@@ -63,7 +66,7 @@ export class Player {
         this.stop();
       }
     }
-    this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
+    this.sendBoard();
   }
 
   stop() {
@@ -73,6 +76,12 @@ export class Player {
       this.socket.off(key, fn);
     }
     if (this.tickInterval) clearInterval(this.tickInterval);
+
+    this.socket.emit(Events.GAME_ENDED, { status: 'loose' });
+  }
+
+  sendBoard() {
+    this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
   }
 
   toPayload() {

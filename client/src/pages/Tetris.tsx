@@ -15,7 +15,6 @@ export const Tetris = () => {
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
   const [keys, setKeys] = useState<Record<string, boolean>>({
-    ArrowUp: false,
     ArrowDown: false,
     ArrowLeft: false,
     ArrowRight: false,
@@ -25,7 +24,7 @@ export const Tetris = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      if (['ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         setKeys((prev) => ({
           ...prev,
           [e.key]: true,
@@ -33,11 +32,13 @@ export const Tetris = () => {
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      if (['ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         setKeys((prev) => ({
           ...prev,
           [e.key]: false,
         }));
+      } else if (['ArrowUp', ' '].includes(e.key)) {
+        socket.emit(e.key);
       }
     };
 
@@ -45,6 +46,9 @@ export const Tetris = () => {
       const arr = board.map((row) => row.map((cell) => cell ?? EmptyCell));
 
       dispatch(updateBoard(arr));
+    });
+    socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
+      console.log(status);
     });
 
     document.addEventListener('keydown', handleKeyDown);

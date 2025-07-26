@@ -44,6 +44,14 @@ export class Board {
     return false;
   }
 
+  hardMoveDown() {
+    this.clear();
+    while (this.canMoveCurrPieceDown()) {
+      this.moveDown();
+    }
+    this.lock();
+  }
+
   moveHorizontal(direction: 'left' | 'right') {
     this.clear();
 
@@ -93,11 +101,9 @@ export class Board {
     this.clear();
     if (this.canRotateCurrPiece()) {
       this.currPiece!.rotate();
-      return true;
     }
 
     this.draw();
-    return false;
   }
 
   canRotateCurrPiece() {
