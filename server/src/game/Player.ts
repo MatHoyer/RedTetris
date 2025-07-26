@@ -1,6 +1,8 @@
 import { Socket } from 'socket.io';
 import { Events } from '../../../events/index.js';
 import { Board } from './Board.js';
+import { Tetrominos } from './Tetrominos.js';
+import { Shapes } from './shapes.js';
 
 export class Player {
   id: number;
@@ -13,6 +15,8 @@ export class Player {
   alive: boolean;
   score: number;
   handleKeys: Record<string, () => void> | null;
+  bag: Tetrominos;
+  bagIndex: number;
 
   constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
     this.socketId = socketId || null;
@@ -25,6 +29,8 @@ export class Player {
     this.alive = true;
     this.score = 0;
     this.handleKeys = null;
+    this.bag = new Tetrominos();
+    this.bagIndex = 0;
   }
 
   updatePlayer(name: string) {
@@ -35,13 +41,22 @@ export class Player {
     this.score += addScore;
   }
 
-  start() {
+  handleNextPiece() {
+    const { current, next } = this.bag.getPiece(this.bagIndex);
+    this.socket?.emit(Events.UPDATED_NEXT_PIECE, { nextPiece: next, nextPieceShape: Shapes[next][0] });
+    this.bagIndex++;
+    return this.board.setCurrPiece(current);
+  }
+
+  start(bag: Tetrominos) {
     this.stop();
     if (!this.socket) return;
 
     this.score = 0;
+    this.bagIndex = 0;
+    this.bag = bag;
     this.board = new Board(this.updateScore.bind(this));
-    this.board.randomNewPiece();
+    this.handleNextPiece();
     this.sendBoard();
 
     const handleKeysWrapper = (keyFn: () => void) => {
@@ -68,7 +83,7 @@ export class Player {
   tick() {
     const pieceUnlocked = this.board.moveCurrPieceDown();
     if (!pieceUnlocked) {
-      if (!this.board.randomNewPiece()) {
+      if (!this.handleNextPiece()) {
         this.alive = false;
         this.stop();
       }

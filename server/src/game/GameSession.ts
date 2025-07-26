@@ -48,7 +48,7 @@ export class GameSession {
 
   start() {
     this.active = true;
-    this.players.forEach((p) => p.start());
+    this.players.forEach((p) => p.start(this.tetromino));
   }
 
   end() {

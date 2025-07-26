@@ -1,4 +1,4 @@
-import { tetrominoes, TTetromino } from '../../../events/index.js';
+import { TTetromino } from '../../../events/index.js';
 import { Piece } from './Piece.js';
 import { Shapes } from './shapes.js';
 
@@ -20,19 +20,12 @@ export class Board {
     this.updateScore = updateScore || (() => {});
   }
 
-  randomNewPiece() {
-    const canPlace = this.setCurrPiece(tetrominoes[Math.floor(Math.random() * tetrominoes.length)]);
-    if (canPlace) this.draw();
-    return canPlace;
-  }
-
   setCurrPiece(tetromino: TTetromino) {
     this.currPiece = new Piece(tetromino, Shapes[tetromino]);
     this.position = [0, 4];
-    if (!this.canPlaceCurrPiece({})) {
-      return false;
-    }
-    return true;
+    const canPlace = this.canPlaceCurrPiece({});
+    if (canPlace) this.draw();
+    return canPlace;
   }
 
   moveCurrPieceDown() {

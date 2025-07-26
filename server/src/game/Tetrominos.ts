@@ -1,36 +1,27 @@
+import { tetrominoes, TTetromino } from '../../../events/index.js';
+
 /**
  * https://en.wikipedia.org/wiki/Tetromino
  */
 export class Tetrominos {
-  bag: string[];
+  bag: TTetromino[];
 
   constructor() {
     this.bag = [];
     this.refillBag();
+    this.refillBag();
   }
 
   refillBag() {
-    const pieces = ['I', 'O', 'T', 'J', 'L', 'S', 'Z'];
-    this.bag = this.shuffle(pieces);
+    const newPiece = tetrominoes[Math.floor(Math.random() * tetrominoes.length)];
+    this.bag.push(newPiece);
   }
 
-  shuffle(array: string[]) {
-    let currentIndex = array.length;
-
-    while (currentIndex !== 0) {
-      const randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-      [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-    }
-
-    return array;
-  }
-
-  getNextPiece() {
-    if (this.bag.length === 0) {
+  getPiece(index: number) {
+    if (index === this.bag.length - 2) {
       this.refillBag();
     }
 
-    return this.bag.pop();
+    return { current: this.bag[index], next: this.bag[index + 1] };
   }
 }

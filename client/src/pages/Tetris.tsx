@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
-import { Events, type TTetromino } from '../../../events';
+import { Events, type TShape, type TTetromino } from '../../../events';
 import { Board } from '../components/Board';
 import { Button } from '../components/Button';
-import { EmptyCell } from '../globals';
+import Cell from '../components/Cell';
+import { EmptyCell, type TCell } from '../globals';
 import { updateBoard, type RootState } from '../redux';
 import socket from '../socket';
 import { NotFound } from './NotFound';
 
 export const Tetris = () => {
   const [score, setScore] = useState(0);
+  const [nextPiece, setNextPiece] = useState<{ nextPiece: TTetromino | 'empty'; nextPieceShape: TShape }>({
+    nextPiece: 'empty',
+    nextPieceShape: [],
+  });
   const nav = useParams();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
@@ -50,6 +55,13 @@ export const Tetris = () => {
     socket.on(Events.UPDATED_SCORE, ({ score }: { score: number }) => {
       setScore(score);
     });
+    socket.on(
+      Events.UPDATED_NEXT_PIECE,
+      ({ nextPiece, nextPieceShape }: { nextPiece: TTetromino; nextPieceShape: TShape }) => {
+        console.log(nextPiece, nextPieceShape);
+        setNextPiece({ nextPiece, nextPieceShape });
+      }
+    );
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
       console.log(status);
     });
@@ -60,6 +72,7 @@ export const Tetris = () => {
     return () => {
       socket.off(Events.UPDATED_BOARD);
       socket.off(Events.UPDATED_SCORE);
+      socket.off(Events.UPDATED_NEXT_PIECE);
       socket.off(Events.GAME_ENDED);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
@@ -98,6 +111,28 @@ export const Tetris = () => {
       <Board />
       <div className="controls">
         <h2>Score: {score}</h2>
+        <div className="board">
+          {Array.from({ length: 4 }).map((_, rowIndex) => (
+            <div className="row" key={`${rowIndex}`}>
+              {Array.from({ length: 4 }).map((_, colIndex) => {
+                if (
+                  nextPiece.nextPieceShape.length > rowIndex &&
+                  nextPiece.nextPieceShape[rowIndex].length > colIndex
+                ) {
+                  return (
+                    <Cell
+                      key={`${rowIndex}-${colIndex}`}
+                      type={
+                        nextPiece.nextPieceShape[rowIndex][colIndex] === 1 ? (nextPiece.nextPiece as TCell) : EmptyCell
+                      }
+                    />
+                  );
+                }
+                return <Cell key={`${rowIndex}-${colIndex}`} type={EmptyCell} />;
+              })}
+            </div>
+          ))}
+        </div>
         <Link to="/" onClick={() => socket.emit(Events.LEAVE_GAMES)}>
           <Button>Quit</Button>
         </Link>
