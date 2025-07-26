@@ -7,6 +7,11 @@ import socket from '../socket';
 export const LoginHub = () => {
   const [text, setText] = useState('');
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    socket.emit(Events.UPDATE_PLAYER, { name: text });
+  };
+
   return (
     <div
       style={{
@@ -26,21 +31,25 @@ export const LoginHub = () => {
         }}
       >
         <img src="/assets/RedTetris-logo.png" alt="Title" />
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <InputText
-            id="nameSelect"
-            onChange={(e) => setText(e.target.value)}
-            label="Select you're username"
-            value={text}
-          />
-          <Button
-            onClick={() => {
-              socket.emit(Events.UPDATE_PLAYER, { name: text });
-            }}
-          >
-            Register
-          </Button>
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <InputText
+              id="nameSelect"
+              onChange={(e) => setText(e.target.value)}
+              label="Select you're username"
+              value={text}
+              autoFocus
+            />
+            <Button
+              type="submit"
+              onClick={() => {
+                socket.emit(Events.UPDATE_PLAYER, { name: text });
+              }}
+            >
+              Register
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

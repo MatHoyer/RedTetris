@@ -42,9 +42,12 @@ export class GameManager {
 
   removePlayerFromSession(sessionId: number, playerId: number) {
     if (this.sessions[sessionId]) {
+      const isAdmin = this.sessions[sessionId].admin.id === playerId;
       this.sessions[sessionId].removePlayer(playerId);
       if (this.sessions[sessionId].players.length === 0) {
         this.endGameSession(sessionId);
+      } else if (isAdmin) {
+        this.sessions[sessionId].admin = this.sessions[sessionId].players[0];
       }
     }
   }

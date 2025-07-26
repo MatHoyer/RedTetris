@@ -30,10 +30,6 @@ export const Online = () => {
     );
   }, [gamesList, research, showInGame]);
 
-  useEffect(() => {
-    console.log(showInGame);
-  }, [showInGame]);
-
   return (
     <div>
       <div
