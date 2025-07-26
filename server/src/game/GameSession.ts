@@ -1,3 +1,4 @@
+import { Events } from '../../../events/index.js';
 import { Player } from './Player.js';
 import { Tetrominos } from './Tetrominos.js';
 
@@ -8,7 +9,6 @@ export class GameSession {
   players: Player[];
   tetromino: Tetrominos;
   active: boolean;
-  updateInterval: NodeJS.Timeout | null;
 
   constructor(id: number, maxPlayers: number, admin: Player) {
     this.id = id;
@@ -17,7 +17,6 @@ export class GameSession {
     this.active = false;
     this.admin = admin;
     this.maxPlayers = maxPlayers;
-    this.updateInterval = null;
   }
 
   setAdmin(player: Player) {
@@ -50,13 +49,14 @@ export class GameSession {
 
   start() {
     this.active = true;
-    this.players.forEach((p) => p.start(this.tetromino));
+    this.players.forEach((p) =>
+      p.start(this.tetromino, (data) => this.broadcast(Events.UPDATED_GAME_DATA, { player: data }))
+    );
   }
 
   end() {
     this.active = false;
     this.players.forEach((p) => p.stop());
-    if (this.updateInterval) clearInterval(this.updateInterval);
   }
 
   //eslint-disable-next-line @typescript-eslint/no-explicit-any

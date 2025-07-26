@@ -17,6 +17,7 @@ export class Player {
   handleKeys: Record<string, () => void> | null;
   bag: Tetrominos;
   bagIndex: number;
+  notify: (data: { id: number; name: string; alive: boolean }) => void;
 
   constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
     this.socketId = socketId || null;
@@ -31,6 +32,7 @@ export class Player {
     this.handleKeys = null;
     this.bag = new Tetrominos();
     this.bagIndex = 0;
+    this.notify = () => {};
   }
 
   updatePlayer(name: string) {
@@ -48,16 +50,18 @@ export class Player {
     return this.board.setCurrPiece(current);
   }
 
-  start(bag: Tetrominos) {
+  start(bag: Tetrominos, notify: (data: { id: number; name: string; alive: boolean }) => void) {
     this.stop();
     if (!this.socket) return;
 
     this.score = 0;
     this.bagIndex = 0;
+    this.notify = notify;
     this.bag = bag;
     this.board = new Board(this.updateScore.bind(this));
     this.handleNextPiece();
     this.sendBoard();
+    this.notify(this.toPayload());
 
     const handleKeysWrapper = (keyFn: () => void) => {
       keyFn();
@@ -90,10 +94,13 @@ export class Player {
     }
     this.sendBoard();
     this.sendScore();
+    this.notify(this.toPayload());
   }
 
   stop() {
     if (!this.socket || !this.handleKeys) return;
+    this.alive = false;
+    this.notify(this.toPayload());
 
     for (const [key, fn] of Object.entries(this.handleKeys)) {
       this.socket.off(key, fn);
@@ -116,6 +123,7 @@ export class Player {
       id: this.id,
       name: this.name,
       alive: this.alive,
+      score: this.score,
     };
   }
 }

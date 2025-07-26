@@ -58,11 +58,12 @@ export interface ServerToClientEvents {
   [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
   [Events.UPDATED_NEXT_PIECE]: (evt: { nextPiece: TTetromino; nextPieceShape: TShape }) => void;
   [Events.UPDATED_GAME_DATA]: (evt: {
-    players: {
+    player: {
       id: number;
       name: string;
       alive: boolean;
-    }[];
+      score: number;
+    };
   }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
   [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;

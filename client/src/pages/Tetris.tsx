@@ -16,7 +16,9 @@ export const Tetris = () => {
     nextPiece: 'empty',
     nextPieceShape: [],
   });
-  const [otherPlayersData, setOtherPlayersData] = useState<{ id: number; name: string; alive: boolean }[]>([]);
+  const [otherPlayersData, setOtherPlayersData] = useState<
+    { id: number; name: string; alive: boolean; score: number }[]
+  >([]);
   const nav = useParams();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
@@ -62,9 +64,21 @@ export const Tetris = () => {
         setNextPiece({ nextPiece, nextPieceShape });
       }
     );
-    socket.on(Events.UPDATED_GAME_DATA, ({ players }: { players: { id: number; name: string; alive: boolean }[] }) => {
-      setOtherPlayersData(players);
-    });
+    socket.on(
+      Events.UPDATED_GAME_DATA,
+      ({ player }: { player: { id: number; name: string; alive: boolean; score: number } }) => {
+        setOtherPlayersData((prev) => {
+          if (player.id === user.id) return prev;
+
+          const index = prev.findIndex((p) => p.id === player.id);
+          if (index === -1) {
+            return [...prev, player];
+          }
+          prev[index] = player;
+          return prev;
+        });
+      }
+    );
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
       console.log(status);
     });
@@ -139,9 +153,10 @@ export const Tetris = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {otherPlayersData.map((player) => (
-            <div key={player.id} style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+            <div key={player.id} style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginLeft: '10px' }}>
               <div>{player.name}</div>
               <div>{player.alive ? 'Alive' : 'Dead'}</div>
+              <div>{player.score}</div>
             </div>
           ))}
         </div>
