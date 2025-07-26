@@ -116,7 +116,6 @@ export class Player {
       id: this.id,
       name: this.name,
       alive: this.alive,
-      board: this.board.toPayload(),
     };
   }
 }

@@ -16,6 +16,7 @@ export const Tetris = () => {
     nextPiece: 'empty',
     nextPieceShape: [],
   });
+  const [otherPlayersData, setOtherPlayersData] = useState<{ id: number; name: string; alive: boolean }[]>([]);
   const nav = useParams();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
@@ -58,10 +59,12 @@ export const Tetris = () => {
     socket.on(
       Events.UPDATED_NEXT_PIECE,
       ({ nextPiece, nextPieceShape }: { nextPiece: TTetromino; nextPieceShape: TShape }) => {
-        console.log(nextPiece, nextPieceShape);
         setNextPiece({ nextPiece, nextPieceShape });
       }
     );
+    socket.on(Events.UPDATED_GAME_DATA, ({ players }: { players: { id: number; name: string; alive: boolean }[] }) => {
+      setOtherPlayersData(players);
+    });
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
       console.log(status);
     });
@@ -73,6 +76,7 @@ export const Tetris = () => {
       socket.off(Events.UPDATED_BOARD);
       socket.off(Events.UPDATED_SCORE);
       socket.off(Events.UPDATED_NEXT_PIECE);
+      socket.off(Events.UPDATED_GAME_DATA);
       socket.off(Events.GAME_ENDED);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
@@ -111,7 +115,7 @@ export const Tetris = () => {
       <Board />
       <div className="controls">
         <h2>Score: {score}</h2>
-        <div className="board">
+        <div>
           {Array.from({ length: 4 }).map((_, rowIndex) => (
             <div className="row" key={`${rowIndex}`}>
               {Array.from({ length: 4 }).map((_, colIndex) => {
@@ -130,6 +134,14 @@ export const Tetris = () => {
                 }
                 return <Cell key={`${rowIndex}-${colIndex}`} type={EmptyCell} />;
               })}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {otherPlayersData.map((player) => (
+            <div key={player.id} style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+              <div>{player.name}</div>
+              <div>{player.alive ? 'Alive' : 'Dead'}</div>
             </div>
           ))}
         </div>

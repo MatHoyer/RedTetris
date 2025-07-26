@@ -28,6 +28,7 @@ export enum Events {
   UPDATED_BOARD = 'updated_board',
   UPDATED_SCORE = 'updated_score',
   UPDATED_NEXT_PIECE = 'updated_next_piece',
+  UPDATED_GAME_DATA = 'updated_game_data',
   JOIN_GAME = 'join_game',
   GAME_JOINED = 'game_joined',
   GAME_START = 'game_start',
@@ -56,6 +57,13 @@ export interface ServerToClientEvents {
   [Events.UPDATED_BOARD]: (evt: { board: TTetromino[][] }) => void;
   [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
   [Events.UPDATED_NEXT_PIECE]: (evt: { nextPiece: TTetromino; nextPieceShape: TShape }) => void;
+  [Events.UPDATED_GAME_DATA]: (evt: {
+    players: {
+      id: number;
+      name: string;
+      alive: boolean;
+    }[];
+  }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
   [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;
   [Events.PLAYER_DISCONNECTED]: (evt: { id: number }) => void;
