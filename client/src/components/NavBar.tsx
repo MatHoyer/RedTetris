@@ -44,6 +44,7 @@ export const Navbar = () => {
             alignItems: 'center',
             zIndex: 5,
           }}
+          onClick={handleClose}
         >
           <div
             style={{
@@ -55,11 +56,12 @@ export const Navbar = () => {
               padding: '20px',
               borderRadius: '10px',
               width: '160px',
-              height: '350px',
+              height: '400px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <Settings />
             <Button onClick={handleClose}>Close</Button>

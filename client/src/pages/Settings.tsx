@@ -1,18 +1,10 @@
-import {
-  faArrowDown,
-  faArrowLeft,
-  faArrowRight,
-  faArrowUp,
-  type IconDefinition,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Space, type LucideIcon } from 'lucide-react';
+import React from 'react';
 
-const Key: React.FC<{ element: IconDefinition; text: string }> = ({ element, text }) => {
+const Key: React.FC<{ element: LucideIcon; text: string }> = ({ element, text }) => {
   return (
     <tr style={{ height: '50px' }}>
-      <td style={{ paddingRight: '10px' }}>
-        <FontAwesomeIcon className="icon" icon={element} />
-      </td>
+      <td style={{ paddingRight: '10px' }}>{element && React.createElement(element, { size: 20, color: 'red' })}</td>
       <td style={{ userSelect: 'none' }}>{text}</td>
     </tr>
   );
@@ -22,13 +14,14 @@ export const Settings = () => {
   return (
     <div>
       <h1 style={{ marginBottom: '10px' }}>Settings</h1>
-      <div style={{ display: 'grid', placeItems: 'center', height: '30px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30px' }}>
         <table>
           <tbody>
-            <Key element={faArrowUp} text="Rotate" />
-            <Key element={faArrowDown} text="Move down" />
-            <Key element={faArrowLeft} text="Move left" />
-            <Key element={faArrowRight} text="Move right" />
+            <Key element={ArrowUp} text="Rotate" />
+            <Key element={ArrowDown} text="Move down" />
+            <Key element={ArrowLeft} text="Move left" />
+            <Key element={ArrowRight} text="Move right" />
+            <Key element={Space} text="Hard drop" />
           </tbody>
         </table>
       </div>
