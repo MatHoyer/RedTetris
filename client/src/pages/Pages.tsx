@@ -7,7 +7,6 @@ import { Lobby } from './Lobby';
 import { LoginHub } from './LoginHub';
 import { NotFound } from './NotFound';
 import { Online } from './Online';
-import { Settings } from './Settings';
 import { Tetris } from './Tetris';
 
 const PrivateRoute = () => {
@@ -28,7 +27,6 @@ export const Pages = () => {
         <Route path="/" element={<Home />} />
         <Route path="/online" element={<Online />} />
         <Route path="/create-game" element={<CreateGame />} />
-        <Route path="/settings" element={<Settings />} />
         <Route path="/:roomId/:playerName" element={<Lobby />} />
         <Route path="/:roomId/:playerName/game" element={<Tetris />} />
       </Route>

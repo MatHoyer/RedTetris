@@ -50,7 +50,15 @@ export class GameSession {
   start() {
     this.active = true;
     this.players.forEach((p) =>
-      p.start(this.tetromino, (data) => this.broadcast(Events.UPDATED_GAME_DATA, { player: data }))
+      p.start(
+        this.tetromino,
+        (data) => this.broadcast(Events.UPDATED_GAME_DATA, { player: data }),
+        () => {
+          p.socket?.emit(Events.GAME_ENDED, {
+            status: this.players.every((p) => !p.alive) ? 'win' : 'loose',
+          });
+        }
+      )
     );
   }
 

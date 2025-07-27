@@ -18,6 +18,7 @@ export class Player {
   bag: Tetrominos;
   bagIndex: number;
   notify: (data: { id: number; name: string; alive: boolean }) => void;
+  onStop: () => void;
 
   constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
     this.socketId = socketId || null;
@@ -33,6 +34,7 @@ export class Player {
     this.bag = new Tetrominos();
     this.bagIndex = 0;
     this.notify = () => {};
+    this.onStop = () => {};
   }
 
   updatePlayer(name: string) {
@@ -50,13 +52,13 @@ export class Player {
     return this.board.setCurrPiece(current);
   }
 
-  start(bag: Tetrominos, notify: (data: { id: number; name: string; alive: boolean }) => void) {
-    this.stop();
+  start(bag: Tetrominos, notify: (data: { id: number; name: string; alive: boolean }) => void, onStop: () => void) {
     if (!this.socket) return;
 
     this.score = 0;
     this.bagIndex = 0;
     this.notify = notify;
+    this.onStop = onStop;
     this.bag = bag;
     this.board = new Board(this.updateScore.bind(this));
     this.handleNextPiece();
@@ -107,7 +109,7 @@ export class Player {
     }
     if (this.tickInterval) clearInterval(this.tickInterval);
 
-    this.socket.emit(Events.GAME_ENDED, { status: 'loose' });
+    this.onStop();
   }
 
   sendBoard() {

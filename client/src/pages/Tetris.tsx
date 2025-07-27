@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Events, type TShape, type TTetromino } from '../../../events';
 import { Board } from '../components/Board';
 import { Button } from '../components/Button';
@@ -16,6 +16,7 @@ export const Tetris = () => {
     nextPiece: 'empty',
     nextPieceShape: [],
   });
+  const [status, setStatus] = useState<'win' | 'loose' | null>(null);
   const [otherPlayersData, setOtherPlayersData] = useState<
     { id: number; name: string; alive: boolean; score: number }[]
   >([]);
@@ -28,6 +29,7 @@ export const Tetris = () => {
     ArrowRight: false,
   });
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -79,8 +81,13 @@ export const Tetris = () => {
         });
       }
     );
+    let redirectTimeout: NodeJS.Timeout | null = null;
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
-      console.log(status);
+      setStatus(status);
+      if (redirectTimeout) clearTimeout(redirectTimeout);
+      redirectTimeout = setTimeout(() => {
+        navigate('/');
+      }, 5000);
     });
 
     document.addEventListener('keydown', handleKeyDown);
@@ -94,6 +101,7 @@ export const Tetris = () => {
       socket.off(Events.GAME_ENDED);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
+      if (redirectTimeout) clearTimeout(redirectTimeout);
     };
   }, []);
 
@@ -164,6 +172,23 @@ export const Tetris = () => {
           <Button>Quit</Button>
         </Link>
       </div>
+      {!!status && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '2rem',
+            backgroundColor: 'black',
+            color: status === 'win' ? 'green' : 'red',
+            padding: '10px',
+            borderRadius: '10px',
+          }}
+        >
+          You {status === 'win' ? 'won' : 'lost'}
+        </div>
+      )}
     </div>
   );
 };
