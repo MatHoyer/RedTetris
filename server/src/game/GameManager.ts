@@ -3,57 +3,53 @@ import { GameSession } from './GameSession.js';
 import { Player } from './Player.js';
 
 export class GameManager {
-  sessions: Record<number, GameSession>;
-  sessionIdCounter: number;
+  sessions: Record<string, GameSession>;
   players: Record<string, Player>;
   playerIdCounter: number;
 
   constructor() {
-    this.sessions = {
-      1000: new GameSession(1000, 5, new Player(-1, 'server', null)),
-    };
-    this.sessionIdCounter = 0;
+    this.sessions = {};
     this.players = {};
     this.playerIdCounter = 0;
   }
 
-  createGameSession(admin: Player, maxPlayers: number) {
-    if (maxPlayers < 1 || maxPlayers > 8) return;
-    const sessionId = ++this.sessionIdCounter;
-    const session = new GameSession(sessionId, maxPlayers, admin);
-    this.sessions[sessionId] = session;
+  createGameSession(admin: Player, maxPlayers: number, roomName: string) {
+    if (maxPlayers < 1 || maxPlayers > 8) return undefined;
+    if (this.sessions[roomName]) return undefined;
+    const session = new GameSession(roomName, maxPlayers, admin);
+    this.sessions[roomName] = session;
 
-    return sessionId;
+    return roomName;
   }
 
-  endGameSession(sessionId: number) {
-    delete this.sessions[sessionId];
+  endGameSession(roomName: string) {
+    delete this.sessions[roomName];
   }
 
   getGameSessions() {
     return Object.values(this.sessions);
   }
 
-  addPlayerToSession(sessionId: number, player: Player) {
-    if (!this.sessions[sessionId]) return;
-    if (this.sessions[sessionId].isPlayerInGame(player.id)) return;
-    this.sessions[sessionId].addPlayer(player);
+  addPlayerToSession(roomName: string, player: Player): boolean {
+    if (!this.sessions[roomName]) return false;
+    if (this.sessions[roomName].isPlayerInGame(player.id)) return false;
+    return this.sessions[roomName].addPlayer(player);
   }
 
-  removePlayerFromSession(sessionId: number, playerId: number) {
-    if (this.sessions[sessionId]) {
-      const isAdmin = this.sessions[sessionId].admin.id === playerId;
-      this.sessions[sessionId].removePlayer(playerId);
-      if (this.sessions[sessionId].players.length === 0) {
-        this.endGameSession(sessionId);
+  removePlayerFromSession(roomName: string, playerId: number) {
+    if (this.sessions[roomName]) {
+      const isAdmin = this.sessions[roomName].admin.id === playerId;
+      this.sessions[roomName].removePlayer(playerId);
+      if (this.sessions[roomName].players.length === 0) {
+        this.endGameSession(roomName);
       } else if (isAdmin) {
-        this.sessions[sessionId].admin = this.sessions[sessionId].players[0];
+        this.sessions[roomName].admin = this.sessions[roomName].players[0];
       }
     }
   }
 
-  getGameSession(sessionId: number) {
-    return this.sessions[sessionId];
+  getGameSession(roomName: string) {
+    return this.sessions[roomName];
   }
 
   createNewPlayer(socket: Socket) {

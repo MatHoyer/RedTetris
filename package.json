@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev:server": "tsx watch --tsconfig server/tsconfig.json server/src/index.ts",
-    "dev:client": "vite build --watch",
+    "dev:client": "vite",
     "build": "vite build && cp -r client/dist server/public",
     "lint": "eslint . --ext ts,tsx",
     "preview": "vite preview",

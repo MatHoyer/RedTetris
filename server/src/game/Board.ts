@@ -5,15 +5,17 @@ import { Shapes } from './shapes.js';
 const GRID_HEIGHT = 20;
 const GRID_WIDTH = 10;
 
+export type TCell = TTetromino | 'empty' | 'penalty';
+
 export class Board {
-  grid: (TTetromino | 'empty')[][];
+  grid: TCell[][];
   currPiece: Piece | null;
   position: [number, number];
   updateScore: (addScore: number) => void;
 
   constructor(updateScore?: (addScore: number) => void) {
     this.grid = Array.from({ length: GRID_HEIGHT }, () =>
-      Array.from<TTetromino | 'empty'>({ length: GRID_WIDTH }).fill('empty')
+      Array.from<TCell>({ length: GRID_WIDTH }).fill('empty')
     );
     this.currPiece = null;
     this.position = [0, 0];
@@ -37,7 +39,7 @@ export class Board {
 
       return true;
     }
-    this.lock();
+    this.draw();
 
     return false;
   }
@@ -48,7 +50,13 @@ export class Board {
       this.moveDown();
       this.updateScore(2);
     }
-    this.lock();
+    return this.lockCurrentPiece();
+  }
+
+  lockCurrentPiece(): number {
+    this.draw();
+    this.currPiece = null;
+    return this.checkCompleteRows();
   }
 
   moveHorizontal(direction: 'left' | 'right') {
@@ -164,14 +172,40 @@ export class Board {
     }
   }
 
-  checkCompleteRows() {
+  checkCompleteRows(): number {
+    let cleared = 0;
     for (let i = 0; i < this.grid.length; i++) {
+      if (this.grid[i].some((cell) => cell === 'penalty')) continue;
       if (this.grid[i].every((cell) => cell !== 'empty')) {
         this.grid.splice(i, 1);
-        this.grid.unshift(Array.from<TTetromino | 'empty'>({ length: GRID_WIDTH }).fill('empty'));
+        this.grid.unshift(Array.from<TCell>({ length: GRID_WIDTH }).fill('empty'));
         this.updateScore(100);
+        cleared++;
       }
     }
+    return cleared;
+  }
+
+  addPenaltyLines(count: number) {
+    this.grid.splice(0, count);
+    for (let i = 0; i < count; i++) {
+      this.grid.push(Array.from<TCell>({ length: GRID_WIDTH }).fill('penalty'));
+    }
+  }
+
+  getSpectrum(): number[] {
+    const spectrum: number[] = [];
+    for (let col = 0; col < GRID_WIDTH; col++) {
+      let height = 0;
+      for (let row = 0; row < GRID_HEIGHT; row++) {
+        if (this.grid[row][col] !== 'empty') {
+          height = GRID_HEIGHT - row;
+          break;
+        }
+      }
+      spectrum.push(height);
+    }
+    return spectrum;
   }
 
   print() {

@@ -6,25 +6,25 @@ export default defineConfig({
   define: {
     'process.env': {},
   },
-  publicDir: 'public',
   root: 'client',
   base: '/',
-  build: {
-    rollupOptions: {
-      input: {
-        main: 'client/src/main.tsx',
+  server: {
+    proxy: {
+      '/socket.io': {
+        target: 'http://localhost:3004',
+        ws: true,
       },
     },
-    lib: {
-      entry: 'public/index.html',
-      name: 'red-tetris',
-    },
+  },
+  build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // cssMinify: true,
-    watch: {
-      include: 'client/src/**',
-      exclude: 'node_modules/**',
+  },
+  test: {
+    root: process.cwd(),
+    include: ['server/__tests__/**/*.test.ts'],
+    coverage: {
+      include: ['server/src/game/**', 'events/**'],
     },
   },
 });

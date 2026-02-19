@@ -1,60 +1,49 @@
 import { Tetrominos } from '../src/game/Tetrominos.js';
+import { tetrominoes } from '../../events/index.js';
 import { expect, test, describe } from 'vitest';
 
 describe('Tetrominos', () => {
-  test('refillBag', () => {
-    // given
+  test('constructor creates initial bag with 2 pieces', () => {
+    // When
     const tetrominos = new Tetrominos();
-    // when
-    // then
-    expect(tetrominos.bag).toHaveLength(7);
+
+    // Then
+    expect(tetrominos.bag).toHaveLength(2);
   });
 
-  test('shuffle', () => {
-    // given
+  test('refillBag adds a piece', () => {
+    // Given
     const tetrominos = new Tetrominos();
-    const originalBag = [...tetrominos.bag];
+    const initialLength = tetrominos.bag.length;
 
-    // when
-    const shuffled = tetrominos.shuffle(tetrominos.bag);
+    // When
+    tetrominos.refillBag();
 
-    // then
-    expect(shuffled).toHaveLength(originalBag.length);
-    expect(new Set(shuffled)).toEqual(new Set(originalBag));
-    const order = JSON.stringify(originalBag) !== JSON.stringify(shuffled);
-    expect(order).toBe(true);
+    // Then
+    expect(tetrominos.bag).toHaveLength(initialLength + 1);
   });
 
-  test('getNextPiece', () => {
-    // given
+  test('getPiece returns current and next', () => {
+    // Given
     const tetrominos = new Tetrominos();
-    const pieces = ['I', 'O', 'T', 'J', 'L', 'S', 'Z'];
-    tetrominos.bag = pieces;
 
-    // when
-    const piece = tetrominos.getNextPiece();
+    // When
+    const { current, next } = tetrominos.getPiece(0);
 
-    // then
-    expect(piece).toBe('Z');
-    expect(tetrominos.bag).toHaveLength(6);
+    // Then
+    expect(tetrominoes).toContain(current);
+    expect(tetrominoes).toContain(next);
   });
 
-  test('getNextPiece with refill', () => {
-    // given
+  test('getPiece refills bag when near end', () => {
+    // Given
     const tetrominos = new Tetrominos();
-    tetrominos.getNextPiece();
-    tetrominos.getNextPiece();
-    tetrominos.getNextPiece();
-    tetrominos.getNextPiece();
-    tetrominos.getNextPiece();
-    tetrominos.getNextPiece();
-    tetrominos.getNextPiece();
+    const initialLength = tetrominos.bag.length;
 
-    // when
-    expect(tetrominos.bag).toHaveLength(0);
+    // When
+    tetrominos.getPiece(0);
 
-    // then
-    tetrominos.getNextPiece();
-    expect(tetrominos.bag).toHaveLength(6);
+    // Then
+    expect(tetrominos.bag.length).toBe(initialLength + 1);
   });
 });
