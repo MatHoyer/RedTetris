@@ -20,11 +20,4 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
-  test: {
-    root: process.cwd(),
-    include: ['server/__tests__/**/*.test.ts'],
-    coverage: {
-      include: ['server/src/game/**', 'events/**'],
-    },
-  },
 });

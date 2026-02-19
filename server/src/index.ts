@@ -75,7 +75,7 @@ async function createMainServer() {
   });
 
   app.use(express.static(join(dirname(import.meta.dirname), '../client', 'dist')));
-  app.get('*', (req, res) => {
+  app.get('/{*path}', (req, res) => {
     res.sendFile('index.html', { root: join(dirname(import.meta.dirname), '../client', 'dist') });
   });
 
