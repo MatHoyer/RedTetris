@@ -256,6 +256,141 @@ describe('Player', () => {
     expect(() => player.forceStop()).not.toThrow();
   });
 
+  test('handleKeys space performs hard drop', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    const onLinesCleared = vi.fn();
+    player.start(bag, vi.fn(), vi.fn(), onLinesCleared, vi.fn());
+
+    // When
+    player.handleKeys![' ']();
+
+    // Then
+    expect(player.lockPending).toBe(false);
+    expect(socket.emit).toHaveBeenCalled();
+
+    // Cleanup
+    player.forceStop();
+  });
+
+  test('handleKeys ArrowUp rotates piece', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    socket.emit.mockClear();
+
+    // When
+    player.handleKeys!['ArrowUp']();
+
+    // Then
+    expect(socket.emit).toHaveBeenCalled();
+
+    // Cleanup
+    player.forceStop();
+  });
+
+  test('handleKeys ArrowDown moves piece down', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    socket.emit.mockClear();
+
+    // When
+    player.handleKeys!['ArrowDown']();
+
+    // Then
+    expect(socket.emit).toHaveBeenCalled();
+
+    // Cleanup
+    player.forceStop();
+  });
+
+  test('handleKeys ArrowLeft moves piece left', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    socket.emit.mockClear();
+
+    // When
+    player.handleKeys!['ArrowLeft']();
+
+    // Then
+    expect(socket.emit).toHaveBeenCalled();
+
+    // Cleanup
+    player.forceStop();
+  });
+
+  test('handleKeys ArrowRight moves piece right', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    socket.emit.mockClear();
+
+    // When
+    player.handleKeys!['ArrowRight']();
+
+    // Then
+    expect(socket.emit).toHaveBeenCalled();
+
+    // Cleanup
+    player.forceStop();
+  });
+
+  test('tick resets lockPending when piece can move down again', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    // Simulate lockPending but piece can still move
+    player.lockPending = true;
+    vi.spyOn(player.board, 'canMoveCurrPieceDown').mockReturnValue(true);
+    vi.spyOn(player.board, 'moveCurrPieceDown').mockReturnValue(true);
+
+    // When
+    player.tick();
+
+    // Then
+    expect(player.lockPending).toBe(false);
+
+    // Cleanup
+    player.forceStop();
+  });
+
+  test('tick ends game when lockPending and no next piece', () => {
+    // Given
+    const socket = createMockSocket();
+    const player = new Player(1, 'Player1', 'socket1', socket as any);
+    const bag = new Tetrominos();
+    const onStop = vi.fn();
+    player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
+
+    // Simulate lockPending, can't move down, and setCurrPiece fails
+    player.lockPending = true;
+    vi.spyOn(player.board, 'canMoveCurrPieceDown').mockReturnValue(false);
+    vi.spyOn(player.board, 'lockCurrentPiece').mockReturnValue(0);
+    vi.spyOn(player.board, 'setCurrPiece').mockReturnValue(false);
+
+    // When
+    player.tick();
+
+    // Then
+    expect(player.alive).toBe(false);
+    expect(onStop).toHaveBeenCalled();
+  });
+
   test('sendBoard emits board and spectrum', () => {
     // Given
     const socket = createMockSocket();
