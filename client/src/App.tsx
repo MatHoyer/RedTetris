@@ -15,24 +15,29 @@ const App = () => {
 
   useEffect(() => {
     socket.on(Events.PLAYER_UPDATED, ({ id, name }: { id: string; name: string }) => {
+      console.log('PLAYER_UPDATED', id, name);
       dispatch(changeId(id));
       dispatch(changeName(name));
       if (id) navigate('/', { replace: true });
     });
 
     socket.on(Events.UPDATED_GAME_LIST, ({ sessions }) => {
+      console.log('UPDATED_GAME_LIST', sessions);
       dispatch(updateGamesList(sessions));
     });
 
     socket.on(Events.GAME_CREATED, ({ roomName }: { roomName: string }) => {
+      console.log('GAME_CREATED', roomName);
       navigate(`/${roomName}/${user.name}`);
     });
 
     socket.on(Events.GAME_JOINED, ({ roomName }: { roomName: string }) => {
+      console.log('GAME_JOINED', roomName);
       navigate(`/${roomName}/${user.name}`);
     });
 
     socket.on(Events.GAME_STARTED, ({ roomName }: { roomName: string }) => {
+      console.log('GAME_STARTED', roomName);
       navigate(`/${roomName}/${user.name}/game`);
     });
 
@@ -42,7 +47,7 @@ const App = () => {
       socket.off(Events.GAME_CREATED);
       socket.off(Events.GAME_JOINED);
     };
-  }, []);
+  }, [user.name]);
 
   return (
     <div>
