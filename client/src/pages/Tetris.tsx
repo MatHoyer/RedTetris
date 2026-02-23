@@ -123,7 +123,7 @@ export const Tetris = () => {
 
   if (!nav.roomId) return <NotFound />;
 
-  const goodGame = gamesList.find((game) => game.id === +nav.roomId!);
+  const goodGame = gamesList.find((game) => game.id === nav.roomId!);
   if (!goodGame) return <NotFound />;
 
   const players = goodGame.players;

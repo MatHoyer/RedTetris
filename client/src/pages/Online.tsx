@@ -78,7 +78,7 @@ export const Online = () => {
                         lineData.active
                           ? undefined
                           : () => {
-                              socket.emit(Events.JOIN_GAME, { gameId: lineData.id });
+                              socket.emit(Events.JOIN_GAME, { roomName: lineData.id });
                             }
                       }
                     >

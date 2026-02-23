@@ -17,8 +17,11 @@ export class Player {
   handleKeys: Record<string, () => void> | null;
   bag: Tetrominos;
   bagIndex: number;
+  lockPending: boolean;
   notify: (data: { id: number; name: string; alive: boolean }) => void;
   onStop: () => void;
+  onLinesCleared: (count: number) => void;
+  onBoardUpdate: (playerId: number, spectrum: number[]) => void;
 
   constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
     this.socketId = socketId || null;
@@ -33,8 +36,11 @@ export class Player {
     this.handleKeys = null;
     this.bag = new Tetrominos();
     this.bagIndex = 0;
+    this.lockPending = false;
     this.notify = () => {};
     this.onStop = () => {};
+    this.onLinesCleared = () => {};
+    this.onBoardUpdate = () => {};
   }
 
   updatePlayer(name: string) {
@@ -52,13 +58,22 @@ export class Player {
     return this.board.setCurrPiece(current);
   }
 
-  start(bag: Tetrominos, notify: (data: { id: number; name: string; alive: boolean }) => void, onStop: () => void) {
+  start(
+    bag: Tetrominos,
+    notify: (data: { id: number; name: string; alive: boolean }) => void,
+    onStop: () => void,
+    onLinesCleared: (count: number) => void,
+    onBoardUpdate: (playerId: number, spectrum: number[]) => void
+  ) {
     if (!this.socket) return;
 
     this.score = 0;
     this.bagIndex = 0;
+    this.lockPending = false;
     this.notify = notify;
     this.onStop = onStop;
+    this.onLinesCleared = onLinesCleared;
+    this.onBoardUpdate = onBoardUpdate;
     this.bag = bag;
     this.board = new Board(this.updateScore.bind(this));
     this.handleNextPiece();
@@ -71,7 +86,18 @@ export class Player {
     };
 
     this.handleKeys = {
-      ' ': () => handleKeysWrapper(() => this.board.hardMoveDown()),
+      ' ': () => {
+        const cleared = this.board.hardMoveDown();
+        this.lockPending = false;
+        if (cleared > 1) this.onLinesCleared(cleared);
+        if (!this.handleNextPiece()) {
+          this.alive = false;
+          this.stop();
+        }
+        this.sendBoard();
+        this.sendScore();
+        this.notify(this.toPayload());
+      },
       ArrowUp: () => handleKeysWrapper(() => this.board.rotateCurrPiece()),
       ArrowDown: () => handleKeysWrapper(() => this.board.moveCurrPieceDown()),
       ArrowLeft: () => handleKeysWrapper(() => this.board.moveHorizontal('left')),
@@ -87,11 +113,25 @@ export class Player {
   }
 
   tick() {
-    const pieceUnlocked = this.board.moveCurrPieceDown();
-    if (!pieceUnlocked) {
-      if (!this.handleNextPiece()) {
-        this.alive = false;
-        this.stop();
+    if (this.lockPending) {
+      if (this.board.canMoveCurrPieceDown()) {
+        // Player adjusted the piece — it can move again, reset lock
+        this.lockPending = false;
+        this.board.moveCurrPieceDown();
+      } else {
+        // Still can't move — lock it
+        this.lockPending = false;
+        const cleared = this.board.lockCurrentPiece();
+        if (cleared > 1) this.onLinesCleared(cleared);
+        if (!this.handleNextPiece()) {
+          this.alive = false;
+          this.stop();
+        }
+      }
+    } else {
+      const moved = this.board.moveCurrPieceDown();
+      if (!moved) {
+        this.lockPending = true;
       }
     }
     this.sendBoard();
@@ -112,8 +152,19 @@ export class Player {
     this.onStop();
   }
 
+  forceStop() {
+    if (!this.socket || !this.handleKeys) return;
+    this.alive = false;
+
+    for (const [key, fn] of Object.entries(this.handleKeys)) {
+      this.socket.off(key, fn);
+    }
+    if (this.tickInterval) clearInterval(this.tickInterval);
+  }
+
   sendBoard() {
     this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
+    this.onBoardUpdate(this.id, this.board.getSpectrum());
   }
 
   sendScore() {

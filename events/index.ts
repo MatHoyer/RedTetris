@@ -1,5 +1,5 @@
 export type TGame = {
-  id: number;
+  id: string;
   admin: {
     id: number;
     name: string;
@@ -29,10 +29,12 @@ export enum Events {
   UPDATED_SCORE = 'updated_score',
   UPDATED_NEXT_PIECE = 'updated_next_piece',
   UPDATED_GAME_DATA = 'updated_game_data',
+  UPDATED_SPECTRUM = 'updated_spectrum',
   JOIN_GAME = 'join_game',
   GAME_JOINED = 'game_joined',
   GAME_START = 'game_start',
   GAME_STARTED = 'game_started',
+  GAME_RESTART = 'game_restart',
   LEAVE_GAME = 'leave_game',
   LEAVE_GAMES = 'leave_games',
   PLAYER_CREATED = 'player_created',
@@ -49,12 +51,12 @@ export enum Events {
 }
 
 export interface ServerToClientEvents {
-  [Events.GAME_CREATED]: (evt: { gameId: number }) => void;
-  [Events.GAME_JOINED]: (evt: { gameId: number }) => void;
-  [Events.GAME_STARTED]: (evt: { gameId: number }) => void;
+  [Events.GAME_CREATED]: (evt: { roomName: string }) => void;
+  [Events.GAME_JOINED]: (evt: { roomName: string }) => void;
+  [Events.GAME_STARTED]: (evt: { roomName: string }) => void;
   [Events.GAME_ENDED]: (evt: { status: 'win' | 'loose' }) => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
-  [Events.UPDATED_BOARD]: (evt: { board: TTetromino[][] }) => void;
+  [Events.UPDATED_BOARD]: (evt: { board: (TTetromino | 'empty' | 'penalty')[][] }) => void;
   [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
   [Events.UPDATED_NEXT_PIECE]: (evt: { nextPiece: TTetromino; nextPieceShape: TShape }) => void;
   [Events.UPDATED_GAME_DATA]: (evt: {
@@ -65,6 +67,7 @@ export interface ServerToClientEvents {
       score: number;
     };
   }) => void;
+  [Events.UPDATED_SPECTRUM]: (evt: { playerId: number; spectrum: number[] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
   [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;
   [Events.PLAYER_DISCONNECTED]: (evt: { id: number }) => void;
@@ -72,12 +75,13 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  [Events.NEW_GAME]: (evt: { maxPlayers: number }) => void;
-  [Events.GAME_START]: (evt: { gameId: number }) => void;
+  [Events.NEW_GAME]: (evt: { roomName: string; maxPlayers: number }) => void;
+  [Events.GAME_START]: (evt: { roomName: string }) => void;
+  [Events.GAME_RESTART]: (evt: { roomName: string }) => void;
   [Events.UPDATE_PLAYER]: (evt: { name: string }) => void;
   [Events.UPDATE_GAMES_LIST]: () => void;
-  [Events.JOIN_GAME]: (evt: { gameId: number }) => void;
-  [Events.LEAVE_GAME]: (evt: { gameId: number }) => void;
+  [Events.JOIN_GAME]: (evt: { roomName: string }) => void;
+  [Events.LEAVE_GAME]: (evt: { roomName: string }) => void;
   [Events.LEAVE_GAMES]: () => void;
 
   [Events.KEY_ROTATE]: () => void;
@@ -92,7 +96,7 @@ export interface InterServerEvents {
 
 export interface SocketData {
   playerId: number;
-  gameId: number;
+  roomName: string;
   name: string;
   maxPlayers: number;
   socketId: string;

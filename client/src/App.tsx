@@ -24,16 +24,16 @@ const App = () => {
       dispatch(updateGamesList(sessions));
     });
 
-    socket.on(Events.GAME_CREATED, ({ gameId }: { gameId: number }) => {
-      navigate(`/${gameId}/${user.id}`);
+    socket.on(Events.GAME_CREATED, ({ roomName }: { roomName: string }) => {
+      navigate(`/${roomName}/${user.name}`);
     });
 
-    socket.on(Events.GAME_JOINED, ({ gameId }: { gameId: number }) => {
-      navigate(`/${gameId}/${user.id}`);
+    socket.on(Events.GAME_JOINED, ({ roomName }: { roomName: string }) => {
+      navigate(`/${roomName}/${user.name}`);
     });
 
-    socket.on(Events.GAME_STARTED, ({ gameId }: { gameId: number }) => {
-      navigate(`/${gameId}/${user.id}/game`);
+    socket.on(Events.GAME_STARTED, ({ roomName }: { roomName: string }) => {
+      navigate(`/${roomName}/${user.name}/game`);
     });
 
     return () => {

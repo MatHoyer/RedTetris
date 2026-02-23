@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { Piece } from '../src/game/Piece';
 
 describe('Piece', () => {
-  it('should initialize with the correct shape and configurations', () => {
+  test('should initialize with the correct shape and configurations', () => {
     // Given
     const shape = 'T';
     const configs = [
@@ -35,7 +35,7 @@ describe('Piece', () => {
     expect(piece.currRotIdx).toBe(0);
   });
 
-  it('should rotate clockwise', () => {
+  test('should rotate clockwise', () => {
     // Given
     const piece = new Piece('T', [
       [
@@ -70,7 +70,7 @@ describe('Piece', () => {
     ]);
   });
 
-  it('should rotate counterclockwise', () => {
+  test('should rotate counterclockwise', () => {
     // Given
     const piece = new Piece('T', [
       [
@@ -105,7 +105,7 @@ describe('Piece', () => {
     ]);
   });
 
-  it('should return the current configuration', () => {
+  test('should return the current configuration', () => {
     // Given
     const configs = [
       [

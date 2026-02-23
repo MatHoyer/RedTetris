@@ -28,7 +28,7 @@ export const Lobby = () => {
 
   if (!nav.roomId) return <NotFound />;
 
-  const goodGame = gamesList.find((game) => game.id === +nav.roomId!);
+  const goodGame = gamesList.find((game) => game.id === nav.roomId!);
   if (!goodGame) return <NotFound />;
 
   const players = goodGame.players;
@@ -52,7 +52,7 @@ export const Lobby = () => {
         }}
       >
         {user.id === goodGame.admin.id && (
-          <Button onClick={() => socket.emit(Events.GAME_START, { gameId: goodGame.id })}>Start</Button>
+          <Button onClick={() => socket.emit(Events.GAME_START, { roomName: goodGame.id })}>Start</Button>
         )}
       </div>
       <div
