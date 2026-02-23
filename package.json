@@ -6,7 +6,7 @@
   "scripts": {
     "dev:server": "tsx watch --tsconfig server/tsconfig.json server/src/index.ts",
     "dev:client": "vite",
-    "build": "vite build && cp -r client/dist server/public",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
