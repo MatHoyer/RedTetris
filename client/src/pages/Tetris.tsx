@@ -6,7 +6,7 @@ import { Board } from '../components/Board';
 import { Button } from '../components/Button';
 import Cell from '../components/Cell';
 import { EmptyCell, type TCell } from '../globals';
-import { updateBoard, type RootState } from '../redux';
+import { resetBoard, updateBoard, type RootState } from '../redux';
 import socket from '../socket';
 import { NotFound } from './NotFound';
 
@@ -64,7 +64,7 @@ export const Tetris = () => {
       Events.UPDATED_NEXT_PIECE,
       ({ nextPiece, nextPieceShape }: { nextPiece: TTetromino; nextPieceShape: TShape }) => {
         setNextPiece({ nextPiece, nextPieceShape });
-      }
+      },
     );
     socket.on(
       Events.UPDATED_GAME_DATA,
@@ -79,7 +79,7 @@ export const Tetris = () => {
           prev[index] = player;
           return prev;
         });
-      }
+      },
     );
     let redirectTimeout: NodeJS.Timeout | null = null;
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
@@ -102,6 +102,7 @@ export const Tetris = () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
       if (redirectTimeout) clearTimeout(redirectTimeout);
+      dispatch(resetBoard());
     };
   }, []);
 

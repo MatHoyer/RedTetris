@@ -14,6 +14,14 @@ const App = () => {
   const user = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
+    socket.connect();
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     socket.on(Events.PLAYER_UPDATED, ({ id, name }: { id: string; name: string }) => {
       console.log('PLAYER_UPDATED', id, name);
       dispatch(changeId(id));
@@ -46,6 +54,7 @@ const App = () => {
       socket.off(Events.UPDATED_GAME_LIST);
       socket.off(Events.GAME_CREATED);
       socket.off(Events.GAME_JOINED);
+      socket.off(Events.GAME_STARTED);
     };
   }, [user.name]);
 

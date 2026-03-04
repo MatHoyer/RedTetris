@@ -50,10 +50,13 @@ const boardSlice = createSlice({
     updateBoard: (state, action) => {
       return action.payload;
     },
+    resetBoard: () => {
+      return createBoard();
+    },
   },
 });
 
-export const { updateBoard } = boardSlice.actions;
+export const { updateBoard, resetBoard } = boardSlice.actions;
 
 // ================Store================
 export const store = configureStore({
