@@ -39,6 +39,7 @@ export enum Events {
   LEAVE_GAMES = 'leave_games',
   PLAYER_CREATED = 'player_created',
   UPDATE_PLAYER = 'update_player',
+  UPDATE_PLAYER_ERROR = 'update_player_error',
   PLAYER_UPDATED = 'player_updated',
   PLAYER_DISCONNECTED = 'player_disconnected',
   PING = 'ping',
@@ -70,6 +71,7 @@ export interface ServerToClientEvents {
   [Events.UPDATED_SPECTRUM]: (evt: { playerId: number; spectrum: number[] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
   [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;
+  [Events.UPDATE_PLAYER_ERROR]: (evt: { message: string }) => void;
   [Events.PLAYER_DISCONNECTED]: (evt: { id: number }) => void;
   [Events.ERROR]: (evt: { message: string }) => void;
 }
