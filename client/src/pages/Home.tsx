@@ -1,16 +1,19 @@
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Events } from '../../../events';
 import { Button } from '../components/Button';
 import { AppLoader } from '../components/Loader';
+import type { RootState } from '../redux';
 import socket from '../socket';
 
 export const Home = () => {
+  const user = useSelector((state: RootState) => state.user);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateSolo = () => {
     setIsLoading(true);
-    socket.emit(Events.NEW_GAME, { maxPlayers: 1 });
+    socket.emit(Events.NEW_GAME, { maxPlayers: 1, roomName: `solo-${user.name}` });
     setIsLoading(false);
   };
 
