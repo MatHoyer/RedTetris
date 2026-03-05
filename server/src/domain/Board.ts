@@ -1,26 +1,23 @@
 import { TTetromino } from '../../../events/index.js';
+import logger from '../logger.js';
 import { Piece } from './Piece.js';
 import { Shapes } from './shapes.js';
+
+const log = logger.child({ component: 'Board' });
 
 const GRID_HEIGHT = 20;
 const GRID_WIDTH = 10;
 
 export type TCell = TTetromino | 'empty' | 'penalty';
 
-export class Board {
-  grid: TCell[][];
-  currPiece: Piece | null;
-  position: [number, number];
-  updateScore: (addScore: number) => void;
+const createEmptyRow = (): TCell[] => Array<TCell>(GRID_WIDTH).fill('empty');
 
-  constructor(updateScore?: (addScore: number) => void) {
-    this.grid = Array.from({ length: GRID_HEIGHT }, () =>
-      Array.from<TCell>({ length: GRID_WIDTH }).fill('empty')
-    );
-    this.currPiece = null;
-    this.position = [0, 0];
-    this.updateScore = updateScore || (() => {});
-  }
+export class Board {
+  grid: TCell[][] = Array.from({ length: GRID_HEIGHT }, createEmptyRow);
+  currPiece: Piece | null = null;
+  position: [number, number] = [0, 0];
+
+  constructor(readonly updateScore: (addScore: number) => void = () => {}) {}
 
   setCurrPiece(tetromino: TTetromino) {
     this.currPiece = new Piece(tetromino, Shapes[tetromino]);
@@ -36,11 +33,9 @@ export class Board {
       this.moveDown();
       this.draw();
       this.updateScore(1);
-
       return true;
     }
     this.draw();
-
     return false;
   }
 
@@ -61,17 +56,9 @@ export class Board {
 
   moveHorizontal(direction: 'left' | 'right') {
     this.clear();
-
-    if (direction === 'left') {
-      if (this.canMoveHorizontal('left')) {
-        this.moveLeft();
-      }
-    } else {
-      if (this.canMoveHorizontal('right')) {
-        this.moveRight();
-      }
+    if (this.canMoveHorizontal(direction)) {
+      direction === 'left' ? this.moveLeft() : this.moveRight();
     }
-
     this.draw();
   }
 
@@ -92,14 +79,11 @@ export class Board {
         }
       }
     }
-
     return true;
   }
 
   canMoveCurrPieceDown() {
-    return this.canPlaceCurrPiece({
-      modX: 1,
-    });
+    return this.canPlaceCurrPiece({ modX: 1 });
   }
 
   canMoveHorizontal(direction: 'left' | 'right') {
@@ -111,7 +95,6 @@ export class Board {
     if (this.canRotateCurrPiece()) {
       this.currPiece!.rotate();
     }
-
     this.draw();
   }
 
@@ -133,7 +116,6 @@ export class Board {
         }
       }
     }
-
     return true;
   }
 
@@ -156,6 +138,7 @@ export class Board {
   moveLeft() {
     this.position[1]--;
   }
+
   moveRight() {
     this.position[1]++;
   }
@@ -184,7 +167,7 @@ export class Board {
       if (this.grid[i].some((cell) => cell === 'penalty')) continue;
       if (this.grid[i].every((cell) => cell !== 'empty')) {
         this.grid.splice(i, 1);
-        this.grid.unshift(Array.from<TCell>({ length: GRID_WIDTH }).fill('empty'));
+        this.grid.unshift(createEmptyRow());
         this.updateScore(100);
         cleared++;
       }
@@ -195,7 +178,7 @@ export class Board {
   addPenaltyLines(count: number) {
     this.grid.splice(0, count);
     for (let i = 0; i < count; i++) {
-      this.grid.push(Array.from<TCell>({ length: GRID_WIDTH }).fill('penalty'));
+      this.grid.push(Array<TCell>(GRID_WIDTH).fill('penalty'));
     }
   }
 
@@ -215,8 +198,8 @@ export class Board {
   }
 
   print() {
-    for (let i = 0; i < this.grid.length; i++) {
-      console.log(this.grid[i].join(' '));
+    for (const row of this.grid) {
+      log.debug(row.join(' '));
     }
   }
 

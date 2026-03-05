@@ -2,10 +2,9 @@ import { randomInt } from 'crypto';
 import { tetrominoes, TTetromino } from '../../../events/index.js';
 
 export class Tetrominos {
-  bag: TTetromino[];
+  bag: TTetromino[] = [];
 
   constructor() {
-    this.bag = [];
     this.refillBag();
     this.refillBag();
   }
@@ -23,7 +22,6 @@ export class Tetrominos {
     if (index >= this.bag.length - 2) {
       this.refillBag();
     }
-
     return { current: this.bag[index], next: this.bag[index + 1] };
   }
 }

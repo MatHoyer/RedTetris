@@ -1,47 +1,31 @@
-import { Socket } from 'socket.io';
-import { Events } from '../../../events/index.js';
 import { Board } from './Board.js';
 import { Tetrominos } from './Tetrominos.js';
 import { Shapes } from './shapes.js';
+import { PlayerPort } from './ports.js';
+
+type PlayerPayload = { id: number; name: string; alive: boolean; score: number };
 
 export class Player {
-  id: number;
-  name: string;
-  socketId: string | null;
-  socket: Socket | null;
-  board: Board;
-  tickRate: number;
-  tickInterval: NodeJS.Timeout | null;
-  alive: boolean;
-  score: number;
-  handleKeys: Record<string, () => void> | null;
-  bag: Tetrominos;
-  bagIndex: number;
-  lockPending: boolean;
-  notify: (data: { id: number; name: string; alive: boolean }) => void;
-  onStop: () => void;
-  onLinesCleared: (count: number) => void;
-  onBoardUpdate: (playerId: number, spectrum: number[]) => void;
+  board = new Board();
+  readonly tickRate = 800;
+  tickInterval: ReturnType<typeof setInterval> | null = null;
+  alive = true;
+  score = 0;
+  handleKeys: Record<string, () => void> | null = null;
+  bag = new Tetrominos();
+  bagIndex = 0;
+  lockPending = false;
+  notify: (data: PlayerPayload) => void = () => {};
+  onStop: () => void = () => {};
+  onLinesCleared: (count: number) => void = () => {};
+  onBoardUpdate: (playerId: number, spectrum: number[]) => void = () => {};
 
-  constructor(id: number, name: string, socketId: string | null, socket?: Socket) {
-    this.socketId = socketId || null;
-    this.socket = socket || null;
-    this.id = id;
-    this.name = name;
-    this.board = new Board();
-    this.tickRate = 800; // ms
-    this.tickInterval = null;
-    this.alive = true;
-    this.score = 0;
-    this.handleKeys = null;
-    this.bag = new Tetrominos();
-    this.bagIndex = 0;
-    this.lockPending = false;
-    this.notify = () => {};
-    this.onStop = () => {};
-    this.onLinesCleared = () => {};
-    this.onBoardUpdate = () => {};
-  }
+  constructor(
+    readonly id: number,
+    public name: string,
+    readonly socketId: string | null,
+    readonly port: PlayerPort | null = null,
+  ) {}
 
   updatePlayer(name: string) {
     this.name = name;
@@ -53,19 +37,19 @@ export class Player {
 
   handleNextPiece() {
     const { current, next } = this.bag.getPiece(this.bagIndex);
-    this.socket?.emit(Events.UPDATED_NEXT_PIECE, { nextPiece: next, nextPieceShape: Shapes[next][0] });
+    this.port?.emitNextPiece(next, Shapes[next][0]);
     this.bagIndex++;
     return this.board.setCurrPiece(current);
   }
 
   start(
     bag: Tetrominos,
-    notify: (data: { id: number; name: string; alive: boolean }) => void,
+    notify: (data: PlayerPayload) => void,
     onStop: () => void,
     onLinesCleared: (count: number) => void,
-    onBoardUpdate: (playerId: number, spectrum: number[]) => void
+    onBoardUpdate: (playerId: number, spectrum: number[]) => void,
   ) {
-    if (!this.socket) return;
+    if (!this.port) return;
 
     this.score = 0;
     this.bagIndex = 0;
@@ -104,9 +88,7 @@ export class Player {
       ArrowRight: () => handleKeysWrapper(() => this.board.moveHorizontal('right')),
     };
 
-    for (const [key, fn] of Object.entries(this.handleKeys)) {
-      this.socket.on(key, fn);
-    }
+    this.port.onKeyInput(this.handleKeys);
 
     this.alive = true;
     this.tickInterval = setInterval(() => this.tick(), this.tickRate);
@@ -115,11 +97,9 @@ export class Player {
   tick() {
     if (this.lockPending) {
       if (this.board.canMoveCurrPieceDown()) {
-        // Player adjusted the piece — it can move again, reset lock
         this.lockPending = false;
         this.board.moveCurrPieceDown();
       } else {
-        // Still can't move — lock it
         this.lockPending = false;
         const cleared = this.board.lockCurrentPiece();
         if (cleared > 1) this.onLinesCleared(cleared);
@@ -140,43 +120,35 @@ export class Player {
   }
 
   stop() {
-    if (!this.socket || !this.handleKeys) return;
+    if (!this.port || !this.handleKeys) return;
     this.alive = false;
     this.notify(this.toPayload());
 
-    for (const [key, fn] of Object.entries(this.handleKeys)) {
-      this.socket.off(key, fn);
-    }
+    this.port.offKeyInput(this.handleKeys);
     if (this.tickInterval) clearInterval(this.tickInterval);
 
     this.onStop();
   }
 
   forceStop() {
-    if (!this.socket || !this.handleKeys) return;
+    if (!this.port || !this.handleKeys) return;
     this.alive = false;
 
-    for (const [key, fn] of Object.entries(this.handleKeys)) {
-      this.socket.off(key, fn);
-    }
+    this.port.offKeyInput(this.handleKeys);
     if (this.tickInterval) clearInterval(this.tickInterval);
   }
 
   sendBoard() {
-    this.socket?.emit(Events.UPDATED_BOARD, { board: this.board.grid });
+    this.port?.emitBoard(this.board.grid);
     this.onBoardUpdate(this.id, this.board.getSpectrum());
   }
 
   sendScore() {
-    this.socket?.emit(Events.UPDATED_SCORE, { score: this.score });
+    this.port?.emitScore(this.score);
   }
 
-  toPayload() {
-    return {
-      id: this.id,
-      name: this.name,
-      alive: this.alive,
-      score: this.score,
-    };
+  toPayload(): PlayerPayload {
+    const { id, name, alive, score } = this;
+    return { id, name, alive, score };
   }
 }
