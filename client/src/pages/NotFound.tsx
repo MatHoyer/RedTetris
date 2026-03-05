@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export const NotFound = () => {
   const url = useLocation();
@@ -16,6 +16,18 @@ export const NotFound = () => {
       >
         The page: '{url.pathname}' doesn't exist
       </p>
+      <Link
+        to="/"
+        style={{
+          color: 'var(--primary-color)',
+          textDecoration: 'none',
+          display: 'block',
+          textAlign: 'center',
+          marginTop: '20px',
+        }}
+      >
+        Go Home
+      </Link>
     </>
   );
 };

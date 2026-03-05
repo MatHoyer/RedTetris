@@ -1,28 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Events, type TShape, type TTetromino } from '../../../events';
+import { Events } from '../../../events';
 import { Board } from '../components/Board';
 import { Button } from '../components/Button';
 import Cell from '../components/Cell';
 import { EmptyCell, type TCell } from '../globals';
-import { resetBoard, updateBoard, type RootState } from '../redux';
+import { resetBoard, resetGame, type RootState } from '../redux';
 import socket from '../socket';
 import { NotFound } from './NotFound';
 
 export const Tetris = () => {
-  const [score, setScore] = useState(0);
-  const [nextPiece, setNextPiece] = useState<{ nextPiece: TTetromino | 'empty'; nextPieceShape: TShape }>({
-    nextPiece: 'empty',
-    nextPieceShape: [],
-  });
-  const [status, setStatus] = useState<'win' | 'loose' | null>(null);
-  const [otherPlayersData, setOtherPlayersData] = useState<
-    { id: number; name: string; alive: boolean; score: number }[]
-  >([]);
   const nav = useParams();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
+  const score = useSelector((state: RootState) => state.game.score);
+  const nextPiece = useSelector((state: RootState) => state.game.nextPiece);
+  const status = useSelector((state: RootState) => state.game.status);
+  const otherPlayersData = useSelector((state: RootState) => state.game.otherPlayersData);
+  const spectrums = useSelector((state: RootState) => state.game.spectrums);
   const [keys, setKeys] = useState<Record<string, boolean>>({
     ArrowDown: false,
     ArrowLeft: false,
@@ -52,57 +48,14 @@ export const Tetris = () => {
       }
     };
 
-    socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty')[][] }) => {
-      const arr = board.map((row) => row.map((cell) => cell ?? EmptyCell));
-
-      dispatch(updateBoard(arr));
-    });
-    socket.on(Events.UPDATED_SCORE, ({ score }: { score: number }) => {
-      setScore(score);
-    });
-    socket.on(
-      Events.UPDATED_NEXT_PIECE,
-      ({ nextPiece, nextPieceShape }: { nextPiece: TTetromino; nextPieceShape: TShape }) => {
-        setNextPiece({ nextPiece, nextPieceShape });
-      },
-    );
-    socket.on(
-      Events.UPDATED_GAME_DATA,
-      ({ player }: { player: { id: number; name: string; alive: boolean; score: number } }) => {
-        setOtherPlayersData((prev) => {
-          if (player.id === user.id) return prev;
-
-          const index = prev.findIndex((p) => p.id === player.id);
-          if (index === -1) {
-            return [...prev, player];
-          }
-          prev[index] = player;
-          return prev;
-        });
-      },
-    );
-    let redirectTimeout: NodeJS.Timeout | null = null;
-    socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
-      setStatus(status);
-      if (redirectTimeout) clearTimeout(redirectTimeout);
-      redirectTimeout = setTimeout(() => {
-        navigate('/');
-      }, 5000);
-    });
-
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      socket.off(Events.UPDATED_BOARD);
-      socket.off(Events.UPDATED_SCORE);
-      socket.off(Events.UPDATED_NEXT_PIECE);
-      socket.off(Events.UPDATED_GAME_DATA);
-      socket.off(Events.GAME_ENDED);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
-      if (redirectTimeout) clearTimeout(redirectTimeout);
       dispatch(resetBoard());
+      dispatch(resetGame());
     };
   }, []);
 
@@ -121,6 +74,14 @@ export const Tetris = () => {
       clearInterval(interval);
     };
   }, [keys]);
+
+  useEffect(() => {
+    if (!status) return;
+    const redirectTimeout = setTimeout(() => {
+      navigate('/');
+    }, 5000);
+    return () => clearTimeout(redirectTimeout);
+  }, [status]);
 
   if (!nav.roomId) return <NotFound />;
 
@@ -162,10 +123,29 @@ export const Tetris = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {otherPlayersData.map((player) => (
-            <div key={player.id} style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginLeft: '10px' }}>
-              <div>{player.name}</div>
-              <div>{player.alive ? 'Alive' : 'Dead'}</div>
-              <div>{player.score}</div>
+            <div key={player.id} style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginLeft: '10px', alignItems: 'flex-start' }}>
+              <div>
+                <div>{player.name}</div>
+                <div style={{ color: player.alive ? 'lightgreen' : 'red', fontSize: '0.8em' }}>
+                  {player.alive ? 'Alive' : 'Dead'}
+                </div>
+                <div style={{ fontSize: '0.8em' }}>{player.score}</div>
+              </div>
+              {spectrums[player.id] && (
+                <div style={{ display: 'flex', gap: '1px', alignItems: 'flex-end', height: '80px' }}>
+                  {spectrums[player.id].map((height, col) => (
+                    <div
+                      key={col}
+                      style={{
+                        width: '6px',
+                        height: `${(height / 20) * 100}%`,
+                        backgroundColor: player.alive ? 'var(--primary-color)' : 'grey',
+                        minHeight: height > 0 ? '1px' : '0',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

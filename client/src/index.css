@@ -80,7 +80,7 @@ h1 {
 
 .btn {
   background-color: var(--primary-color);
-  opacity: 0.6;
+  opacity: 1;
   border: none;
   color: white;
   padding: 15px 32px;
@@ -100,7 +100,7 @@ h1 {
 }
 
 .btn:not(:disabled):hover {
-  opacity: 1;
+  opacity: 0.8;
 }
 
 .form {

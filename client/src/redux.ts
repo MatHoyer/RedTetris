@@ -1,5 +1,5 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit';
-import type { TGame } from '../../events';
+import type { TGame, TShape, TTetromino } from '../../events';
 import { EmptyCell, type TCell } from './globals';
 
 // ================User================
@@ -58,12 +58,56 @@ const boardSlice = createSlice({
 
 export const { updateBoard, resetBoard } = boardSlice.actions;
 
+// ================Game================
+const gameInitialState = {
+  score: 0,
+  nextPiece: { nextPiece: 'empty' as TTetromino | 'empty', nextPieceShape: [] as TShape },
+  status: null as 'win' | 'loose' | null,
+  otherPlayersData: [] as { id: number; name: string; alive: boolean; score: number }[],
+  spectrums: {} as Record<number, number[]>,
+};
+
+const gameSlice = createSlice({
+  name: 'game',
+  initialState: gameInitialState,
+  reducers: {
+    setScore: (state, action) => {
+      state.score = action.payload;
+    },
+    setNextPiece: (state, action) => {
+      state.nextPiece = action.payload;
+    },
+    setStatus: (state, action) => {
+      state.status = action.payload;
+    },
+    updatePlayerData: (state, action) => {
+      const player = action.payload;
+      const index = state.otherPlayersData.findIndex((p) => p.id === player.id);
+      if (index === -1) {
+        state.otherPlayersData.push(player);
+      } else {
+        state.otherPlayersData[index] = player;
+      }
+    },
+    updateSpectrum: (state, action) => {
+      const { playerId, spectrum } = action.payload;
+      state.spectrums[playerId] = spectrum;
+    },
+    resetGame: () => {
+      return { ...gameInitialState, otherPlayersData: [], spectrums: {} };
+    },
+  },
+});
+
+export const { setScore, setNextPiece, setStatus, updatePlayerData, updateSpectrum, resetGame } = gameSlice.actions;
+
 // ================Store================
 export const store = configureStore({
   reducer: {
     user: userSlice.reducer,
     gamesList: gamesListSlice.reducer,
     board: boardSlice.reducer,
+    game: gameSlice.reducer,
   },
 });
 

@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react';
+import { ArrowLeft, Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -32,6 +32,14 @@ export const Online = () => {
 
   return (
     <div>
+      <div style={{ padding: '10px 20px' }}>
+        <Link
+          to="/"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'white', textDecoration: 'none' }}
+        >
+          <ArrowLeft size={20} /> Back
+        </Link>
+      </div>
       <div
         style={{
           display: 'flex',

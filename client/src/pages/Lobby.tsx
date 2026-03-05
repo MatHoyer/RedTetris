@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Events } from '../../../events';
@@ -13,6 +13,9 @@ export const Lobby = () => {
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
+  const [autoJoinDone, setAutoJoinDone] = useState(false);
+  const [gamesListLoaded, setGamesListLoaded] = useState(false);
+  const needsAutoJoin = !user.name && !!nav.playerName;
 
   const leaveRoom = () => {
     socket.emit(Events.LEAVE_GAMES);
@@ -26,7 +29,46 @@ export const Lobby = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (autoJoinDone || !needsAutoJoin || !nav.roomId || !nav.playerName) return;
+
+    socket.emit(Events.UPDATE_PLAYER, { name: nav.playerName });
+    setAutoJoinDone(true);
+  }, [needsAutoJoin, autoJoinDone, nav.roomId, nav.playerName]);
+
+  useEffect(() => {
+    if (!autoJoinDone || !user.name) return;
+
+    const handler = () => setGamesListLoaded(true);
+    socket.on(Events.UPDATED_GAME_LIST, handler);
+    socket.emit(Events.UPDATE_GAMES_LIST);
+
+    return () => {
+      socket.off(Events.UPDATED_GAME_LIST, handler);
+    };
+  }, [autoJoinDone, user.name]);
+
+  useEffect(() => {
+    if (!autoJoinDone || !gamesListLoaded || !nav.roomId || !user.name) return;
+
+    const isInGame = gamesList.some(
+      (game) => game.id === nav.roomId && game.players.some((p) => p.id === user.id),
+    );
+    if (isInGame) return;
+
+    const existingGame = gamesList.find((game) => game.id === nav.roomId);
+    if (existingGame) {
+      socket.emit(Events.JOIN_GAME, { roomName: nav.roomId });
+    } else {
+      socket.emit(Events.NEW_GAME, { roomName: nav.roomId, maxPlayers: 8 });
+    }
+  }, [autoJoinDone, gamesListLoaded, user.name, user.id, nav.roomId, gamesList]);
+
   if (!nav.roomId) return <NotFound />;
+
+  if (needsAutoJoin || (autoJoinDone && !gamesList.some((g) => g.id === nav.roomId && g.players.some((p) => p.id === user.id)))) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>Joining...</div>;
+  }
 
   const goodGame = gamesList.find((game) => game.id === nav.roomId!);
   if (!goodGame) return <NotFound />;
