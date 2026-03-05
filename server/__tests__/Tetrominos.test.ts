@@ -3,47 +3,60 @@ import { tetrominoes } from '../../events/index.js';
 import { expect, test, describe } from 'vitest';
 
 describe('Tetrominos', () => {
-  test('constructor creates initial bag with 2 pieces', () => {
-    // When
+  test('constructor creates initial bag with 2 full bags (14 pieces)', () => {
+
     const tetrominos = new Tetrominos();
 
-    // Then
-    expect(tetrominos.bag).toHaveLength(2);
+
+    expect(tetrominos.bag).toHaveLength(14);
   });
 
-  test('refillBag adds a piece', () => {
-    // Given
+  test('refillBag adds 7 pieces (a full bag)', () => {
+
     const tetrominos = new Tetrominos();
     const initialLength = tetrominos.bag.length;
 
-    // When
+
     tetrominos.refillBag();
 
-    // Then
-    expect(tetrominos.bag).toHaveLength(initialLength + 1);
+
+    expect(tetrominos.bag).toHaveLength(initialLength + 7);
+  });
+
+  test('each 7-bag contains all 7 tetrominoes exactly once', () => {
+
+    const tetrominos = new Tetrominos();
+
+
+    const firstBag = tetrominos.bag.slice(0, 7).sort();
+    const secondBag = tetrominos.bag.slice(7, 14).sort();
+    const sorted = [...tetrominoes].sort();
+
+    expect(firstBag).toEqual(sorted);
+    expect(secondBag).toEqual(sorted);
   });
 
   test('getPiece returns current and next', () => {
-    // Given
+
     const tetrominos = new Tetrominos();
 
-    // When
+
     const { current, next } = tetrominos.getPiece(0);
 
-    // Then
+
     expect(tetrominoes).toContain(current);
     expect(tetrominoes).toContain(next);
   });
 
   test('getPiece refills bag when near end', () => {
-    // Given
+
     const tetrominos = new Tetrominos();
     const initialLength = tetrominos.bag.length;
 
-    // When
-    tetrominos.getPiece(0);
 
-    // Then
-    expect(tetrominos.bag.length).toBe(initialLength + 1);
+    tetrominos.getPiece(initialLength - 2);
+
+
+    expect(tetrominos.bag.length).toBe(initialLength + 7);
   });
 });
