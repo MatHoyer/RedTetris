@@ -1,5 +1,6 @@
 node_modules
 dist
+client/dist
 coverage
 .vscode
 .git
@@ -7,4 +8,7 @@ coverage
 .prettierrc.json
 .eslintrc.json
 .eslintignore
-.eslintrc.json
+CLAUDE.md
+en.subject.pdf
+*.md
+tsconfig.tsbuildinfo
