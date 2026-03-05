@@ -1,4 +1,4 @@
-import { Board } from '../src/game/Board.js';
+import { Board } from '../src/domain/Board.js';
 import { expect, test, describe } from 'vitest';
 
 describe('Board', () => {

@@ -1,4 +1,4 @@
-import { Tetrominos } from '../src/game/Tetrominos.js';
+import { Tetrominos } from '../src/domain/Tetrominos.js';
 import { tetrominoes } from '../../events/index.js';
 import { expect, test, describe } from 'vitest';
 

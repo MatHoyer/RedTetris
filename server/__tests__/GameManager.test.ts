@@ -1,12 +1,18 @@
-import { GameManager } from '../src/game/GameManager.js';
+import { GameManager } from '../src/domain/GameManager.js';
 import { expect, test, describe, vi } from 'vitest';
-import { Player } from '../src/game/Player.js';
+import { Player } from '../src/domain/Player.js';
+import { PlayerPort } from '../src/domain/ports';
 
-const createMockSocket = (id: string) => ({
-  id,
-  emit: vi.fn(),
-  on: vi.fn(),
-  off: vi.fn(),
+const createMockPort = (): PlayerPort => ({
+  emitBoard: vi.fn(),
+  emitScore: vi.fn(),
+  emitNextPiece: vi.fn(),
+  emitGameEnded: vi.fn(),
+  emitGameStarted: vi.fn(),
+  emitGameData: vi.fn(),
+  emitSpectrum: vi.fn(),
+  onKeyInput: vi.fn(),
+  offKeyInput: vi.fn(),
 });
 
 describe('GameManager', () => {
@@ -181,13 +187,13 @@ describe('GameManager', () => {
     expect(sessions).toHaveLength(2);
   });
 
-  test('createNewPlayer creates a player from socket', () => {
+  test('createNewPlayer creates a player from socketId and port', () => {
     // Given
     const gameManager = new GameManager();
-    const socket = createMockSocket('socket-abc');
+    const port = createMockPort();
 
     // When
-    const playerId = gameManager.createNewPlayer(socket as any);
+    const playerId = gameManager.createNewPlayer('socket-abc', port);
 
     // Then
     expect(playerId).toBe(0);
@@ -195,14 +201,14 @@ describe('GameManager', () => {
     expect(gameManager.players['socket-abc'].socketId).toBe('socket-abc');
   });
 
-  test('createNewPlayer returns existing player id for same socket', () => {
+  test('createNewPlayer returns existing player id for same socketId', () => {
     // Given
     const gameManager = new GameManager();
-    const socket = createMockSocket('socket-abc');
-    gameManager.createNewPlayer(socket as any);
+    const port = createMockPort();
+    gameManager.createNewPlayer('socket-abc', port);
 
     // When
-    const playerId = gameManager.createNewPlayer(socket as any);
+    const playerId = gameManager.createNewPlayer('socket-abc', port);
 
     // Then
     expect(playerId).toBe(0);
@@ -211,8 +217,8 @@ describe('GameManager', () => {
   test('getPlayer returns player by socketId', () => {
     // Given
     const gameManager = new GameManager();
-    const socket = createMockSocket('socket-abc');
-    gameManager.createNewPlayer(socket as any);
+    const port = createMockPort();
+    gameManager.createNewPlayer('socket-abc', port);
 
     // When
     const player = gameManager.getPlayer('socket-abc');
@@ -225,8 +231,8 @@ describe('GameManager', () => {
   test('removePlayer removes from sessions and players map', () => {
     // Given
     const gameManager = new GameManager();
-    const socket = createMockSocket('socket-abc');
-    gameManager.createNewPlayer(socket as any);
+    const port = createMockPort();
+    gameManager.createNewPlayer('socket-abc', port);
     const player = gameManager.getPlayer('socket-abc');
     gameManager.createGameSession(player, 4, 'test-room');
 
@@ -242,8 +248,8 @@ describe('GameManager', () => {
   test('removePlayerFromSessions removes player from all sessions', () => {
     // Given
     const gameManager = new GameManager();
-    const socket = createMockSocket('socket-abc');
-    gameManager.createNewPlayer(socket as any);
+    const port = createMockPort();
+    gameManager.createNewPlayer('socket-abc', port);
     const player = gameManager.getPlayer('socket-abc');
     const otherPlayer = new Player(99, 'Other', '');
     gameManager.createGameSession(otherPlayer, 4, 'room1');

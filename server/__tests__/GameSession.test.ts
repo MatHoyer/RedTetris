@@ -1,12 +1,18 @@
-import { GameSession } from '../src/game/GameSession.js';
-import { Player } from '../src/game/Player.js';
-import { Events } from '../../events/index.js';
+import { GameSession } from '../src/domain/GameSession.js';
+import { Player } from '../src/domain/Player.js';
+import { PlayerPort } from '../src/domain/ports';
 import { expect, test, describe, vi } from 'vitest';
 
-const createMockSocket = () => ({
-  emit: vi.fn(),
-  on: vi.fn(),
-  off: vi.fn(),
+const createMockPort = (): PlayerPort => ({
+  emitBoard: vi.fn(),
+  emitScore: vi.fn(),
+  emitNextPiece: vi.fn(),
+  emitGameEnded: vi.fn(),
+  emitGameStarted: vi.fn(),
+  emitGameData: vi.fn(),
+  emitSpectrum: vi.fn(),
+  onKeyInput: vi.fn(),
+  offKeyInput: vi.fn(),
 });
 
 describe('GameSession', () => {
@@ -156,7 +162,7 @@ describe('GameSession', () => {
 
     // Then
     expect(payload.id).toBe('room1');
-    expect(payload.admin).toBe('Admin');
+    expect(payload.admin).toEqual({ id: 1, name: 'Admin' });
     expect(payload.maxPlayers).toBe(4);
     expect(payload.active).toBe(false);
     expect(payload.players).toHaveLength(1);
@@ -189,10 +195,10 @@ describe('GameSession', () => {
 
   test('handlePlayerDeath emits loose to dead player in multiplayer', () => {
     // Given
-    const socket1 = createMockSocket();
-    const socket2 = createMockSocket();
-    const admin = new Player(1, 'Admin', 'socket1', socket1 as any);
-    const player2 = new Player(2, 'Player2', 'socket2', socket2 as any);
+    const port1 = createMockPort();
+    const port2 = createMockPort();
+    const admin = new Player(1, 'Admin', 'socket1', port1);
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
     admin.alive = false;
@@ -202,15 +208,15 @@ describe('GameSession', () => {
     gameSession.handlePlayerDeath(admin);
 
     // Then
-    expect(socket1.emit).toHaveBeenCalledWith(Events.GAME_ENDED, { status: 'loose' });
-    expect(socket2.emit).toHaveBeenCalledWith(Events.GAME_ENDED, { status: 'win' });
+    expect(port1.emitGameEnded).toHaveBeenCalledWith('loose');
+    expect(port2.emitGameEnded).toHaveBeenCalledWith('win');
     expect(gameSession.active).toBe(false);
   });
 
   test('handlePlayerDeath ends game when all players dead in solo', () => {
     // Given
-    const socket1 = createMockSocket();
-    const admin = new Player(1, 'Admin', 'socket1', socket1 as any);
+    const port1 = createMockPort();
+    const admin = new Player(1, 'Admin', 'socket1', port1);
     const gameSession = new GameSession('room1', 1, admin);
     admin.alive = false;
 
@@ -218,15 +224,15 @@ describe('GameSession', () => {
     gameSession.handlePlayerDeath(admin);
 
     // Then
-    expect(socket1.emit).toHaveBeenCalledWith(Events.GAME_ENDED, { status: 'loose' });
+    expect(port1.emitGameEnded).toHaveBeenCalledWith('loose');
     expect(gameSession.active).toBe(false);
   });
 
   test('distributePenalty sends penalty lines to other alive players', () => {
     // Given
     const admin = new Player(1, 'Admin', 'socket1');
-    const socket2 = createMockSocket();
-    const player2 = new Player(2, 'Player2', 'socket2', socket2 as any);
+    const port2 = createMockPort();
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
     player2.onBoardUpdate = vi.fn();
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
@@ -256,10 +262,10 @@ describe('GameSession', () => {
 
   test('broadcastSpectrum sends spectrum to other players', () => {
     // Given
-    const socket1 = createMockSocket();
-    const socket2 = createMockSocket();
-    const admin = new Player(1, 'Admin', 'socket1', socket1 as any);
-    const player2 = new Player(2, 'Player2', 'socket2', socket2 as any);
+    const port1 = createMockPort();
+    const port2 = createMockPort();
+    const admin = new Player(1, 'Admin', 'socket1', port1);
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
     const spectrum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -268,24 +274,25 @@ describe('GameSession', () => {
     gameSession.broadcastSpectrum(1, spectrum);
 
     // Then
-    expect(socket2.emit).toHaveBeenCalledWith(Events.UPDATED_SPECTRUM, { playerId: 1, spectrum });
-    expect(socket1.emit).not.toHaveBeenCalled();
+    expect(port2.emitSpectrum).toHaveBeenCalledWith(1, spectrum);
+    expect(port1.emitSpectrum).not.toHaveBeenCalled();
   });
 
-  test('broadcast sends event to all players', () => {
+  test('broadcastGameData sends data to all players', () => {
     // Given
-    const socket1 = createMockSocket();
-    const socket2 = createMockSocket();
-    const admin = new Player(1, 'Admin', 'socket1', socket1 as any);
-    const player2 = new Player(2, 'Player2', 'socket2', socket2 as any);
+    const port1 = createMockPort();
+    const port2 = createMockPort();
+    const admin = new Player(1, 'Admin', 'socket1', port1);
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
+    const data = { player: { id: 1, name: 'Admin', alive: true, score: 0 } };
 
     // When
-    gameSession.broadcast('TEST_EVENT', { data: 'test' });
+    gameSession.broadcastGameData(data);
 
     // Then
-    expect(socket1.emit).toHaveBeenCalledWith('TEST_EVENT', { data: 'test' });
-    expect(socket2.emit).toHaveBeenCalledWith('TEST_EVENT', { data: 'test' });
+    expect(port1.emitGameData).toHaveBeenCalledWith(data);
+    expect(port2.emitGameData).toHaveBeenCalledWith(data);
   });
 });
