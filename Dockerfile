@@ -12,8 +12,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/client/dist ./client/dist
-COPY server ./server
-COPY events ./events
+COPY --from=build /app/dist ./dist
 
 EXPOSE 3004
 CMD ["npm", "start"]
