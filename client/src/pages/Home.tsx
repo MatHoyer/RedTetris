@@ -14,7 +14,7 @@ export const Home = () => {
   const handleCreateSolo = () => {
     setIsLoading(true);
     socket.emit(Events.NEW_GAME, { maxPlayers: 1, roomName: `solo-${user.name}` });
-    setIsLoading(false);
+    setTimeout(() => setIsLoading(false), 0);
   };
 
   return (
