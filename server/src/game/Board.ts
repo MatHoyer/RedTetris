@@ -81,10 +81,12 @@ export class Board {
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (shape[row][col]) {
-          if (modX && this.position[0] + row + modX >= GRID_HEIGHT) {
+          const newRow = this.position[0] + row + modX;
+          const newCol = this.position[1] + col + modY;
+          if (newRow < 0 || newRow >= GRID_HEIGHT || newCol < 0 || newCol >= GRID_WIDTH) {
             return false;
           }
-          if (this.grid[this.position[0] + row + modX][this.position[1] + col + modY] !== 'empty') {
+          if (this.grid[newRow][newCol] !== 'empty') {
             return false;
           }
         }
@@ -115,13 +117,17 @@ export class Board {
 
   canRotateCurrPiece() {
     if (!this.currPiece) return false;
-    const shape = this.currPiece.getCurrentConfig();
     const nextRotation = this.currPiece.currRotIdx + 1;
     const nextConf = this.currPiece.configs[nextRotation % this.currPiece.configs.length];
-    for (let row = 0; row < shape.length; row++) {
-      for (let col = 0; col < shape[row].length; col++) {
+    for (let row = 0; row < nextConf.length; row++) {
+      for (let col = 0; col < nextConf[row].length; col++) {
         if (nextConf[row][col]) {
-          if (this.grid[this.position[0] + row][this.position[1] + col] !== 'empty') {
+          const newRow = this.position[0] + row;
+          const newCol = this.position[1] + col;
+          if (newRow < 0 || newRow >= GRID_HEIGHT || newCol < 0 || newCol >= GRID_WIDTH) {
+            return false;
+          }
+          if (this.grid[newRow][newCol] !== 'empty') {
             return false;
           }
         }

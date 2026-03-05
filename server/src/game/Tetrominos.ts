@@ -1,8 +1,6 @@
+import { randomInt } from 'crypto';
 import { tetrominoes, TTetromino } from '../../../events/index.js';
 
-/**
- * https://en.wikipedia.org/wiki/Tetromino
- */
 export class Tetrominos {
   bag: TTetromino[];
 
@@ -13,12 +11,16 @@ export class Tetrominos {
   }
 
   refillBag() {
-    const newPiece = tetrominoes[Math.floor(Math.random() * tetrominoes.length)];
-    this.bag.push(newPiece);
+    const pieces = [...tetrominoes];
+    for (let i = pieces.length - 1; i > 0; i--) {
+      const j = randomInt(i + 1);
+      [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+    }
+    this.bag.push(...pieces);
   }
 
   getPiece(index: number) {
-    if (index === this.bag.length - 2) {
+    if (index >= this.bag.length - 2) {
       this.refillBag();
     }
 

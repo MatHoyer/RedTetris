@@ -41,10 +41,12 @@ async function createMainServer() {
   };
 
   io.on('connection', (socket) => {
-    console.log('New connection', socket.id);
-    console.log('Number of players:', io.sockets.sockets.size);
+    console.log(`[Server] New connection ${socket.id} (${io.sockets.sockets.size} connected)`);
     const playerId = gameManager.createNewPlayer(socket);
-    if (!playerId) return;
+    if (playerId === undefined) {
+      console.warn(`[Server] Failed to create player for socket ${socket.id}`);
+      return;
+    }
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
 
     // // Logger for emit
@@ -66,7 +68,8 @@ async function createMainServer() {
     handleGame(socket, gameManager);
 
     socket.on('disconnect', () => {
-      console.log('Disconnect', socket.id);
+      const player = gameManager.getPlayer(socket.id);
+      console.log(`[Server] Disconnect ${socket.id}${player?.name ? ` (${player.name})` : ''}`);
       const playerId = gameManager.removePlayer(socket.id);
       if (!playerId) return;
       updateGamesList(io, gameManager);

@@ -36,13 +36,22 @@ export class GameSession {
   }
 
   addPlayer(player: Player): boolean {
-    if (this.active) return false;
-    if (this.isFull()) return false;
+    if (this.active) {
+      console.warn(`[Session:${this.id}] Player ${player.name || player.id} rejected: game is active`);
+      return false;
+    }
+    if (this.isFull()) {
+      console.warn(`[Session:${this.id}] Player ${player.name || player.id} rejected: room is full (${this.players.length}/${this.maxPlayers})`);
+      return false;
+    }
     this.players.push(player);
+    console.log(`[Session:${this.id}] Player ${player.name || player.id} joined (${this.players.length}/${this.maxPlayers})`);
     return true;
   }
 
   removePlayer(playerId: number) {
+    const player = this.players.find((p) => p.id === playerId);
+    console.log(`[Session:${this.id}] Player ${player?.name || playerId} removed`);
     this.players = this.players.filter((p) => p.id !== playerId);
     if (!this.players.length) {
       this.end();
@@ -50,12 +59,13 @@ export class GameSession {
   }
 
   handlePlayerDeath(deadPlayer: Player) {
-    deadPlayer.socket?.emit(Events.GAME_ENDED, { status: 'loose' });
-
     const alivePlayers = this.players.filter((p) => p.alive);
+    console.log(`[Session:${this.id}] Player ${deadPlayer.name || deadPlayer.id} died (${alivePlayers.length} alive remaining)`);
+    deadPlayer.socket?.emit(Events.GAME_ENDED, { status: 'loose' });
 
     if (alivePlayers.length === 1 && this.players.length > 1) {
       // Multiplayer: last one standing wins
+      console.log(`[Session:${this.id}] Player ${alivePlayers[0].name || alivePlayers[0].id} wins!`);
       alivePlayers[0].socket?.emit(Events.GAME_ENDED, { status: 'win' });
       this.end();
     } else if (alivePlayers.length === 0) {
@@ -67,6 +77,7 @@ export class GameSession {
   distributePenalty(sender: Player, linesCleared: number) {
     const penaltyCount = linesCleared - 1;
     if (penaltyCount <= 0) return;
+    console.log(`[Session:${this.id}] ${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyCount} penalty lines`);
 
     for (const player of this.players) {
       if (player.id !== sender.id && player.alive) {
@@ -85,6 +96,7 @@ export class GameSession {
   }
 
   start() {
+    console.log(`[Session:${this.id}] Started with ${this.players.length} players`);
     this.active = true;
     this.players.forEach((p) =>
       p.start(
@@ -98,11 +110,13 @@ export class GameSession {
   }
 
   restart() {
+    console.log(`[Session:${this.id}] Restarted`);
     this.tetromino = new Tetrominos();
     this.start();
   }
 
   end() {
+    console.log(`[Session:${this.id}] Ended`);
     this.active = false;
     this.players.forEach((p) => {
       if (p.alive) p.forceStop();
