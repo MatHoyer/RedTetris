@@ -80,7 +80,10 @@ export const Tetris = () => {
     const redirectTimeout = setTimeout(() => {
       navigate('/');
     }, 5000);
-    return () => clearTimeout(redirectTimeout);
+    return () => {
+      clearTimeout(redirectTimeout);
+      socket.emit(Events.LEAVE_GAMES);
+    };
   }, [status]);
 
   if (!nav.roomId) return <NotFound />;
@@ -123,7 +126,16 @@ export const Tetris = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {otherPlayersData.map((player) => (
-            <div key={player.id} style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginLeft: '10px', alignItems: 'flex-start' }}>
+            <div
+              key={player.id}
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '10px',
+                marginLeft: '10px',
+                alignItems: 'flex-start',
+              }}
+            >
               <div>
                 <div>{player.name}</div>
                 <div style={{ color: player.alive ? 'lightgreen' : 'red', fontSize: '0.8em' }}>
