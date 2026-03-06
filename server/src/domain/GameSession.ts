@@ -50,9 +50,7 @@ export class GameSession {
       return false;
     }
     this.players.push(player);
-    this.log.info(
-      `Player ${player.name || player.id} joined (${this.players.length}/${this.maxPlayers})`,
-    );
+    this.log.info(`Player ${player.name || player.id} joined (${this.players.length}/${this.maxPlayers})`);
     return true;
   }
 
@@ -67,9 +65,7 @@ export class GameSession {
 
   handlePlayerDeath(deadPlayer: Player) {
     const alivePlayers = this.players.filter((p) => p.alive);
-    this.log.info(
-      `Player ${deadPlayer.name || deadPlayer.id} died (${alivePlayers.length} alive remaining)`,
-    );
+    this.log.info(`Player ${deadPlayer.name || deadPlayer.id} died (${alivePlayers.length} alive remaining)`);
     deadPlayer.port?.emitGameEnded('loose');
 
     if (alivePlayers.length === 1 && this.players.length > 1) {
@@ -84,9 +80,7 @@ export class GameSession {
   distributePenalty(sender: Player, linesCleared: number) {
     const penaltyCount = linesCleared - 1;
     if (penaltyCount <= 0) return;
-    this.log.info(
-      `${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyCount} penalty lines`,
-    );
+    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyCount} penalty lines`);
 
     for (const player of this.players) {
       if (player.id !== sender.id && player.alive) {
@@ -128,7 +122,6 @@ export class GameSession {
         }
       }
     }
-
   }
 
   start() {

@@ -5,11 +5,7 @@ import logger from '../../logger.js';
 
 const log = logger.child({ component: 'Game' });
 
-export const handleManageGame = (
-  socket: Socket,
-  gameManager: GameManager,
-  broadcastGamesList: () => void
-) => {
+export const handleManageGame = (socket: Socket, gameManager: GameManager, broadcastGamesList: () => void) => {
   socket.on(Events.UPDATE_GAMES_LIST, () => {
     log.info(`${socket.id} requested games list`);
     broadcastGamesList();

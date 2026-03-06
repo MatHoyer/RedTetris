@@ -389,9 +389,9 @@ describe('Player', () => {
     const player = new Player(1, 'Player1', 'socket1');
     player.combo = 1;
 
-    expect(1 + (2 * 1) - 2).toBe(1);
-    expect(1 + (2 * 2) - 2).toBe(3);
-    expect(3 + (2 * 1) - 2).toBe(3);
+    expect(1 + 2 * 1 - 2).toBe(1);
+    expect(1 + 2 * 2 - 2).toBe(3);
+    expect(3 + 2 * 1 - 2).toBe(3);
   });
 
   test('sendBoard emits board payload and spectrum', () => {

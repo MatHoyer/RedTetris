@@ -110,7 +110,9 @@ export class Player {
 
   private registerKeyHandlers() {
     this.keyDownHandlers = {
-      down: () => { this.heldKeys['down'] = true; },
+      down: () => {
+        this.heldKeys['down'] = true;
+      },
       left: () => {
         this.heldKeys['left'] = true;
         this.dasDirection = 'left';
@@ -155,7 +157,9 @@ export class Player {
     };
 
     this.keyUpHandlers = {
-      down: () => { this.heldKeys['down'] = false; },
+      down: () => {
+        this.heldKeys['down'] = false;
+      },
       left: () => {
         this.heldKeys['left'] = false;
         if (this.dasDirection === 'left') {
@@ -325,7 +329,7 @@ export class Player {
   }
 
   private applyScoring(linesCleared: number) {
-    this.combo = this.combo + (2 * linesCleared) - 2;
+    this.combo = this.combo + 2 * linesCleared - 2;
     const bravo = this.board.isBoardEmpty() ? 4 : 1;
     const levelFactor = Math.ceil((this.level + linesCleared) / 4);
     this.score += (levelFactor + this.softDropFrames) * linesCleared * this.combo * bravo;

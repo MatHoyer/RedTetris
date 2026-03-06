@@ -15,7 +15,9 @@ export const Lobby = () => {
   const needsAutoJoin = !user.name && !!nav.playerName;
 
   useEffect(() => {
-    const handleBeforeUnload = () => { dispatch(leaveAll()); };
+    const handleBeforeUnload = () => {
+      dispatch(leaveAll());
+    };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -30,9 +32,7 @@ export const Lobby = () => {
   useEffect(() => {
     if (!user.name || !nav.roomId) return;
 
-    const isInGame = gamesList.some(
-      (game) => game.id === nav.roomId && game.players.some((p) => p.id === user.id),
-    );
+    const isInGame = gamesList.some((game) => game.id === nav.roomId && game.players.some((p) => p.id === user.id));
     if (isInGame) return;
 
     const existingGame = gamesList.find((game) => game.id === nav.roomId);
@@ -46,7 +46,9 @@ export const Lobby = () => {
   if (!nav.roomId) return <NotFound />;
 
   if (needsAutoJoin || !gamesList.some((g) => g.id === nav.roomId && g.players.some((p) => p.id === user.id))) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>Joining...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>Joining...</div>
+    );
   }
 
   const goodGame = gamesList.find((game) => game.id === nav.roomId!);
@@ -72,9 +74,7 @@ export const Lobby = () => {
           gap: '20px',
         }}
       >
-        {user.id === goodGame.admin.id && (
-          <Button onClick={() => dispatch(startGame(goodGame.id))}>Start</Button>
-        )}
+        {user.id === goodGame.admin.id && <Button onClick={() => dispatch(startGame(goodGame.id))}>Start</Button>}
       </div>
       <div
         style={{

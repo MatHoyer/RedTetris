@@ -58,7 +58,8 @@ export class Board {
   moveHorizontal(direction: 'left' | 'right') {
     this.clear();
     if (this.canMoveHorizontal(direction)) {
-      direction === 'left' ? this.moveLeft() : this.moveRight();
+      if (direction === 'left') this.moveLeft();
+      else this.moveRight();
     }
     this.draw();
   }
@@ -180,7 +181,10 @@ export class Board {
           const newRow = this.position[0] + row;
           const newCol = this.position[1] + col;
           const collides =
-            newRow < 0 || newRow >= GRID_HEIGHT || newCol < 0 || newCol >= GRID_WIDTH ||
+            newRow < 0 ||
+            newRow >= GRID_HEIGHT ||
+            newCol < 0 ||
+            newCol >= GRID_WIDTH ||
             this.grid[newRow][newCol] !== 'empty';
           if (collides) return col === centerCol;
         }

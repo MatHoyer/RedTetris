@@ -106,7 +106,8 @@ const gameSlice = createSlice({
   },
 });
 
-export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, updateSpectrum, resetGame } = gameSlice.actions;
+export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, updateSpectrum, resetGame } =
+  gameSlice.actions;
 
 export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: string, { rejectWithValue }) => {
   const res = await api.updatePlayer(name);

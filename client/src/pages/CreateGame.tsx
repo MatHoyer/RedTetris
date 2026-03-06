@@ -40,12 +40,7 @@ export const CreateGame = () => {
       </div>
       <form className="form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <InputText
-            id="roomName"
-            label="Room name:"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-          />
+          <InputText id="roomName" label="Room name:" value={roomName} onChange={(e) => setRoomName(e.target.value)} />
         </div>
         <div className="form-group">
           <InputRange

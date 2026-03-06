@@ -23,7 +23,7 @@ describe('NotFound', () => {
   it('shows page not found and path', () => {
     const div = renderNotFound('/foo/bar');
     expect(div.querySelector('h1')?.textContent).toBe('Page not found');
-    expect(div.textContent).toContain("/foo/bar");
+    expect(div.textContent).toContain('/foo/bar');
   });
 
   it('has link to home', () => {
