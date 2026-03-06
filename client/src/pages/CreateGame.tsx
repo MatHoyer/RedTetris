@@ -1,19 +1,25 @@
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Events } from '../../../events';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { InputRange, InputText } from '../components/Inputs';
-import socket from '../socket';
+import { createGame, type AppDispatch, type RootState } from '../redux';
 
 export const CreateGame = () => {
   const [maxPlayers, setMaxPlayers] = useState(2);
   const [roomName, setRoomName] = useState('');
+  const user = useSelector((state: RootState) => state.user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!roomName.trim()) return;
-    socket.emit(Events.NEW_GAME, { roomName: roomName.trim(), maxPlayers });
+    const result = await dispatch(createGame({ roomName: roomName.trim(), maxPlayers }));
+    if (createGame.fulfilled.match(result)) {
+      navigate(`/${roomName.trim()}/${user.name}`);
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Events } from '../../../events';
@@ -6,7 +6,7 @@ import { Board } from '../components/Board';
 import { Button } from '../components/Button';
 import Cell from '../components/Cell';
 import { EmptyCell, type TCell } from '../globals';
-import { resetBoard, resetGame, type RootState } from '../redux';
+import { leaveAll, resetBoard, resetGame, type AppDispatch, type RootState } from '../redux';
 import socket from '../socket';
 import { NotFound } from './NotFound';
 
@@ -15,36 +15,49 @@ export const Tetris = () => {
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
   const score = useSelector((state: RootState) => state.game.score);
+  const level = useSelector((state: RootState) => state.game.level);
   const nextPiece = useSelector((state: RootState) => state.game.nextPiece);
   const status = useSelector((state: RootState) => state.game.status);
   const otherPlayersData = useSelector((state: RootState) => state.game.otherPlayersData);
   const spectrums = useSelector((state: RootState) => state.game.spectrums);
-  const [keys, setKeys] = useState<Record<string, boolean>>({
-    ArrowDown: false,
-    ArrowLeft: false,
-    ArrowRight: false,
-  });
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      if (['ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        setKeys((prev) => ({
-          ...prev,
-          [e.key]: true,
-        }));
+      switch (e.key) {
+        case 'ArrowDown':
+          socket.emit(Events.KEY_DOWN_PRESS);
+          break;
+        case 'ArrowLeft':
+          socket.emit(Events.KEY_LEFT_PRESS);
+          break;
+        case 'ArrowRight':
+          socket.emit(Events.KEY_RIGHT_PRESS);
+          break;
+        case 'ArrowUp':
+          socket.emit(Events.KEY_ROTATE_PRESS);
+          break;
+        case ' ':
+          socket.emit(Events.KEY_HARD_DROP);
+          break;
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (['ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        setKeys((prev) => ({
-          ...prev,
-          [e.key]: false,
-        }));
-      } else if (['ArrowUp', ' '].includes(e.key)) {
-        socket.emit(e.key);
+      switch (e.key) {
+        case 'ArrowDown':
+          socket.emit(Events.KEY_DOWN_RELEASE);
+          break;
+        case 'ArrowLeft':
+          socket.emit(Events.KEY_LEFT_RELEASE);
+          break;
+        case 'ArrowRight':
+          socket.emit(Events.KEY_RIGHT_RELEASE);
+          break;
+        case 'ArrowUp':
+          socket.emit(Events.KEY_ROTATE_RELEASE);
+          break;
       }
     };
 
@@ -60,29 +73,13 @@ export const Tetris = () => {
   }, []);
 
   useEffect(() => {
-    const emitKeys = () => {
-      for (const [key, value] of Object.entries(keys)) {
-        if (value) {
-          socket.emit(key);
-        }
-      }
-    };
-
-    const interval = setInterval(emitKeys, 50);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [keys]);
-
-  useEffect(() => {
     if (!status) return;
     const redirectTimeout = setTimeout(() => {
       navigate('/');
     }, 5000);
     return () => {
       clearTimeout(redirectTimeout);
-      socket.emit(Events.LEAVE_GAMES);
+      dispatch(leaveAll());
     };
   }, [status]);
 
@@ -102,6 +99,7 @@ export const Tetris = () => {
       <Board />
       <div className="controls">
         <h2>Score: {score}</h2>
+        <h3>Level: {level}</h3>
         <div>
           {Array.from({ length: 4 }).map((_, rowIndex) => (
             <div className="row" key={`${rowIndex}`}>
@@ -161,7 +159,7 @@ export const Tetris = () => {
             </div>
           ))}
         </div>
-        <Link to="/" onClick={() => socket.emit(Events.LEAVE_GAMES)}>
+        <Link to="/" onClick={() => dispatch(leaveAll())}>
           <Button>Quit</Button>
         </Link>
       </div>

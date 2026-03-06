@@ -1,8 +1,8 @@
-import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { configureStore, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { TGame, TShape, TTetromino } from '../../events';
+import { api } from './api';
 import { EmptyCell, type TCell } from './globals';
 
-// ================User================
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -17,11 +17,16 @@ const userSlice = createSlice({
       state.name = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(updatePlayer.fulfilled, (state, action) => {
+      state.id = action.payload.id;
+      state.name = action.payload.name;
+    });
+  },
 });
 
 export const { changeId, changeName } = userSlice.actions;
 
-// ================GameList================
 const gamesListSlice = createSlice({
   name: 'gamesList',
   initialState: [] as TGame[],
@@ -34,7 +39,6 @@ const gamesListSlice = createSlice({
 
 export const { updateGamesList } = gamesListSlice.actions;
 
-// ================Board================
 const createBoard = () => {
   const returnArray = Array(20)
     .fill(null)
@@ -58,9 +62,9 @@ const boardSlice = createSlice({
 
 export const { updateBoard, resetBoard } = boardSlice.actions;
 
-// ================Game================
 const gameInitialState = {
   score: 0,
+  level: 0,
   nextPiece: { nextPiece: 'empty' as TTetromino | 'empty', nextPieceShape: [] as TShape },
   status: null as 'win' | 'loose' | null,
   otherPlayersData: [] as { id: number; name: string; alive: boolean; score: number }[],
@@ -73,6 +77,9 @@ const gameSlice = createSlice({
   reducers: {
     setScore: (state, action) => {
       state.score = action.payload;
+    },
+    setLevel: (state, action) => {
+      state.level = action.payload;
     },
     setNextPiece: (state, action) => {
       state.nextPiece = action.payload;
@@ -99,9 +106,50 @@ const gameSlice = createSlice({
   },
 });
 
-export const { setScore, setNextPiece, setStatus, updatePlayerData, updateSpectrum, resetGame } = gameSlice.actions;
+export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, updateSpectrum, resetGame } = gameSlice.actions;
 
-// ================Store================
+export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: string, { rejectWithValue }) => {
+  const res = await api.updatePlayer(name);
+  const data = await res.json();
+  if (!res.ok) return rejectWithValue(data.error ?? 'Connection not ready, try again');
+  return data as { id: number; name: string };
+});
+
+export const createGame = createAsyncThunk(
+  'games/create',
+  async (params: { roomName: string; maxPlayers: number }, { rejectWithValue }) => {
+    const res = await api.createGame(params.roomName, params.maxPlayers);
+    const data = await res.json();
+    if (!res.ok) return rejectWithValue(data.error);
+    return data as { roomName: string };
+  },
+);
+
+export const joinGame = createAsyncThunk('games/join', async (roomName: string, { rejectWithValue }) => {
+  const res = await api.joinGame(roomName);
+  const data = await res.json();
+  if (!res.ok) return rejectWithValue(data.error);
+  return data as { roomName: string };
+});
+
+export const leaveAll = createAsyncThunk('games/leaveAll', async () => {
+  await api.leaveAll();
+});
+
+export const startGame = createAsyncThunk('games/start', async (roomName: string, { rejectWithValue }) => {
+  const res = await api.startGame(roomName);
+  const data = await res.json();
+  if (!res.ok) return rejectWithValue(data.error);
+  return data;
+});
+
+export const restartGame = createAsyncThunk('games/restart', async (roomName: string, { rejectWithValue }) => {
+  const res = await api.restartGame(roomName);
+  const data = await res.json();
+  if (!res.ok) return rejectWithValue(data.error);
+  return data;
+});
+
 export const store = configureStore({
   reducer: {
     user: userSlice.reducer,
