@@ -6,7 +6,8 @@ export default defineConfig({
   test: {
     coverage: {
       include: [
-        'server/src/game/**',
+        'server/src/domain/**',
+        'server/src/infrastructure/**',
         'events/**',
         'client/src/components/**',
         'client/src/pages/**',
