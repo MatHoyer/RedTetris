@@ -14,6 +14,10 @@ export class SocketPlayerAdapter implements PlayerPort {
     this.socket.emit(Events.UPDATED_SCORE, { score });
   }
 
+  emitLevel(level: number): void {
+    this.socket.emit(Events.UPDATED_LEVEL, { level });
+  }
+
   emitNextPiece(nextPiece: TTetromino, nextPieceShape: TShape): void {
     this.socket.emit(Events.UPDATED_NEXT_PIECE, { nextPiece, nextPieceShape });
   }
@@ -34,15 +38,53 @@ export class SocketPlayerAdapter implements PlayerPort {
     this.socket.emit(Events.UPDATED_SPECTRUM, { playerId, spectrum });
   }
 
-  onKeyInput(handlers: Record<string, () => void>): void {
-    for (const [key, fn] of Object.entries(handlers)) {
-      this.socket.on(key, fn);
+  onKeyDown(handlers: Record<string, () => void>): void {
+    const eventMap: Record<string, string> = {
+      down: Events.KEY_DOWN_PRESS,
+      left: Events.KEY_LEFT_PRESS,
+      right: Events.KEY_RIGHT_PRESS,
+      rotate: Events.KEY_ROTATE_PRESS,
+      hardDrop: Events.KEY_HARD_DROP,
+    };
+    for (const [key, event] of Object.entries(eventMap)) {
+      if (handlers[key]) this.socket.on(event, handlers[key]);
     }
   }
 
-  offKeyInput(handlers: Record<string, () => void>): void {
-    for (const [key, fn] of Object.entries(handlers)) {
-      this.socket.off(key, fn);
+  onKeyUp(handlers: Record<string, () => void>): void {
+    const eventMap: Record<string, string> = {
+      down: Events.KEY_DOWN_RELEASE,
+      left: Events.KEY_LEFT_RELEASE,
+      right: Events.KEY_RIGHT_RELEASE,
+      rotate: Events.KEY_ROTATE_RELEASE,
+    };
+    for (const [key, event] of Object.entries(eventMap)) {
+      if (handlers[key]) this.socket.on(event, handlers[key]);
+    }
+  }
+
+  offKeyDown(handlers: Record<string, () => void>): void {
+    const eventMap: Record<string, string> = {
+      down: Events.KEY_DOWN_PRESS,
+      left: Events.KEY_LEFT_PRESS,
+      right: Events.KEY_RIGHT_PRESS,
+      rotate: Events.KEY_ROTATE_PRESS,
+      hardDrop: Events.KEY_HARD_DROP,
+    };
+    for (const [key, event] of Object.entries(eventMap)) {
+      if (handlers[key]) this.socket.off(event, handlers[key]);
+    }
+  }
+
+  offKeyUp(handlers: Record<string, () => void>): void {
+    const eventMap: Record<string, string> = {
+      down: Events.KEY_DOWN_RELEASE,
+      left: Events.KEY_LEFT_RELEASE,
+      right: Events.KEY_RIGHT_RELEASE,
+      rotate: Events.KEY_ROTATE_RELEASE,
+    };
+    for (const [key, event] of Object.entries(eventMap)) {
+      if (handlers[key]) this.socket.off(event, handlers[key]);
     }
   }
 }

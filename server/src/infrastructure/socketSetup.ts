@@ -3,17 +3,10 @@ import { Events } from '../../../events/index.js';
 import { GameManager } from '../domain/GameManager.js';
 import logger from '../logger.js';
 import { SocketPlayerAdapter } from './SocketPlayerAdapter.js';
-import { handleManageGame } from './socketHandlers/manageGame.js';
-import { handlePlayerEvents } from './socketHandlers/player.js';
 
 const log = logger.child({ component: 'Server' });
 
-export function setupSocketHandlers(io: Server, gameManager: GameManager) {
-  const broadcastGamesList = () => {
-    const sessions = gameManager.getGameSessions().map((game) => game.toPayload());
-    io.emit(Events.UPDATED_GAME_LIST, { sessions });
-  };
-
+export function setupSocketHandlers(io: Server, gameManager: GameManager, broadcastGamesList: () => void) {
   io.on('connection', (socket) => {
     log.info(`New connection ${socket.id} (${io.sockets.sockets.size} connected)`);
     const adapter = new SocketPlayerAdapter(socket);
@@ -23,9 +16,6 @@ export function setupSocketHandlers(io: Server, gameManager: GameManager) {
       return;
     }
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
-
-    handlePlayerEvents(socket, gameManager);
-    handleManageGame(socket, gameManager, broadcastGamesList);
 
     socket.on('disconnect', () => {
       const player = gameManager.getPlayer(socket.id);
