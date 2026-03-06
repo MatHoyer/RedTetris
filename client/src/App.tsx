@@ -8,14 +8,15 @@ import { Events, type TTetromino } from '../../events';
 import { EmptyCell } from './globals';
 import {
   changeId,
-  changeName,
   updateGamesList,
   updateBoard,
   setScore,
+  setLevel,
   setNextPiece,
   setStatus,
   updatePlayerData,
   updateSpectrum,
+  resetGame,
   store,
   type RootState,
 } from './redux';
@@ -34,36 +35,14 @@ const App = () => {
       dispatch(changeId(id));
     });
 
-    socket.on(Events.PLAYER_UPDATED, ({ id, name }: { id: string; name: string }) => {
-      console.log('PLAYER_UPDATED', id, name);
-      dispatch(changeId(id));
-      dispatch(changeName(name));
-      if (id && window.location.pathname === '/login-hub') navigate('/', { replace: true });
-    });
-
     socket.on(Events.UPDATED_GAME_LIST, ({ sessions }) => {
       console.log('UPDATED_GAME_LIST', sessions);
       dispatch(updateGamesList(sessions));
     });
 
-    socket.on(Events.GAME_CREATED, ({ roomName }: { roomName: string }) => {
-      console.log('GAME_CREATED', roomName);
-      const path = window.location.pathname;
-      if (!path.startsWith(`/${roomName}/`)) {
-        navigate(`/${roomName}/${userNameRef.current}`);
-      }
-    });
-
-    socket.on(Events.GAME_JOINED, ({ roomName }: { roomName: string }) => {
-      console.log('GAME_JOINED', roomName);
-      const path = window.location.pathname;
-      if (!path.startsWith(`/${roomName}/`)) {
-        navigate(`/${roomName}/${userNameRef.current}`);
-      }
-    });
-
     socket.on(Events.GAME_STARTED, ({ roomName }: { roomName: string }) => {
       console.log('GAME_STARTED', roomName);
+      dispatch(resetGame());
       navigate(`/${roomName}/${userNameRef.current}/game`);
     });
 
@@ -72,6 +51,9 @@ const App = () => {
     });
     socket.on(Events.UPDATED_SCORE, ({ score }: { score: number }) => {
       dispatch(setScore(score));
+    });
+    socket.on(Events.UPDATED_LEVEL, ({ level }: { level: number }) => {
+      dispatch(setLevel(level));
     });
     socket.on(
       Events.UPDATED_NEXT_PIECE,
@@ -98,13 +80,11 @@ const App = () => {
 
     return () => {
       socket.off(Events.PLAYER_CREATED);
-      socket.off(Events.PLAYER_UPDATED);
       socket.off(Events.UPDATED_GAME_LIST);
-      socket.off(Events.GAME_CREATED);
-      socket.off(Events.GAME_JOINED);
       socket.off(Events.GAME_STARTED);
       socket.off(Events.UPDATED_BOARD);
       socket.off(Events.UPDATED_SCORE);
+      socket.off(Events.UPDATED_LEVEL);
       socket.off(Events.UPDATED_NEXT_PIECE);
       socket.off(Events.UPDATED_GAME_DATA);
       socket.off(Events.UPDATED_SPECTRUM);
