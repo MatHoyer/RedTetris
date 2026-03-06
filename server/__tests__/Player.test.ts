@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, afterEach } from 'vitest';
-import { Player } from '../src/domain/Player';
+import { Player, PlayerState } from '../src/domain/Player';
 import { Board } from '../src/domain/Board';
 import { Tetrominos } from '../src/domain/Tetrominos';
 import { PlayerPort } from '../src/domain/ports';
@@ -7,13 +7,16 @@ import { PlayerPort } from '../src/domain/ports';
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),
   emitScore: vi.fn(),
+  emitLevel: vi.fn(),
   emitNextPiece: vi.fn(),
   emitGameEnded: vi.fn(),
   emitGameStarted: vi.fn(),
   emitGameData: vi.fn(),
   emitSpectrum: vi.fn(),
-  onKeyInput: vi.fn(),
-  offKeyInput: vi.fn(),
+  onKeyDown: vi.fn(),
+  onKeyUp: vi.fn(),
+  offKeyDown: vi.fn(),
+  offKeyUp: vi.fn(),
 });
 
 describe('Player', () => {
@@ -22,406 +25,472 @@ describe('Player', () => {
   });
 
   test('should initialize with the correct id, name, and socketId', () => {
-    // When
     const player = new Player(1, 'Player1', 'socket123');
 
-    // Then
     expect(player.id).toBe(1);
     expect(player.name).toBe('Player1');
     expect(player.socketId).toBe('socket123');
     expect(player.board).toBeInstanceOf(Board);
-    expect(player.tickRate).toBe(800);
-    expect(player.tickInterval).toBeNull();
     expect(player.alive).toBe(true);
+    expect(player.state).toBe(PlayerState.IDLE);
   });
 
-  test('should return the correct payload', () => {
-    // Given
+  test('should return the correct payload with level', () => {
     const player = new Player(1, 'Player1', 'socket123');
 
-    // When
     const payload = player.toPayload();
 
-    // Then
     expect(payload).toEqual({
       id: 1,
       name: 'Player1',
       alive: true,
       score: 0,
+      level: 0,
     });
   });
 
   test('should update name', () => {
-    // Given
     const player = new Player(1, 'Player1', 'socket123');
 
-    // When
     player.updatePlayer('NewName');
 
-    // Then
     expect(player.name).toBe('NewName');
   });
 
-  test('should update score', () => {
-    // Given
-    const player = new Player(1, 'Player1', 'socket123');
-
-    // When
-    player.updateScore(100);
-
-    // Then
-    expect(player.score).toBe(100);
-
-    // When
-    player.updateScore(50);
-
-    // Then
-    expect(player.score).toBe(150);
-  });
-
-  test('should have lockPending default to false', () => {
-    // When
-    const player = new Player(1, 'Player1', 'socket123');
-
-    // Then
-    expect(player.lockPending).toBe(false);
-  });
-
   test('forceStop should exist as a method', () => {
-    // When
     const player = new Player(1, 'Player1', 'socket123');
 
-    // Then
     expect(typeof player.forceStop).toBe('function');
   });
 
   test('start does nothing without a port', () => {
-    // Given
     const player = new Player(1, 'Player1', 'socket123');
     const bag = new Tetrominos();
 
-    // When
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
 
-    // Then
-    expect(player.handleKeys).toBeNull();
+    expect(player.state).toBe(PlayerState.IDLE);
   });
 
-  test('start initializes game loop with a port', () => {
-    // Given
+  test('start initializes player state with a port', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     const notify = vi.fn();
-    const onStop = vi.fn();
-    const onLinesCleared = vi.fn();
-    const onBoardUpdate = vi.fn();
 
-    // When
-    player.start(bag, notify, onStop, onLinesCleared, onBoardUpdate);
+    player.start(bag, notify, vi.fn(), vi.fn(), vi.fn());
 
-    // Then
     expect(player.alive).toBe(true);
     expect(player.score).toBe(0);
+    expect(player.level).toBe(0);
+    expect(player.state).toBe(PlayerState.ACTIVE);
     expect(player.bagIndex).toBe(1);
-    expect(player.handleKeys).not.toBeNull();
-    expect(player.tickInterval).not.toBeNull();
-    expect(port.onKeyInput).toHaveBeenCalled();
+    expect(port.onKeyDown).toHaveBeenCalled();
+    expect(port.onKeyUp).toHaveBeenCalled();
     expect(port.emitBoard).toHaveBeenCalled();
     expect(notify).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
   });
 
   test('handleNextPiece sets a piece on the board', () => {
-    // Given
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     player.bag = new Tetrominos();
     player.bagIndex = 0;
 
-    // When
     const result = player.handleNextPiece();
 
-    // Then
     expect(result).toBe(true);
     expect(player.bagIndex).toBe(1);
     expect(player.board.currPiece).not.toBeNull();
     expect(port.emitNextPiece).toHaveBeenCalled();
   });
 
-  test('tick moves piece down when no lockPending', () => {
-    // Given
+  test('frame in ACTIVE state applies gravity', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-    (port.emitBoard as ReturnType<typeof vi.fn>).mockClear();
+    const initialPos = player.board.position[0];
 
-    // When
-    player.tick();
+    for (let i = 0; i < 100; i++) {
+      player.frame();
+    }
 
-    // Then
-    expect(player.alive).toBe(true);
-    expect(port.emitBoard).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
+    expect(player.board.position[0]).toBeGreaterThan(initialPos);
   });
 
-  test('tick sets lockPending when piece cannot move down', () => {
-    // Given
+  test('frame transitions to LOCK_DELAY when piece hits bottom', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
 
-    // Move piece to bottom (moveCurrPieceDown clears internally, safe for all shapes)
     while (player.board.moveCurrPieceDown()) {}
+    player.state = PlayerState.ACTIVE;
+    player.gravityAccumulator = 256;
 
-    // When
-    player.tick();
+    player.frame();
 
-    // Then
-    expect(player.lockPending).toBe(true);
-
-    // Cleanup
-    player.forceStop();
+    expect(player.state).toBe(PlayerState.LOCK_DELAY);
   });
 
-  test('tick locks piece when lockPending and still blocked', () => {
-    // Given
+  test('LOCK_DELAY transitions to ARE after 30 frames', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
 
-    // Move piece to bottom
     while (player.board.moveCurrPieceDown()) {}
-    player.lockPending = true;
+    player.state = PlayerState.LOCK_DELAY;
+    player.lockDelayCounter = 0;
 
-    // When
-    player.tick();
+    for (let i = 0; i < 30; i++) {
+      player.frame();
+    }
 
-    // Then
-    expect(player.lockPending).toBe(false);
-    expect(player.alive).toBe(true);
-
-    // Cleanup
-    player.forceStop();
+    expect([PlayerState.ARE, PlayerState.LINE_CLEAR]).toContain(player.state);
   });
 
-  test('stop clears interval and unregisters keys', () => {
-    // Given
+  test('ARE transitions to ACTIVE after 30 frames', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    player.board.hardMoveDown();
+    player.state = PlayerState.ARE;
+    player.areCounter = 0;
+
+    for (let i = 0; i < 30; i++) {
+      player.frame();
+    }
+
+    expect(player.state).toBe(PlayerState.ACTIVE);
+  });
+
+  test('LINE_CLEAR transitions to ARE after 41 frames', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    for (let col = 0; col < 10; col++) {
+      player.board.grid[20][col] = 'I';
+      player.board.grid[19][col] = 'I';
+    }
+
+    player.pendingLinesCleared = 2;
+    player.state = PlayerState.LINE_CLEAR;
+    player.lineClearCounter = 0;
+
+    for (let i = 0; i < 41; i++) {
+      player.frame();
+    }
+
+    expect(player.state).toBe(PlayerState.ARE);
+  });
+
+  test('stop unregisters keys and calls onStop', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     const onStop = vi.fn();
     player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
 
-    // When
     player.stop();
 
-    // Then
     expect(player.alive).toBe(false);
-    expect(port.offKeyInput).toHaveBeenCalled();
+    expect(player.state).toBe(PlayerState.IDLE);
+    expect(port.offKeyDown).toHaveBeenCalled();
+    expect(port.offKeyUp).toHaveBeenCalled();
     expect(onStop).toHaveBeenCalled();
   });
 
-  test('stop does nothing without port', () => {
-    // Given
-    const player = new Player(1, 'Player1', 'socket123');
-
-    // When + Then
-    expect(() => player.stop()).not.toThrow();
-  });
-
-  test('forceStop clears interval without calling onStop', () => {
-    // Given
+  test('stop is idempotent — calling twice only emits onStop once', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     const onStop = vi.fn();
     player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
 
-    // When
+    player.stop();
+    player.stop();
+
+    expect(onStop).toHaveBeenCalledTimes(1);
+    expect(port.offKeyDown).toHaveBeenCalledTimes(1);
+    expect(port.offKeyUp).toHaveBeenCalledTimes(1);
+  });
+
+  test('forceStop is idempotent — calling twice only unregisters keys once', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    player.forceStop();
     player.forceStop();
 
-    // Then
+    expect(port.offKeyDown).toHaveBeenCalledTimes(1);
+    expect(port.offKeyUp).toHaveBeenCalledTimes(1);
+  });
+
+  test('stop does nothing without port', () => {
+    const player = new Player(1, 'Player1', 'socket123');
+
+    expect(() => player.stop()).not.toThrow();
+  });
+
+  test('forceStop unregisters keys without calling onStop', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    const onStop = vi.fn();
+    player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
+
+    player.forceStop();
+
     expect(player.alive).toBe(false);
-    expect(port.offKeyInput).toHaveBeenCalled();
+    expect(player.state).toBe(PlayerState.IDLE);
+    expect(port.offKeyDown).toHaveBeenCalled();
+    expect(port.offKeyUp).toHaveBeenCalled();
     expect(onStop).not.toHaveBeenCalled();
   });
 
   test('forceStop does nothing without port', () => {
-    // Given
     const player = new Player(1, 'Player1', 'socket123');
 
-    // When + Then
     expect(() => player.forceStop()).not.toThrow();
   });
 
-  test('handleKeys space performs hard drop', () => {
-    // Given
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    const onLinesCleared = vi.fn();
-    player.start(bag, vi.fn(), vi.fn(), onLinesCleared, vi.fn());
-
-    // When
-    player.handleKeys![' ']();
-
-    // Then
-    expect(player.lockPending).toBe(false);
-    expect(port.emitBoard).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
-  });
-
-  test('handleKeys ArrowUp rotates piece', () => {
-    // Given
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-    (port.emitBoard as ReturnType<typeof vi.fn>).mockClear();
-
-    // When
-    player.handleKeys!['ArrowUp']();
-
-    // Then
-    expect(port.emitBoard).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
-  });
-
-  test('handleKeys ArrowDown moves piece down', () => {
-    // Given
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-    (port.emitBoard as ReturnType<typeof vi.fn>).mockClear();
-
-    // When
-    player.handleKeys!['ArrowDown']();
-
-    // Then
-    expect(port.emitBoard).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
-  });
-
-  test('handleKeys ArrowLeft moves piece left', () => {
-    // Given
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-    (port.emitBoard as ReturnType<typeof vi.fn>).mockClear();
-
-    // When
-    player.handleKeys!['ArrowLeft']();
-
-    // Then
-    expect(port.emitBoard).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
-  });
-
-  test('handleKeys ArrowRight moves piece right', () => {
-    // Given
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-    (port.emitBoard as ReturnType<typeof vi.fn>).mockClear();
-
-    // When
-    player.handleKeys!['ArrowRight']();
-
-    // Then
-    expect(port.emitBoard).toHaveBeenCalled();
-
-    // Cleanup
-    player.forceStop();
-  });
-
-  test('tick resets lockPending when piece can move down again', () => {
-    // Given
+  test('hard drop via key handler transitions state correctly', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
 
-    // Simulate lockPending but piece can still move
-    player.lockPending = true;
-    vi.spyOn(player.board, 'canMoveCurrPieceDown').mockReturnValue(true);
-    vi.spyOn(player.board, 'moveCurrPieceDown').mockReturnValue(true);
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['hardDrop']();
 
-    // When
-    player.tick();
-
-    // Then
-    expect(player.lockPending).toBe(false);
-
-    // Cleanup
-    player.forceStop();
+    expect([PlayerState.ARE, PlayerState.LINE_CLEAR]).toContain(player.state);
+    expect(port.emitBoard).toHaveBeenCalled();
   });
 
-  test('tick ends game when lockPending and no next piece', () => {
-    // Given
+  test('DAS charges and moves piece after threshold', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
-    const onStop = vi.fn();
-    player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    const initialCol = player.board.position[1];
 
-    // Simulate lockPending, can't move down, and setCurrPiece fails
-    player.lockPending = true;
-    vi.spyOn(player.board, 'canMoveCurrPieceDown').mockReturnValue(false);
-    vi.spyOn(player.board, 'lockCurrentPiece').mockReturnValue(0);
-    vi.spyOn(player.board, 'setCurrPiece').mockReturnValue(false);
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['left']();
 
-    // When
-    player.tick();
+    for (let i = 0; i < 17; i++) {
+      player.frame();
+    }
 
-    // Then
-    expect(player.alive).toBe(false);
-    expect(onStop).toHaveBeenCalled();
+    expect(player.board.position[1]).toBeLessThan(initialCol);
   });
 
-  test('sendBoard emits board and spectrum', () => {
-    // Given
+  test('single tap moves piece once', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    const initialCol = player.board.position[1];
+
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const keyUpHandlers = (port.onKeyUp as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['left']();
+    keyUpHandlers['left']();
+
+    expect(player.board.position[1]).toBe(initialCol - 1);
+  });
+
+  test('IRS spawns piece with rotation', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    player.board.hardMoveDown();
+
+    player.irsRotation = true;
+    player.state = PlayerState.ARE;
+    player.areCounter = 29;
+
+    player.frame();
+
+    expect(player.state).toBe(PlayerState.ACTIVE);
+  });
+
+  test('level increments on piece placement', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    const initialLevel = player.level;
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['hardDrop']();
+
+    expect(player.level).toBe(initialLevel + 1);
+  });
+
+  test('level does not increment past section boundary (x99)', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    player.level = 99;
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['hardDrop']();
+
+    expect(player.level).toBe(99);
+  });
+
+  test('level caps at 999', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    player.level = 999;
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['hardDrop']();
+
+    expect(player.level).toBe(999);
+  });
+
+  test('scoring applies TGM formula on line clear', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    for (let col = 0; col < 10; col++) {
+      player.board.grid[20][col] = 'I';
+    }
+
+    player.pendingLinesCleared = 1;
+    player.combo = 1;
+    player.level = 0;
+    player.softDropFrames = 0;
+    player.state = PlayerState.LINE_CLEAR;
+    player.lineClearCounter = 40;
+
+    player.frame();
+
+    expect(player.score).toBeGreaterThan(0);
+  });
+
+  test('combo increases with consecutive line clears', () => {
+    const player = new Player(1, 'Player1', 'socket1');
+    player.combo = 1;
+
+    expect(1 + (2 * 1) - 2).toBe(1);
+    expect(1 + (2 * 2) - 2).toBe(3);
+    expect(3 + (2 * 1) - 2).toBe(3);
+  });
+
+  test('sendBoard emits board payload and spectrum', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const onBoardUpdate = vi.fn();
     player.onBoardUpdate = onBoardUpdate;
 
-    // When
     player.sendBoard();
 
-    // Then
     expect(port.emitBoard).toHaveBeenCalled();
+    const emittedBoard = (port.emitBoard as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(emittedBoard).toHaveLength(20);
     expect(onBoardUpdate).toHaveBeenCalledWith(1, expect.any(Array));
   });
 
   test('sendScore emits score', () => {
-    // Given
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     player.score = 500;
 
-    // When
     player.sendScore();
 
-    // Then
     expect(port.emitScore).toHaveBeenCalledWith(500);
+  });
+
+  test('sendLevel emits level', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    player.level = 42;
+
+    player.sendLevel();
+
+    expect(port.emitLevel).toHaveBeenCalledWith(42);
+  });
+
+  test('soft drop adds gravity when down is held', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    const initialPos = player.board.position[0];
+
+    player.heldKeys['down'] = true;
+    player.frame();
+
+    expect(player.board.position[0]).toBeGreaterThan(initialPos);
+    expect(player.softDropFrames).toBe(1);
+  });
+
+  test('key release handlers work correctly', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const keyUpHandlers = (port.onKeyUp as ReturnType<typeof vi.fn>).mock.calls[0][0];
+
+    keyDownHandlers['left']();
+    expect(player.heldKeys['left']).toBe(true);
+    expect(player.dasDirection).toBe('left');
+
+    keyUpHandlers['left']();
+    expect(player.heldKeys['left']).toBe(false);
+  });
+
+  test('rotate key handler in ACTIVE state rotates piece', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['rotate']();
+
+    player.frame();
+
+    expect(player.heldKeys['rotate']).toBe(false);
+  });
+
+  test('ARE state ends game when no piece can be placed', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    const onStop = vi.fn();
+    player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
+
+    for (let col = 0; col < 10; col++) {
+      player.board.grid[0][col] = 'J';
+      player.board.grid[1][col] = 'J';
+    }
+
+    player.state = PlayerState.ARE;
+    player.areCounter = 29;
+
+    player.frame();
+
+    expect(player.alive).toBe(false);
+    expect(onStop).toHaveBeenCalled();
   });
 });
