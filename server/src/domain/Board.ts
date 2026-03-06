@@ -5,7 +5,7 @@ import { Shapes } from './shapes.js';
 
 const log = logger.child({ component: 'Board' });
 
-const GRID_HEIGHT = 20;
+export const GRID_HEIGHT = 21;
 const GRID_WIDTH = 10;
 
 export type TCell = TTetromino | 'empty' | 'penalty';
@@ -17,10 +17,11 @@ export class Board {
   currPiece: Piece | null = null;
   position: [number, number] = [0, 0];
 
-  constructor(readonly updateScore: (addScore: number) => void = () => {}) {}
-
-  setCurrPiece(tetromino: TTetromino) {
+  setCurrPiece(tetromino: TTetromino, initialRotation?: number) {
     this.currPiece = new Piece(tetromino, Shapes[tetromino]);
+    if (initialRotation !== undefined) {
+      this.currPiece.currRotIdx = initialRotation % this.currPiece.configs.length;
+    }
     this.position = [0, 4];
     const canPlace = this.canPlaceCurrPiece({});
     if (canPlace) this.draw();
@@ -32,7 +33,6 @@ export class Board {
     if (this.canMoveCurrPieceDown()) {
       this.moveDown();
       this.draw();
-      this.updateScore(1);
       return true;
     }
     this.draw();
@@ -41,17 +41,18 @@ export class Board {
 
   hardMoveDown() {
     this.clear();
+    let dropDistance = 0;
     while (this.canMoveCurrPieceDown()) {
       this.moveDown();
-      this.updateScore(2);
+      dropDistance++;
     }
-    return this.lockCurrentPiece();
+    this.lockCurrentPiece();
+    return dropDistance;
   }
 
-  lockCurrentPiece(): number {
+  lockCurrentPiece() {
     this.draw();
     this.currPiece = null;
-    return this.checkCompleteRows();
   }
 
   moveHorizontal(direction: 'left' | 'right') {
@@ -91,22 +92,74 @@ export class Board {
   }
 
   rotateCurrPiece() {
+    if (!this.currPiece) return;
     this.clear();
-    if (this.canRotateCurrPiece()) {
-      this.currPiece!.rotate();
+
+    const shape = this.currPiece.shape;
+
+    if (shape === 'O') {
+      this.draw();
+      return;
     }
+
+    const nextRotIdx = (this.currPiece.currRotIdx + 1) % this.currPiece.configs.length;
+    const nextConf = this.currPiece.configs[nextRotIdx];
+
+    if (this.canPlaceConfig(nextConf, 0, 0)) {
+      this.currPiece.currRotIdx = nextRotIdx;
+      this.draw();
+      return;
+    }
+
+    if (shape === 'I') {
+      this.draw();
+      return;
+    }
+
+    const hasCenterColumnRule = shape === 'L' || shape === 'J' || shape === 'T';
+    if (hasCenterColumnRule && this.firstCollisionInCenterColumn(nextConf)) {
+      this.draw();
+      return;
+    }
+
+    for (const colOff of [1, -1]) {
+      if (this.canPlaceConfig(nextConf, 0, colOff)) {
+        this.position[1] += colOff;
+        this.currPiece.currRotIdx = nextRotIdx;
+        this.draw();
+        return;
+      }
+    }
+
     this.draw();
   }
 
   canRotateCurrPiece() {
     if (!this.currPiece) return false;
-    const nextRotation = this.currPiece.currRotIdx + 1;
-    const nextConf = this.currPiece.configs[nextRotation % this.currPiece.configs.length];
-    for (let row = 0; row < nextConf.length; row++) {
-      for (let col = 0; col < nextConf[row].length; col++) {
-        if (nextConf[row][col]) {
-          const newRow = this.position[0] + row;
-          const newCol = this.position[1] + col;
+    if (this.currPiece.shape === 'O') return false;
+
+    const nextRotIdx = (this.currPiece.currRotIdx + 1) % this.currPiece.configs.length;
+    const nextConf = this.currPiece.configs[nextRotIdx];
+
+    if (this.canPlaceConfig(nextConf, 0, 0)) return true;
+    if (this.currPiece.shape === 'I') return false;
+
+    const hasCenterColumnRule =
+      this.currPiece.shape === 'L' || this.currPiece.shape === 'J' || this.currPiece.shape === 'T';
+    if (hasCenterColumnRule && this.firstCollisionInCenterColumn(nextConf)) return false;
+
+    for (const colOff of [1, -1]) {
+      if (this.canPlaceConfig(nextConf, 0, colOff)) return true;
+    }
+    return false;
+  }
+
+  private canPlaceConfig(config: number[][], rowOff: number, colOff: number): boolean {
+    for (let row = 0; row < config.length; row++) {
+      for (let col = 0; col < config[row].length; col++) {
+        if (config[row][col]) {
+          const newRow = this.position[0] + row + rowOff;
+          const newCol = this.position[1] + col + colOff;
           if (newRow < 0 || newRow >= GRID_HEIGHT || newCol < 0 || newCol >= GRID_WIDTH) {
             return false;
           }
@@ -117,6 +170,23 @@ export class Board {
       }
     }
     return true;
+  }
+
+  private firstCollisionInCenterColumn(config: number[][]): boolean {
+    const centerCol = Math.floor(config[0].length / 2);
+    for (let row = 0; row < config.length; row++) {
+      for (let col = 0; col < config[row].length; col++) {
+        if (config[row][col]) {
+          const newRow = this.position[0] + row;
+          const newCol = this.position[1] + col;
+          const collides =
+            newRow < 0 || newRow >= GRID_HEIGHT || newCol < 0 || newCol >= GRID_WIDTH ||
+            this.grid[newRow][newCol] !== 'empty';
+          if (collides) return col === centerCol;
+        }
+      }
+    }
+    return false;
   }
 
   clear() {
@@ -161,22 +231,45 @@ export class Board {
     }
   }
 
-  checkCompleteRows(): number {
+  markCompleteRows(): number {
+    let count = 0;
+    for (let i = 0; i < this.grid.length; i++) {
+      if (this.grid[i].some((cell) => cell === 'penalty')) continue;
+      if (this.grid[i].every((cell) => cell !== 'empty')) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  removeMarkedRows(): number {
     let cleared = 0;
     for (let i = 0; i < this.grid.length; i++) {
       if (this.grid[i].some((cell) => cell === 'penalty')) continue;
       if (this.grid[i].every((cell) => cell !== 'empty')) {
         this.grid.splice(i, 1);
         this.grid.unshift(createEmptyRow());
-        this.updateScore(100);
         cleared++;
       }
     }
     return cleared;
   }
 
+  checkCompleteRows(): number {
+    return this.removeMarkedRows();
+  }
+
+  isBoardEmpty(): boolean {
+    for (let row = 0; row < this.grid.length; row++) {
+      for (let col = 0; col < this.grid[row].length; col++) {
+        if (this.grid[row][col] !== 'empty') return false;
+      }
+    }
+    return true;
+  }
+
   addPenaltyLines(count: number) {
-    this.grid.splice(0, count);
+    this.grid.splice(1, count);
     for (let i = 0; i < count; i++) {
       this.grid.push(Array<TCell>(GRID_WIDTH).fill('penalty'));
     }
@@ -184,11 +277,12 @@ export class Board {
 
   getSpectrum(): number[] {
     const spectrum: number[] = [];
+    const visibleHeight = GRID_HEIGHT - 1; // 20 visible rows
     for (let col = 0; col < GRID_WIDTH; col++) {
       let height = 0;
-      for (let row = 0; row < GRID_HEIGHT; row++) {
+      for (let row = 1; row < GRID_HEIGHT; row++) {
         if (this.grid[row][col] !== 'empty') {
-          height = GRID_HEIGHT - row;
+          height = visibleHeight - (row - 1);
           break;
         }
       }
@@ -204,6 +298,6 @@ export class Board {
   }
 
   toPayload() {
-    return this.grid;
+    return this.grid.slice(1);
   }
 }
