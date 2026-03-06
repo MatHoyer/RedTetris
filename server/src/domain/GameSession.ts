@@ -2,11 +2,16 @@ import logger from '../logger.js';
 import { Player } from './Player.js';
 import { Tetrominos } from './Tetrominos.js';
 
+const FRAME_MS = 1000 / 60;
+const BOARD_EMIT_INTERVAL = 3; // emit every 3 frames (~20fps)
+
 export class GameSession {
   players: Player[];
   tetromino = new Tetrominos();
   active = false;
   private log;
+  private loopInterval: ReturnType<typeof setInterval> | null = null;
+  private frameCount = 0;
 
   constructor(
     readonly id: string,
@@ -99,7 +104,7 @@ export class GameSession {
     }
   }
 
-  broadcastGameData(data: { player: { id: number; name: string; alive: boolean; score: number } }) {
+  broadcastGameData(data: { player: { id: number; name: string; alive: boolean; score: number; level: number } }) {
     for (const player of this.players) {
       player.port?.emitGameData(data);
     }
@@ -111,9 +116,26 @@ export class GameSession {
     }
   }
 
+  private tick() {
+    this.frameCount++;
+    const shouldEmitBoard = this.frameCount % BOARD_EMIT_INTERVAL === 0;
+
+    for (const p of this.players) {
+      if (p.alive) {
+        p.frame();
+        if (shouldEmitBoard) {
+          p.sendBoard();
+        }
+      }
+    }
+
+  }
+
   start() {
     this.log.info(`Started with ${this.players.length} players`);
     this.active = true;
+    this.frameCount = 0;
+
     for (const p of this.players) {
       p.start(
         this.tetromino,
@@ -123,17 +145,28 @@ export class GameSession {
         (playerId, spectrum) => this.broadcastSpectrum(playerId, spectrum),
       );
     }
+
+    this.loopInterval = setInterval(() => this.tick(), FRAME_MS);
   }
 
   restart() {
     this.log.info(`Restarted`);
+    this.stopLoop();
     this.tetromino = new Tetrominos();
     this.start();
+  }
+
+  private stopLoop() {
+    if (this.loopInterval) {
+      clearInterval(this.loopInterval);
+      this.loopInterval = null;
+    }
   }
 
   end() {
     this.log.info(`Ended`);
     this.active = false;
+    this.stopLoop();
     for (const p of this.players) {
       if (p.alive) p.forceStop();
     }
