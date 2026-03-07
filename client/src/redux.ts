@@ -101,7 +101,7 @@ const gameSlice = createSlice({
       state.spectrums[playerId] = spectrum;
     },
     resetGame: () => {
-      return { ...gameInitialState, otherPlayersData: [], spectrums: {} };
+      return gameInitialState;
     },
   },
 });
@@ -110,45 +110,69 @@ export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, up
   gameSlice.actions;
 
 export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: string, { rejectWithValue }) => {
-  const res = await api.updatePlayer(name);
-  const data = await res.json();
-  if (!res.ok) return rejectWithValue(data.error ?? 'Connection not ready, try again');
-  return data as { id: number; name: string };
+  try {
+    const res = await api.updatePlayer(name);
+    const data = await res.json();
+    if (!res.ok) return rejectWithValue(data.error ?? 'Connection not ready, try again');
+    return data as { id: number; name: string };
+  } catch {
+    return rejectWithValue('Network error');
+  }
 });
 
 export const createGame = createAsyncThunk(
   'games/create',
   async (params: { roomName: string; maxPlayers: number }, { rejectWithValue }) => {
-    const res = await api.createGame(params.roomName, params.maxPlayers);
-    const data = await res.json();
-    if (!res.ok) return rejectWithValue(data.error);
-    return data as { roomName: string };
+    try {
+      const res = await api.createGame(params.roomName, params.maxPlayers);
+      const data = await res.json();
+      if (!res.ok) return rejectWithValue(data.error);
+      return data as { roomName: string };
+    } catch {
+      return rejectWithValue('Network error');
+    }
   },
 );
 
 export const joinGame = createAsyncThunk('games/join', async (roomName: string, { rejectWithValue }) => {
-  const res = await api.joinGame(roomName);
-  const data = await res.json();
-  if (!res.ok) return rejectWithValue(data.error);
-  return data as { roomName: string };
+  try {
+    const res = await api.joinGame(roomName);
+    const data = await res.json();
+    if (!res.ok) return rejectWithValue(data.error);
+    return data as { roomName: string };
+  } catch {
+    return rejectWithValue('Network error');
+  }
 });
 
-export const leaveAll = createAsyncThunk('games/leaveAll', async () => {
-  await api.leaveAll();
+export const leaveAll = createAsyncThunk('games/leaveAll', async (_: void, { rejectWithValue }) => {
+  try {
+    await api.leaveAll();
+  } catch {
+    return rejectWithValue('Network error');
+  }
 });
 
 export const startGame = createAsyncThunk('games/start', async (roomName: string, { rejectWithValue }) => {
-  const res = await api.startGame(roomName);
-  const data = await res.json();
-  if (!res.ok) return rejectWithValue(data.error);
-  return data;
+  try {
+    const res = await api.startGame(roomName);
+    const data = await res.json();
+    if (!res.ok) return rejectWithValue(data.error);
+    return data;
+  } catch {
+    return rejectWithValue('Network error');
+  }
 });
 
 export const restartGame = createAsyncThunk('games/restart', async (roomName: string, { rejectWithValue }) => {
-  const res = await api.restartGame(roomName);
-  const data = await res.json();
-  if (!res.ok) return rejectWithValue(data.error);
-  return data;
+  try {
+    const res = await api.restartGame(roomName);
+    const data = await res.json();
+    if (!res.ok) return rejectWithValue(data.error);
+    return data;
+  } catch {
+    return rejectWithValue('Network error');
+  }
 });
 
 export const store = configureStore({

@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/Button';
+import socket from '../socket';
 import { Table, TableCell, TableLine } from '../components/Table';
 import { createGame, joinGame, leaveAll, startGame, updatePlayer, type AppDispatch, type RootState } from '../redux';
 import { NotFound } from './NotFound';
@@ -13,10 +14,13 @@ export const Lobby = () => {
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
   const needsAutoJoin = !user.name && !!nav.playerName;
+  const joiningRef = useRef(false);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      dispatch(leaveAll());
+      const socketId = socket.id ?? '';
+      const blob = new Blob([JSON.stringify({ socketId })], { type: 'application/json' });
+      navigator.sendBeacon('/api/games/leave-all', blob);
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
@@ -30,16 +34,21 @@ export const Lobby = () => {
   }, [needsAutoJoin, nav.playerName]);
 
   useEffect(() => {
-    if (!user.name || !nav.roomId) return;
+    if (!user.name || !nav.roomId || joiningRef.current) return;
 
     const isInGame = gamesList.some((game) => game.id === nav.roomId && game.players.some((p) => p.id === user.id));
     if (isInGame) return;
 
+    joiningRef.current = true;
     const existingGame = gamesList.find((game) => game.id === nav.roomId);
     if (existingGame) {
-      dispatch(joinGame(nav.roomId));
+      dispatch(joinGame(nav.roomId)).finally(() => {
+        joiningRef.current = false;
+      });
     } else {
-      dispatch(createGame({ roomName: nav.roomId, maxPlayers: 8 }));
+      dispatch(createGame({ roomName: nav.roomId, maxPlayers: 8 })).finally(() => {
+        joiningRef.current = false;
+      });
     }
   }, [user.name, user.id, nav.roomId, gamesList]);
 
