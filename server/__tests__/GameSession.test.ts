@@ -221,15 +221,31 @@ describe('GameSession', () => {
 
     expect(player2.board.grid[20].every((c) => c === 'penalty')).toBe(true);
     expect(player2.board.grid[19].every((c) => c === 'penalty')).toBe(true);
+    expect(player2.board.grid[18].every((c) => c === 'penalty')).toBe(true);
   });
 
-  test('distributePenalty does nothing for 1 or fewer lines', () => {
+  test('distributePenalty sends 1 penalty line for 1 line cleared', () => {
+    const admin = new Player(1, 'Admin', 'socket1');
+    const port2 = createMockPort();
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
+    player2.onBoardUpdate = vi.fn();
+    const gameSession = new GameSession('room1', 4, admin);
+    gameSession.addPlayer(player2);
+    player2.alive = true;
+
+    gameSession.distributePenalty(admin, 1);
+
+    expect(player2.board.grid[20].every((c) => c === 'penalty')).toBe(true);
+    expect(player2.board.grid[19].every((c) => c === 'empty')).toBe(true);
+  });
+
+  test('distributePenalty does nothing for 0 or fewer lines', () => {
     const admin = new Player(1, 'Admin', 'socket1');
     const player2 = new Player(2, 'Player2', 'socket2');
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
 
-    gameSession.distributePenalty(admin, 1);
+    gameSession.distributePenalty(admin, 0);
 
     expect(player2.board.grid[20].every((c) => c === 'empty')).toBe(true);
   });

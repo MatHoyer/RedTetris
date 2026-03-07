@@ -78,13 +78,12 @@ export class GameSession {
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
-    const penaltyCount = linesCleared - 1;
-    if (penaltyCount <= 0) return;
-    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyCount} penalty lines`);
+    if (linesCleared <= 0) return;
+    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${linesCleared} penalty lines`);
 
     for (const player of this.players) {
       if (player.id !== sender.id && player.alive) {
-        const survived = player.board.addPenaltyLines(penaltyCount);
+        const survived = player.board.addPenaltyLines(linesCleared);
         if (!survived) {
           player.alive = false;
           player.stop();
