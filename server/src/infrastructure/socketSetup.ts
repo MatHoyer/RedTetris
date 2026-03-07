@@ -16,6 +16,7 @@ export function setupSocketHandlers(io: Server, gameManager: GameManager, broadc
       return;
     }
     socket.emit(Events.PLAYER_CREATED, { id: playerId });
+    broadcastGamesList();
 
     socket.on('disconnect', () => {
       const player = gameManager.getPlayer(socket.id);
