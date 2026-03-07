@@ -8,7 +8,7 @@ export interface PlayerPort {
   emitNextPiece(nextPiece: TTetromino, nextPieceShape: TShape): void;
   emitGameEnded(status: 'win' | 'loose'): void;
   emitGameStarted(roomName: string): void;
-  emitGameData(data: { player: { id: number; name: string; alive: boolean; score: number } }): void;
+  emitGameData(data: { player: { id: number; name: string; alive: boolean; score: number; level: number } }): void;
   emitSpectrum(playerId: number, spectrum: number[]): void;
   onKeyDown(handlers: Record<string, () => void>): void;
   onKeyUp(handlers: Record<string, () => void>): void;

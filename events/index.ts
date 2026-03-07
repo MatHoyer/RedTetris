@@ -71,6 +71,7 @@ export interface ServerToClientEvents {
       name: string;
       alive: boolean;
       score: number;
+      level: number;
     };
   }) => void;
   [Events.UPDATED_SPECTRUM]: (evt: { playerId: number; spectrum: number[] }) => void;
