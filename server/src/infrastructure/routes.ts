@@ -93,7 +93,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
   });
 
   router.post('/api/games/leave-all', (req, res) => {
-    const socketId = req.headers['x-socket-id'] as string;
+    const socketId = (req.body?.socketId as string) || (req.headers['x-socket-id'] as string);
     const user = getPlayerFromSocket(socketId);
     if (!user) return res.status(401).json({ error: 'Player not found' });
 

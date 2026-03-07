@@ -89,7 +89,7 @@ export class GameManager {
     for (const session of Object.values(this.sessions)) {
       this.removePlayerFromSession(session.id, player.id);
     }
-    player.stop();
+    player.forceStop();
     return player.id;
   }
 

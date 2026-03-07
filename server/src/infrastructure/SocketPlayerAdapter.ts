@@ -3,6 +3,21 @@ import { Events, TShape, TTetromino } from '../../../events/index.js';
 import { PlayerPort } from '../domain/ports.js';
 import { TCell } from '../domain/Board.js';
 
+const KEY_PRESS_EVENTS: Record<string, string> = {
+  down: Events.KEY_DOWN_PRESS,
+  left: Events.KEY_LEFT_PRESS,
+  right: Events.KEY_RIGHT_PRESS,
+  rotate: Events.KEY_ROTATE_PRESS,
+  hardDrop: Events.KEY_HARD_DROP,
+};
+
+const KEY_RELEASE_EVENTS: Record<string, string> = {
+  down: Events.KEY_DOWN_RELEASE,
+  left: Events.KEY_LEFT_RELEASE,
+  right: Events.KEY_RIGHT_RELEASE,
+  rotate: Events.KEY_ROTATE_RELEASE,
+};
+
 export class SocketPlayerAdapter implements PlayerPort {
   constructor(private readonly socket: Socket) {}
 
@@ -30,7 +45,7 @@ export class SocketPlayerAdapter implements PlayerPort {
     this.socket.emit(Events.GAME_STARTED, { roomName });
   }
 
-  emitGameData(data: { player: { id: number; name: string; alive: boolean; score: number } }): void {
+  emitGameData(data: { player: { id: number; name: string; alive: boolean; score: number; level: number } }): void {
     this.socket.emit(Events.UPDATED_GAME_DATA, data);
   }
 
@@ -39,51 +54,25 @@ export class SocketPlayerAdapter implements PlayerPort {
   }
 
   onKeyDown(handlers: Record<string, () => void>): void {
-    const eventMap: Record<string, string> = {
-      down: Events.KEY_DOWN_PRESS,
-      left: Events.KEY_LEFT_PRESS,
-      right: Events.KEY_RIGHT_PRESS,
-      rotate: Events.KEY_ROTATE_PRESS,
-      hardDrop: Events.KEY_HARD_DROP,
-    };
-    for (const [key, event] of Object.entries(eventMap)) {
+    for (const [key, event] of Object.entries(KEY_PRESS_EVENTS)) {
       if (handlers[key]) this.socket.on(event, handlers[key]);
     }
   }
 
   onKeyUp(handlers: Record<string, () => void>): void {
-    const eventMap: Record<string, string> = {
-      down: Events.KEY_DOWN_RELEASE,
-      left: Events.KEY_LEFT_RELEASE,
-      right: Events.KEY_RIGHT_RELEASE,
-      rotate: Events.KEY_ROTATE_RELEASE,
-    };
-    for (const [key, event] of Object.entries(eventMap)) {
+    for (const [key, event] of Object.entries(KEY_RELEASE_EVENTS)) {
       if (handlers[key]) this.socket.on(event, handlers[key]);
     }
   }
 
   offKeyDown(handlers: Record<string, () => void>): void {
-    const eventMap: Record<string, string> = {
-      down: Events.KEY_DOWN_PRESS,
-      left: Events.KEY_LEFT_PRESS,
-      right: Events.KEY_RIGHT_PRESS,
-      rotate: Events.KEY_ROTATE_PRESS,
-      hardDrop: Events.KEY_HARD_DROP,
-    };
-    for (const [key, event] of Object.entries(eventMap)) {
+    for (const [key, event] of Object.entries(KEY_PRESS_EVENTS)) {
       if (handlers[key]) this.socket.off(event, handlers[key]);
     }
   }
 
   offKeyUp(handlers: Record<string, () => void>): void {
-    const eventMap: Record<string, string> = {
-      down: Events.KEY_DOWN_RELEASE,
-      left: Events.KEY_LEFT_RELEASE,
-      right: Events.KEY_RIGHT_RELEASE,
-      rotate: Events.KEY_ROTATE_RELEASE,
-    };
-    for (const [key, event] of Object.entries(eventMap)) {
+    for (const [key, event] of Object.entries(KEY_RELEASE_EVENTS)) {
       if (handlers[key]) this.socket.off(event, handlers[key]);
     }
   }

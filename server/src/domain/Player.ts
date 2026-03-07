@@ -37,7 +37,7 @@ export class Player {
   dasCounter = 0;
   irsRotation = false;
 
-  bag = new Tetrominos();
+  bag!: Tetrominos;
   bagIndex = 0;
   notify: (data: PlayerPayload) => void = () => {};
   onStop: () => void = () => {};
