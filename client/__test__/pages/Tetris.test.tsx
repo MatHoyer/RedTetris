@@ -132,36 +132,32 @@ describe('Tetris', () => {
     expect(Array.from(cells).some((c) => c.classList.contains('I'))).toBe(true);
   });
 
-  it('keyup ArrowUp and Space emit key to socket', () => {
+  it('keydown ArrowUp emits KEY_ROTATE_PRESS and Space emits KEY_HARD_DROP', () => {
+    renderTetris();
+    vi.mocked(socket.emit).mockClear();
     act(() => {
-      document.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowUp', bubbles: true }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith('ArrowUp');
+    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.KEY_ROTATE_PRESS);
+    vi.mocked(socket.emit).mockClear();
     act(() => {
-      document.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(' ');
+    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.KEY_HARD_DROP);
   });
 
-  it('keydown ArrowDown/Left/Right then keyup triggers key state and interval emits', () => {
-    vi.useFakeTimers();
+  it('keydown ArrowLeft emits KEY_LEFT_PRESS, keyup emits KEY_LEFT_RELEASE', () => {
+    renderTetris();
     vi.mocked(socket.emit).mockClear();
     act(() => {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
     });
-    act(() => {
-      vi.advanceTimersByTime(60);
-    });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith('ArrowLeft');
+    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.KEY_LEFT_PRESS);
+    vi.mocked(socket.emit).mockClear();
     act(() => {
       document.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowLeft', bubbles: true }));
     });
-    vi.mocked(socket.emit).mockClear();
-    act(() => {
-      vi.advanceTimersByTime(60);
-    });
-    expect(vi.mocked(socket.emit)).not.toHaveBeenCalledWith('ArrowLeft');
-    vi.useRealTimers();
+    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.KEY_LEFT_RELEASE);
   });
 
   it('keydown with repeat does not update keys', () => {
@@ -204,23 +200,27 @@ describe('Tetris', () => {
     expect(div.textContent).toMatch(/You lost|lost/);
   });
 
-  it('status effect emits LEAVE_GAMES on cleanup', () => {
-    vi.mocked(socket.emit).mockClear();
+  it('status effect calls leaveAll API on cleanup', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     store.dispatch(setStatus('win'));
     const { root } = renderTetris();
-    act(() => {
+    await act(async () => {
       root.unmount();
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.LEAVE_GAMES);
+    expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
+    fetchSpy.mockRestore();
   });
 
-  it('Quit link click emits LEAVE_GAMES', () => {
+  it('Quit link click calls leaveAll API', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     const { div } = renderTetris();
+    fetchSpy.mockClear();
     const quitLink = div.querySelector('a[href="/"]');
-    act(() => {
+    await act(async () => {
       quitLink?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.LEAVE_GAMES);
+    expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
+    fetchSpy.mockRestore();
   });
 
   it('unmount dispatches resetBoard and resetGame', () => {

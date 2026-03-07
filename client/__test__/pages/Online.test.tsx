@@ -2,21 +2,14 @@ import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
-import { Events } from '../../../events';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Online } from '../../src/pages/Online';
 import { store, updateGamesList } from '../../src/redux';
-import socket from '../../src/socket';
+import { setInputValue } from '../helpers';
 
 vi.mock('../../src/socket', () => ({
-  default: { emit: vi.fn(), on: vi.fn(), off: vi.fn() },
+  default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
-
-const setInputValue = (el: HTMLInputElement, value: string) => {
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-  setter?.call(el, value);
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-};
 
 const mockGame = (
   overrides: Partial<{
@@ -39,9 +32,24 @@ const mockGame = (
   );
 
 describe('Online', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ roomName: 'room-a' }), { status: 200 }),
+    );
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
   it('renders Back link, filter UI and No games when list is empty', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
+    act(() => {
+      store.dispatch(updateGamesList([]));
+    });
     act(() => {
       root.render(
         <Provider store={store}>
@@ -57,22 +65,6 @@ describe('Online', () => {
     const createLink = div.querySelector('a[href="/create-game"]');
     expect(createLink).toBeTruthy();
     expect(div.querySelector('button')?.textContent).toMatch(/Create Game/i);
-  });
-
-  it('emits UPDATE_GAMES_LIST on mount', () => {
-    vi.mocked(socket.emit).mockClear();
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.UPDATE_GAMES_LIST);
   });
 
   it('renders table with games when gamesList has data', () => {
@@ -207,7 +199,7 @@ describe('Online', () => {
     expect((joinBtn as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it('clicking Join emits JOIN_GAME with roomName', () => {
+  it('clicking Join calls joinGame API', async () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
@@ -222,11 +214,11 @@ describe('Online', () => {
         </Provider>,
       );
     });
-    vi.mocked(socket.emit).mockClear();
+    fetchSpy.mockClear();
     const joinBtn = Array.from(div.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Join');
-    act(() => {
+    await act(async () => {
       joinBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.JOIN_GAME, { roomName: 'join-me' });
+    expect(fetchSpy).toHaveBeenCalledWith('/api/games/join-me/join', expect.objectContaining({ method: 'POST' }));
   });
 });

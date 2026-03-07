@@ -2,14 +2,12 @@ import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
-import { Events } from '../../../events';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Lobby } from '../../src/pages/Lobby';
 import { changeId, changeName, store, updateGamesList } from '../../src/redux';
-import socket from '../../src/socket';
 
 vi.mock('../../src/socket', () => ({
-  default: { emit: vi.fn(), on: vi.fn(), off: vi.fn() },
+  default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
 
 const lobbyGame = {
@@ -21,6 +19,19 @@ const lobbyGame = {
 };
 
 describe('Lobby', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let sendBeaconSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+    sendBeaconSpy = vi.fn().mockReturnValue(true);
+    Object.defineProperty(navigator, 'sendBeacon', { value: sendBeaconSpy, writable: true, configurable: true });
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
   it('renders NotFound when roomId is missing', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
@@ -42,6 +53,11 @@ describe('Lobby', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
+      store.dispatch(changeId(-1));
+      store.dispatch(changeName(''));
+      store.dispatch(updateGamesList([]));
+    });
+    act(() => {
       root.render(
         <Provider store={store}>
           <MemoryRouter initialEntries={['/my-room/Alice']}>
@@ -59,9 +75,9 @@ describe('Lobby', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
-      store.dispatch(changeId(-1));
-      store.dispatch(changeName(''));
-      store.dispatch(updateGamesList([]));
+      store.dispatch(changeId(1));
+      store.dispatch(changeName('Alice'));
+      store.dispatch(updateGamesList([lobbyGame]));
     });
     act(() => {
       root.render(
@@ -74,22 +90,12 @@ describe('Lobby', () => {
         </Provider>,
       );
     });
-    act(() => {
-      store.dispatch(changeId(1));
-      store.dispatch(changeName('Alice'));
-      store.dispatch(updateGamesList([lobbyGame]));
-    });
-    const onCalls = vi.mocked(socket.on).mock.calls;
-    const listHandler = onCalls.find((c) => c[0] === Events.UPDATED_GAME_LIST)?.[1];
-    act(() => {
-      listHandler?.();
-    });
     expect(div.querySelector('table')).toBeTruthy();
     expect(div.textContent).toMatch(/Start|Quit/);
     expect(div.textContent).toContain('Alice');
   });
 
-  it('beforeunload triggers leaveRoom and emits LEAVE_GAMES', () => {
+  it('beforeunload triggers sendBeacon to leave-all', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
@@ -106,18 +112,13 @@ describe('Lobby', () => {
         </Provider>,
       );
     });
-    const listHandler = vi.mocked(socket.on).mock.calls.find((c) => c[0] === Events.UPDATED_GAME_LIST)?.[1];
-    act(() => {
-      listHandler?.();
-    });
-    vi.mocked(socket.emit).mockClear();
     act(() => {
       window.dispatchEvent(new Event('beforeunload'));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.LEAVE_GAMES);
+    expect(sendBeaconSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.any(Blob));
   });
 
-  it('unmount runs cleanup (removeEventListener, socket.off)', () => {
+  it('unmount runs cleanup (removeEventListener)', () => {
     const removeSpy = vi.spyOn(window, 'removeEventListener');
     const div = document.createElement('div');
     const root = createRoot(div);
@@ -136,24 +137,13 @@ describe('Lobby', () => {
       );
     });
     act(() => {
-      store.dispatch(changeId(1));
-      store.dispatch(changeName('Alice'));
-      store.dispatch(updateGamesList([lobbyGame]));
-    });
-    const listHandler = vi.mocked(socket.on).mock.calls.find((c) => c[0] === Events.UPDATED_GAME_LIST)?.[1];
-    act(() => {
-      listHandler?.();
-    });
-    vi.mocked(socket.off).mockClear();
-    act(() => {
       root.unmount();
     });
     expect(removeSpy).toHaveBeenCalledWith('beforeunload', expect.any(Function));
-    expect(vi.mocked(socket.off)).toHaveBeenCalledWith(Events.UPDATED_GAME_LIST, expect.any(Function));
     removeSpy.mockRestore();
   });
 
-  it('returns NotFound when user not in game players', () => {
+  it('shows Joining when user not yet in game players', () => {
     const gameWithoutUser = {
       ...lobbyGame,
       id: 'room1',
@@ -175,14 +165,10 @@ describe('Lobby', () => {
         </Provider>,
       );
     });
-    const listHandler = vi.mocked(socket.on).mock.calls.find((c) => c[0] === Events.UPDATED_GAME_LIST)?.[1];
-    act(() => {
-      listHandler?.();
-    });
-    expect(div.querySelector('h1')?.textContent).toBe('Page not found');
+    expect(div.textContent).toContain('Joining');
   });
 
-  it('clicking Start emits GAME_START', () => {
+  it('clicking Start calls startGame API', async () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
@@ -199,19 +185,15 @@ describe('Lobby', () => {
         </Provider>,
       );
     });
-    const listHandler = vi.mocked(socket.on).mock.calls.find((c) => c[0] === Events.UPDATED_GAME_LIST)?.[1];
-    act(() => {
-      listHandler?.();
-    });
-    vi.mocked(socket.emit).mockClear();
+    fetchSpy.mockClear();
     const startBtn = Array.from(div.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Start');
-    act(() => {
+    await act(async () => {
       startBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.GAME_START, { roomName: 'room1' });
+    expect(fetchSpy).toHaveBeenCalledWith('/api/games/room1/start', expect.objectContaining({ method: 'POST' }));
   });
 
-  it('clicking Quit emits LEAVE_GAMES and navigates to /online', () => {
+  it('clicking Quit calls leaveAll API', async () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
@@ -228,15 +210,11 @@ describe('Lobby', () => {
         </Provider>,
       );
     });
-    const listHandler = vi.mocked(socket.on).mock.calls.find((c) => c[0] === Events.UPDATED_GAME_LIST)?.[1];
-    act(() => {
-      listHandler?.();
-    });
-    vi.mocked(socket.emit).mockClear();
+    fetchSpy.mockClear();
     const quitBtn = Array.from(div.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Quit');
-    act(() => {
+    await act(async () => {
       quitBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.LEAVE_GAMES);
+    expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
   });
 });

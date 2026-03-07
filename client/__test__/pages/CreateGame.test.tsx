@@ -1,24 +1,39 @@
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
-import { Events } from '../../../events';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { CreateGame } from '../../src/pages/CreateGame';
-import socket from '../../src/socket';
+import { store } from '../../src/redux';
+import { setInputValue } from '../helpers';
 
 vi.mock('../../src/socket', () => ({
-  default: { emit: vi.fn(), on: vi.fn(), off: vi.fn() },
+  default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
 
 describe('CreateGame', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ roomName: 'my-room' }), { status: 200 }),
+    );
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
   it('renders Back link, room name input, max players range and Create button', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <CreateGame />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <CreateGame />
+          </MemoryRouter>
+        </Provider>,
       );
     });
     const backLink = div.querySelector('a[href="/online"]');
@@ -30,54 +45,58 @@ describe('CreateGame', () => {
     expect(submitBtn?.textContent).toMatch(/Create/i);
   });
 
-  it('submit with empty roomName does not emit NEW_GAME', () => {
+  it('submit with empty roomName does not call API', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <CreateGame />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <CreateGame />
+          </MemoryRouter>
+        </Provider>,
       );
     });
+    fetchSpy.mockClear();
     const form = div.querySelector('form');
     act(() => {
       form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });
-    expect(vi.mocked(socket.emit)).not.toHaveBeenCalledWith(Events.NEW_GAME, expect.anything());
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('submit with roomName and maxPlayers emits NEW_GAME', () => {
+  it('submit with roomName and maxPlayers calls createGame API', async () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <CreateGame />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <CreateGame />
+          </MemoryRouter>
+        </Provider>,
       );
     });
     const roomInput = div.querySelector('#roomName') as HTMLInputElement;
     const rangeInput = div.querySelector('#number') as HTMLInputElement;
-    const setInputValue = (el: HTMLInputElement, value: string) => {
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-      setter?.call(el, value);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    };
     act(() => {
       setInputValue(roomInput, ' my-room ');
     });
     act(() => {
       setInputValue(rangeInput, '4');
     });
-    act(() => {
+    fetchSpy.mockClear();
+    await act(async () => {
       (div.querySelector('form') as HTMLFormElement).dispatchEvent(
         new Event('submit', { bubbles: true, cancelable: true }),
       );
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.NEW_GAME, {
-      roomName: 'my-room',
-      maxPlayers: 4,
-    });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/games',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ roomName: 'my-room', maxPlayers: 4 }),
+      }),
+    );
   });
 });

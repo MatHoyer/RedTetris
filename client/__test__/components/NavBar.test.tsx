@@ -1,24 +1,36 @@
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
-import { Events } from '../../../events';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Navbar } from '../../src/components/NavBar';
-import socket from '../../src/socket';
+import { store } from '../../src/redux';
 
 vi.mock('../../src/socket', () => ({
-  default: { emit: vi.fn(), on: vi.fn(), off: vi.fn() },
+  default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
 
 describe('Navbar', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
   it('renders nav with logo link and settings icon', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <Navbar />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <Navbar />
+          </MemoryRouter>
+        </Provider>,
       );
     });
     expect(div.querySelector('nav')).toBeTruthy();
@@ -29,21 +41,23 @@ describe('Navbar', () => {
     expect(div.querySelector('h1')).toBeFalsy(); // Settings not open
   });
 
-  it('clicking logo link emits LEAVE_GAMES', () => {
+  it('clicking logo link calls leaveAll API', async () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <Navbar />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <Navbar />
+          </MemoryRouter>
+        </Provider>,
       );
     });
     const logoLink = div.querySelector('a[href="/"]');
-    act(() => {
+    await act(async () => {
       logoLink?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.LEAVE_GAMES);
+    expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
   });
 
   it('opens settings modal when cog is clicked', () => {
@@ -51,9 +65,11 @@ describe('Navbar', () => {
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <Navbar />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <Navbar />
+          </MemoryRouter>
+        </Provider>,
       );
     });
     const cog = div.querySelector('.icon');
@@ -70,9 +86,11 @@ describe('Navbar', () => {
     const root = createRoot(div);
     act(() => {
       root.render(
-        <MemoryRouter>
-          <Navbar />
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter>
+            <Navbar />
+          </MemoryRouter>
+        </Provider>,
       );
     });
     const cog = div.querySelector('.icon');

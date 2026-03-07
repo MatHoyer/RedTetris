@@ -1,20 +1,40 @@
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { describe, expect, it, vi } from 'vitest';
-import { Events } from '../../../events';
+import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { LoginHub } from '../../src/pages/LoginHub';
-import socket from '../../src/socket';
+import { store } from '../../src/redux';
+import { setInputValue } from '../helpers';
 
 vi.mock('../../src/socket', () => ({
-  default: { emit: vi.fn(), on: vi.fn(), off: vi.fn() },
+  default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
 
 describe('LoginHub', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 1, name: 'Bob' }), { status: 200 }),
+    );
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
   it('renders form with username input and Register button', () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
-      root.render(<LoginHub />);
+      root.render(
+        <Provider store={store}>
+          <MemoryRouter>
+            <LoginHub />
+          </MemoryRouter>
+        </Provider>,
+      );
     });
     expect(div.querySelector('img[alt="Title"]')).toBeTruthy();
     expect(div.querySelector('form')).toBeTruthy();
@@ -24,78 +44,58 @@ describe('LoginHub', () => {
     expect(submitBtn?.textContent).toMatch(/Register/i);
   });
 
-  it('form submit emits UPDATE_PLAYER with name', () => {
+  it('form submit calls updatePlayer API', async () => {
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
-      root.render(<LoginHub />);
+      root.render(
+        <Provider store={store}>
+          <MemoryRouter>
+            <LoginHub />
+          </MemoryRouter>
+        </Provider>,
+      );
     });
     const input = div.querySelector('#nameSelect') as HTMLInputElement;
-    const setInputValue = (el: HTMLInputElement, value: string) => {
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-      setter?.call(el, value);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    };
     act(() => {
       setInputValue(input, 'Bob');
     });
-    act(() => {
+    await act(async () => {
       (div.querySelector('form') as HTMLFormElement).dispatchEvent(
         new Event('submit', { bubbles: true, cancelable: true }),
       );
     });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.UPDATE_PLAYER, { name: 'Bob' });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/player',
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify({ name: 'Bob' }) }),
+    );
   });
 
-  it('shows error when socket fires UPDATE_PLAYER_ERROR', () => {
-    let errorCb: (data: { message: string }) => void = () => {};
-    vi.mocked(socket.on).mockImplementation((ev: string, listener: (...args: unknown[]) => void) => {
-      if (ev === Events.UPDATE_PLAYER_ERROR) errorCb = listener as (data: { message: string }) => void;
-      return socket as ReturnType<typeof socket.on>;
-    });
+  it('shows error when API returns error', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'Name taken' }), { status: 409 }),
+    );
     const div = document.createElement('div');
     const root = createRoot(div);
     act(() => {
-      root.render(<LoginHub />);
+      root.render(
+        <Provider store={store}>
+          <MemoryRouter>
+            <LoginHub />
+          </MemoryRouter>
+        </Provider>,
+      );
     });
-    expect(div.querySelector('p[style*="red"]')).toBeFalsy();
+    const input = div.querySelector('#nameSelect') as HTMLInputElement;
     act(() => {
-      errorCb({ message: 'Name taken' });
+      setInputValue(input, 'Taken');
+    });
+    await act(async () => {
+      (div.querySelector('form') as HTMLFormElement).dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }),
+      );
     });
     expect(div.textContent).toContain('Name taken');
   });
 
-  it('unmount calls socket.off for UPDATE_PLAYER_ERROR', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(<LoginHub />);
-    });
-    act(() => {
-      root.unmount();
-    });
-    expect(vi.mocked(socket.off)).toHaveBeenCalledWith(Events.UPDATE_PLAYER_ERROR);
-  });
-
-  it('Register button onClick emits UPDATE_PLAYER', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(<LoginHub />);
-    });
-    const setInputValue = (el: HTMLInputElement, value: string) => {
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-      setter?.call(el, value);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    act(() => {
-      setInputValue(div.querySelector('#nameSelect') as HTMLInputElement, 'Charlie');
-    });
-    vi.mocked(socket.emit).mockClear();
-    const registerBtn = div.querySelector('button[type="submit"]');
-    act(() => {
-      registerBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    expect(vi.mocked(socket.emit)).toHaveBeenCalledWith(Events.UPDATE_PLAYER, { name: 'Charlie' });
-  });
 });
