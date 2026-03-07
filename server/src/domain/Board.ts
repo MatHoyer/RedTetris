@@ -272,11 +272,17 @@ export class Board {
     return true;
   }
 
-  addPenaltyLines(count: number) {
+  addPenaltyLines(count: number): boolean {
+    this.clear();
     this.grid.splice(1, count);
     for (let i = 0; i < count; i++) {
       this.grid.push(Array<TCell>(GRID_WIDTH).fill('penalty'));
     }
+    if (!this.currPiece) return true;
+    this.position[0] = Math.max(0, this.position[0] - count);
+    if (!this.canPlaceCurrPiece({})) return false;
+    this.draw();
+    return true;
   }
 
   getSpectrum(): number[] {

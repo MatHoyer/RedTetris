@@ -287,6 +287,42 @@ describe('Board', () => {
     expect(board.grid).toHaveLength(GRID_HEIGHT);
   });
 
+  test('addPenaltyLines clears and redraws current piece at adjusted position', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    // Move piece down a few rows
+    for (let i = 0; i < 5; i++) {
+      board.moveCurrPieceDown();
+    }
+    const oldRow = board.position[0];
+
+    const survived = board.addPenaltyLines(2);
+
+    expect(survived).toBe(true);
+    expect(board.position[0]).toBe(oldRow - 2);
+    expect(board.grid).toHaveLength(GRID_HEIGHT);
+    // Piece should be redrawn at new position
+    expect(board.currPiece).not.toBeNull();
+  });
+
+  test('addPenaltyLines returns false when piece is crushed', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    // Piece is at row 0, adding many penalty lines should crush it
+
+    const survived = board.addPenaltyLines(19);
+
+    expect(survived).toBe(false);
+  });
+
+  test('addPenaltyLines returns true when no current piece', () => {
+    const board = new Board();
+
+    const survived = board.addPenaltyLines(2);
+
+    expect(survived).toBe(true);
+  });
+
   test('getSpectrum uses visible rows only (rows 1-20)', () => {
     const board = new Board();
     board.grid[GRID_HEIGHT - 1][0] = 'I';

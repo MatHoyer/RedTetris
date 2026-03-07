@@ -84,8 +84,13 @@ export class GameSession {
 
     for (const player of this.players) {
       if (player.id !== sender.id && player.alive) {
-        player.board.addPenaltyLines(penaltyCount);
-        player.sendBoard();
+        const survived = player.board.addPenaltyLines(penaltyCount);
+        if (!survived) {
+          player.alive = false;
+          player.stop();
+        } else {
+          player.sendBoard();
+        }
       }
     }
   }
