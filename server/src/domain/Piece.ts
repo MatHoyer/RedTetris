@@ -1,15 +1,12 @@
 import { TShape, TTetromino } from '../../../events/index.js';
 
 export class Piece {
-  shape: TTetromino;
-  currRotIdx: number;
-  configs: TShape[];
+  currRotIdx = 0;
 
-  constructor(shape: TTetromino, configs: TShape[]) {
-    this.shape = shape;
-    this.currRotIdx = 0;
-    this.configs = configs;
-  }
+  constructor(
+    readonly shape: TTetromino,
+    readonly configs: TShape[],
+  ) {}
 
   rotate(clockwise = true) {
     if (clockwise) {

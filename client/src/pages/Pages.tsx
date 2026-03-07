@@ -12,7 +12,7 @@ import { Tetris } from './Tetris';
 const PrivateRoute = () => {
   const user = useSelector((state: RootState) => state.user);
 
-  if (user.id === -1) {
+  if (!user.name) {
     return <Navigate to="/login-hub" replace />;
   }
   return <Outlet />;
@@ -23,11 +23,11 @@ export const Pages = () => {
     <Routes>
       <Route path="/login-hub" element={<LoginHub />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/:roomId/:playerName" element={<Lobby />} />
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<Home />} />
         <Route path="/online" element={<Online />} />
         <Route path="/create-game" element={<CreateGame />} />
-        <Route path="/:roomId/:playerName" element={<Lobby />} />
         <Route path="/:roomId/:playerName/game" element={<Tetris />} />
       </Route>
     </Routes>

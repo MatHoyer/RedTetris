@@ -1,26 +1,25 @@
-import { useEffect, useState } from 'react';
-import { Events } from '../../../events/index';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { InputText } from '../components/Inputs';
-import socket from '../socket';
+import { updatePlayer, type AppDispatch } from '../redux';
 
 export const LoginHub = () => {
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    socket.on(Events.UPDATE_PLAYER_ERROR, ({ message }: { message: string }) => {
-      setError(message);
-    });
-
-    return () => {
-      socket.off(Events.UPDATE_PLAYER_ERROR);
-    };
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    socket.emit(Events.UPDATE_PLAYER, { name: text });
+    setError('');
+    const result = await dispatch(updatePlayer(text));
+    if (updatePlayer.rejected.match(result)) {
+      setError(result.payload as string);
+    } else {
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -54,14 +53,7 @@ export const LoginHub = () => {
               />
               {error && <p style={{ color: 'red' }}>{error}</p>}
             </div>
-            <Button
-              type="submit"
-              onClick={() => {
-                socket.emit(Events.UPDATE_PLAYER, { name: text });
-              }}
-            >
-              Register
-            </Button>
+            <Button type="submit">Register</Button>
           </div>
         </form>
       </div>
