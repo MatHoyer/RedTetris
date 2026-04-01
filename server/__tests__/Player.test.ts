@@ -190,6 +190,27 @@ describe('Player', () => {
     expect(player.state).toBe(PlayerState.ARE);
   });
 
+  test('LINE_CLEAR calls onLinesCleared for a single line (multiplayer penalty)', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    const onLinesCleared = vi.fn();
+    player.start(bag, vi.fn(), vi.fn(), onLinesCleared, vi.fn());
+
+    for (let col = 0; col < 10; col++) {
+      player.board.grid[20][col] = 'I';
+    }
+
+    player.state = PlayerState.LINE_CLEAR;
+    player.lineClearCounter = 0;
+
+    for (let i = 0; i < 41; i++) {
+      player.frame();
+    }
+
+    expect(onLinesCleared).toHaveBeenCalledWith(1);
+  });
+
   test('stop unregisters keys and calls onStop', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);

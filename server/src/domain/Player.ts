@@ -279,7 +279,7 @@ export class Player {
       const cleared = this.board.removeMarkedRows();
       this.applyScoring(cleared);
       this.level = Math.min(999, this.level + cleared);
-      if (cleared > 1) this.onLinesCleared(cleared);
+      if (cleared > 0) this.onLinesCleared(cleared);
       this.sendBoard();
       this.sendScore();
       this.sendLevel();
