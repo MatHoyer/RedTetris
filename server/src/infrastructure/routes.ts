@@ -89,6 +89,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     log.info(`${socketId} leaving room "${roomName}"`);
     gameManager.removePlayerFromSession(roomName, user.id);
     broadcastGamesList();
+    io.emit(Events.PLAYER_DISCONNECTED, { id: user.id });
     res.json({ ok: true });
   });
 
@@ -100,6 +101,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     log.info(`${socketId} leaving all rooms`);
     gameManager.removePlayerFromSessions(socketId);
     broadcastGamesList();
+    io.emit(Events.PLAYER_DISCONNECTED, { id: user.id });
     res.json({ ok: true });
   });
 

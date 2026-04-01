@@ -16,6 +16,7 @@ import {
   setStatus,
   updatePlayerData,
   updateSpectrum,
+  markOtherPlayerDead,
   resetGame,
   store,
   type RootState,
@@ -75,6 +76,9 @@ const App = () => {
     socket.on(Events.GAME_ENDED, ({ status }: { status: 'win' | 'loose' }) => {
       dispatch(setStatus(status));
     });
+    socket.on(Events.PLAYER_DISCONNECTED, ({ id }: { id: number }) => {
+      dispatch(markOtherPlayerDead(id));
+    });
 
     socket.connect();
 
@@ -89,6 +93,7 @@ const App = () => {
       socket.off(Events.UPDATED_GAME_DATA);
       socket.off(Events.UPDATED_SPECTRUM);
       socket.off(Events.GAME_ENDED);
+      socket.off(Events.PLAYER_DISCONNECTED);
       socket.disconnect();
     };
   }, []);

@@ -11,6 +11,7 @@ import {
   setStatus,
   updatePlayerData,
   updateSpectrum,
+  markOtherPlayerDead,
   resetGame,
 } from '../src/redux';
 import { EmptyCell } from '../src/globals';
@@ -125,6 +126,16 @@ describe('redux store', () => {
     it('updateSpectrum sets spectrum for player', () => {
       store.dispatch(updateSpectrum({ playerId: 2, spectrum: [0, 1, 2, 3] }));
       expect(store.getState().game.spectrums[2]).toEqual([0, 1, 2, 3]);
+    });
+
+    it('markOtherPlayerDead sets alive false and keeps spectrum', () => {
+      store.dispatch(updatePlayerData({ id: 2, name: 'Bob', alive: true, score: 10 }));
+      store.dispatch(updateSpectrum({ playerId: 2, spectrum: [1, 0] }));
+      store.dispatch(markOtherPlayerDead(2));
+      expect(store.getState().game.otherPlayersData).toHaveLength(1);
+      expect(store.getState().game.otherPlayersData[0].alive).toBe(false);
+      expect(store.getState().game.otherPlayersData[0].name).toBe('Bob');
+      expect(store.getState().game.spectrums[2]).toEqual([1, 0]);
     });
 
     it('resetGame restores initial game state', () => {

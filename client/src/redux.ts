@@ -1,4 +1,4 @@
-import { configureStore, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { configureStore, createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { TGame, TShape, TTetromino } from '../../events';
 import { api } from './api';
 import { EmptyCell, type TCell } from './globals';
@@ -100,13 +100,18 @@ const gameSlice = createSlice({
       const { playerId, spectrum } = action.payload;
       state.spectrums[playerId] = spectrum;
     },
+    markOtherPlayerDead: (state, action: PayloadAction<number>) => {
+      const id = action.payload;
+      const p = state.otherPlayersData.find((x) => x.id === id);
+      if (p) p.alive = false;
+    },
     resetGame: () => {
       return gameInitialState;
     },
   },
 });
 
-export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, updateSpectrum, resetGame } =
+export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, updateSpectrum, markOtherPlayerDead, resetGame } =
   gameSlice.actions;
 
 export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: string, { rejectWithValue }) => {
