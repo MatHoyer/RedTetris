@@ -64,8 +64,15 @@ const App = () => {
     );
     socket.on(
       Events.UPDATED_GAME_DATA,
-      ({ player }: { player: { id: number; name: string; alive: boolean; score: number } }) => {
-        if (player.id !== store.getState().user.id) {
+      ({
+        player,
+      }: {
+        player: { id: number; name: string; alive: boolean; score: number; level: number };
+      }) => {
+        if (player.id === store.getState().user.id) {
+          dispatch(setScore(player.score));
+          dispatch(setLevel(player.level));
+        } else {
           dispatch(updatePlayerData(player));
         }
       },

@@ -27,3 +27,5 @@ vite.config.js.timestamp*
 coverage
 .vscode/
 tsconfig.tsbuildinfo
+
+score.json
