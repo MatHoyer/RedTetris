@@ -1,324 +1,386 @@
-import { Board } from '../src/game/Board.js';
+import { Board, GRID_HEIGHT } from '../src/domain/Board.js';
 import { expect, test, describe } from 'vitest';
 
 describe('Board', () => {
-  test('createNewBoard', () => {
-    // When
+  test('createNewBoard has 21 rows (1 buffer + 20 visible)', () => {
     const board = new Board();
 
-    // Then
-    expect(board.grid).toHaveLength(20);
+    expect(board.grid).toHaveLength(21);
     expect(board.grid[0]).toHaveLength(10);
   });
 
   test('setCurrPiece', () => {
-    // Given
     const board = new Board();
 
-    // When
     board.setCurrPiece('I');
 
-    // Then
     expect(board.currPiece).not.toBeNull();
     expect(board.currPiece?.shape).toBe('I');
   });
 
+  test('setCurrPiece with initial rotation (IRS)', () => {
+    const board = new Board();
+
+    board.setCurrPiece('T', 1);
+
+    expect(board.currPiece).not.toBeNull();
+    expect(board.currPiece?.currRotIdx).toBe(1);
+  });
+
   test('moveDown returns true when piece can move', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
     const result = board.moveCurrPieceDown();
 
-    // Then
     expect(result).toBe(true);
   });
 
   test('canMoveCurrPieceDown', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
     const result = board.canMoveCurrPieceDown();
 
-    // Then
     expect(result).toBe(true);
   });
 
   test('clear', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
-    expect(board.grid[0][4]).toBe('I');
+    expect(board.grid[1][4]).toBe('I');
 
-    // When
     board.clear();
 
-    // Then
-    expect(board.grid[0][4]).toBe('empty');
+    expect(board.grid[1][4]).toBe('empty');
   });
 
   test('moveDown changes position', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
 
-    // When
     board.moveDown();
     board.draw();
 
-    // Then
-    expect(board.grid[1][4]).toBe('I');
+    expect(board.grid[2][4]).toBe('I');
   });
 
   test('lock', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
     board.lock();
 
-    // Then
-    expect(board.grid[0][4]).toBe('I');
+    expect(board.grid[1][4]).toBe('I');
     expect(board.currPiece).toBeNull();
   });
 
   test('draw', () => {
-    // Given
     const board = new Board();
 
-    // When
     board.setCurrPiece('I');
 
-    // Then
-    expect(board.grid[0][4]).toBe('I');
+    expect(board.grid[1][4]).toBe('I');
   });
 
   test('checkCompleteRows', () => {
-    // Given
     const board = new Board();
     const filledRow = () => Array.from({ length: 10 }, () => 'I' as const);
-    board.grid = Array.from({ length: 20 }, filledRow);
+    board.grid = Array.from({ length: GRID_HEIGHT }, filledRow);
 
-    // When
     const cleared = board.checkCompleteRows();
 
-    // Then
-    expect(cleared).toBe(20);
+    expect(cleared).toBe(GRID_HEIGHT);
     expect(board.grid[0]).toEqual(Array.from({ length: 10 }, () => 'empty'));
   });
 
   test('checkCompleteRows skips penalty rows', () => {
-    // Given
     const board = new Board();
     const filledRow = () => Array.from({ length: 10 }, () => 'I' as const);
     const penaltyRow = () => Array.from({ length: 10 }, () => 'penalty' as const);
-    board.grid = Array.from({ length: 20 }, (_, i) => (i === 19 ? penaltyRow() : filledRow()));
+    board.grid = Array.from({ length: GRID_HEIGHT }, (_, i) => (i === GRID_HEIGHT - 1 ? penaltyRow() : filledRow()));
 
-    // When
     const cleared = board.checkCompleteRows();
 
-    // Then
-    expect(cleared).toBe(19);
-    expect(board.grid[19]).toEqual(penaltyRow());
+    expect(cleared).toBe(GRID_HEIGHT - 1);
+    expect(board.grid[GRID_HEIGHT - 1]).toEqual(penaltyRow());
+  });
+
+  test('markCompleteRows counts without removing', () => {
+    const board = new Board();
+    const filledRow = () => Array.from({ length: 10 }, () => 'I' as const);
+    const emptyRow = () => Array.from({ length: 10 }, () => 'empty' as const);
+    board.grid = Array.from({ length: GRID_HEIGHT }, (_, i) => (i >= GRID_HEIGHT - 2 ? filledRow() : emptyRow()));
+
+    const count = board.markCompleteRows();
+
+    expect(count).toBe(2);
+    expect(board.grid[GRID_HEIGHT - 1].every((c) => c === 'I')).toBe(true);
+    expect(board.grid[GRID_HEIGHT - 2].every((c) => c === 'I')).toBe(true);
+  });
+
+  test('removeMarkedRows removes complete rows', () => {
+    const board = new Board();
+    const filledRow = () => Array.from({ length: 10 }, () => 'I' as const);
+    const emptyRow = () => Array.from({ length: 10 }, () => 'empty' as const);
+    board.grid = Array.from({ length: GRID_HEIGHT }, (_, i) => (i >= GRID_HEIGHT - 2 ? filledRow() : emptyRow()));
+
+    const cleared = board.removeMarkedRows();
+
+    expect(cleared).toBe(2);
+    expect(board.grid[GRID_HEIGHT - 1].every((c) => c === 'empty')).toBe(true);
+  });
+
+  test('isBoardEmpty returns true for empty board', () => {
+    const board = new Board();
+
+    expect(board.isBoardEmpty()).toBe(true);
+  });
+
+  test('isBoardEmpty returns false when board has pieces', () => {
+    const board = new Board();
+    board.grid[GRID_HEIGHT - 1][0] = 'I';
+
+    expect(board.isBoardEmpty()).toBe(false);
   });
 
   test('rotateCurrPiece', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
     board.currPiece?.rotate();
 
-    // Then
     expect(board.currPiece?.currRotIdx).toBe(1);
   });
 
   test('canRotateCurrPiece', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
 
-    // When
     const result = board.canRotateCurrPiece();
 
-    // Then
     expect(result).toBe(true);
   });
 
   test('moveHorizontal left', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
     board.moveHorizontal('left');
 
-    // Then
     expect(board.position[1]).toBe(3);
   });
 
   test('canMoveHorizontal left', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
 
-    // When
     const result = board.canMoveHorizontal('left');
 
-    // Then
     expect(result).toBe(true);
   });
 
   test('moveHorizontal right', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
     board.moveHorizontal('right');
 
-    // Then
     expect(board.position[1]).toBe(5);
   });
 
   test('canMoveHorizontal right', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
 
-    // When
     const result = board.canMoveHorizontal('right');
 
-    // Then
     expect(result).toBe(true);
   });
 
   test('cannotMoveHorizontal left when blocked', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
-    board.grid[0][3] = 'J';
+    board.grid[1][3] = 'J';
 
-    // When
     const result = board.canMoveHorizontal('left');
 
-    // Then
     expect(result).toBe(false);
   });
 
   test('cannotMoveHorizontal right when blocked', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
-    board.grid[0][8] = 'J';
+    board.grid[1][8] = 'J';
 
-    // When
     const result = board.canMoveHorizontal('right');
 
-    // Then
     expect(result).toBe(false);
   });
 
   test('pieceCannotMoveDown when blocked', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
-    board.grid[1][4] = 'J';
+    board.grid[2][4] = 'J';
 
-    // When
     const result = board.moveCurrPieceDown();
 
-    // Then
     expect(result).toBe(false);
   });
 
   test('pieceCanMoveDownAfterRotation', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     board.clear();
-    board.grid[1][4] = 'J';
+    board.grid[2][4] = 'J';
     board.rotateCurrPiece();
 
-    // When
     const result = board.moveCurrPieceDown();
 
-    // Then
     expect(result).toBe(true);
   });
 
-  test('lockCurrentPiece returns cleared count', () => {
-    // Given
+  test('lockCurrentPiece nulls currPiece', () => {
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
-    const cleared = board.lockCurrentPiece();
+    board.lockCurrentPiece();
 
-    // Then
-    expect(cleared).toBe(0);
     expect(board.currPiece).toBeNull();
   });
 
   test('hardMoveDown locks piece at bottom', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
 
-    // When
-    const cleared = board.hardMoveDown();
+    board.hardMoveDown();
 
-    // Then
-    expect(cleared).toBe(0);
     expect(board.currPiece).toBeNull();
-    expect(board.grid[19][4]).toBe('I');
+    expect(board.grid[GRID_HEIGHT - 1][4]).toBe('I');
   });
 
-  test('addPenaltyLines', () => {
-    // Given
+  test('hardMoveDown returns drop distance', () => {
+    const board = new Board();
+    board.setCurrPiece('I');
+
+    const distance = board.hardMoveDown();
+
+    expect(distance).toBe(19);
+  });
+
+  test('addPenaltyLines preserves buffer row', () => {
     const board = new Board();
 
-    // When
     board.addPenaltyLines(3);
 
-    // Then
-    expect(board.grid[19].every((c) => c === 'penalty')).toBe(true);
-    expect(board.grid[18].every((c) => c === 'penalty')).toBe(true);
-    expect(board.grid[17].every((c) => c === 'penalty')).toBe(true);
-    expect(board.grid[16].every((c) => c === 'empty')).toBe(true);
-    expect(board.grid).toHaveLength(20);
+    expect(board.grid[GRID_HEIGHT - 1].every((c) => c === 'penalty')).toBe(true);
+    expect(board.grid[GRID_HEIGHT - 2].every((c) => c === 'penalty')).toBe(true);
+    expect(board.grid[GRID_HEIGHT - 3].every((c) => c === 'penalty')).toBe(true);
+    expect(board.grid[GRID_HEIGHT - 4].every((c) => c === 'empty')).toBe(true);
+    expect(board.grid).toHaveLength(GRID_HEIGHT);
   });
 
-  test('getSpectrum', () => {
-    // Given
+  test('addPenaltyLines clears and redraws current piece at adjusted position', () => {
     const board = new Board();
-    board.grid[19][0] = 'I';
-    board.grid[18][0] = 'I';
-    board.grid[19][5] = 'J';
+    board.setCurrPiece('T');
+    // Move piece down a few rows
+    for (let i = 0; i < 5; i++) {
+      board.moveCurrPieceDown();
+    }
+    const oldRow = board.position[0];
 
-    // When
+    const survived = board.addPenaltyLines(2);
+
+    expect(survived).toBe(true);
+    expect(board.position[0]).toBe(oldRow - 2);
+    expect(board.grid).toHaveLength(GRID_HEIGHT);
+    // Piece should be redrawn at new position
+    expect(board.currPiece).not.toBeNull();
+  });
+
+  test('addPenaltyLines returns false when piece is crushed', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    // Piece is at row 0, adding many penalty lines should crush it
+
+    const survived = board.addPenaltyLines(19);
+
+    expect(survived).toBe(false);
+  });
+
+  test('addPenaltyLines returns true when no current piece', () => {
+    const board = new Board();
+
+    const survived = board.addPenaltyLines(2);
+
+    expect(survived).toBe(true);
+  });
+
+  test('getSpectrum uses visible rows only (rows 1-20)', () => {
+    const board = new Board();
+    board.grid[GRID_HEIGHT - 1][0] = 'I';
+    board.grid[GRID_HEIGHT - 2][0] = 'I';
+    board.grid[GRID_HEIGHT - 1][5] = 'J';
+
     const spectrum = board.getSpectrum();
 
-    // Then
     expect(spectrum[0]).toBe(2);
     expect(spectrum[5]).toBe(1);
     expect(spectrum[1]).toBe(0);
   });
 
+  test('toPayload returns 20 rows (excludes buffer)', () => {
+    const board = new Board();
+
+    const payload = board.toPayload();
+
+    expect(payload).toHaveLength(20);
+  });
+
+  test('setCurrPiece returns false when top rows are occupied (game over)', () => {
+    const board = new Board();
+    board.grid[1][4] = 'J';
+    board.grid[1][5] = 'J';
+    board.grid[1][6] = 'J';
+    board.grid[1][7] = 'J';
+
+    const result = board.setCurrPiece('I');
+
+    expect(result).toBe(false);
+  });
+
+  test('canRotateCurrPiece returns false when rotation would exceed grid bottom', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    board.clear();
+    board.currPiece!.currRotIdx = 0;
+    board.position = [GRID_HEIGHT - 2, 4];
+
+    const result = board.canRotateCurrPiece();
+
+    expect(result).toBe(false);
+  });
+
+  test('canRotateCurrPiece returns false for I-piece when rotation would exceed grid right', () => {
+    const board = new Board();
+    board.setCurrPiece('I');
+    board.clear();
+    board.currPiece!.currRotIdx = 1;
+    board.position = [0, 8];
+
+    const result = board.canRotateCurrPiece();
+
+    expect(result).toBe(false);
+  });
+
   test('moveCurrPieceDown does not auto-lock', () => {
-    // Given
     const board = new Board();
     board.setCurrPiece('I');
     while (board.canMoveCurrPieceDown()) {
@@ -327,11 +389,103 @@ describe('Board', () => {
       board.draw();
     }
 
-    // When
     const result = board.moveCurrPieceDown();
 
-    // Then
     expect(result).toBe(false);
     expect(board.currPiece).not.toBeNull();
+  });
+
+  test('T-piece wall kicks right when blocked on the left', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    board.clear();
+    board.currPiece!.currRotIdx = 1;
+    board.position = [5, 4];
+    board.grid[7][4] = 'J';
+
+    board.rotateCurrPiece();
+
+    expect(board.currPiece!.currRotIdx).toBe(2);
+    expect(board.position[1]).toBe(5);
+  });
+
+  test('T-piece wall kicks left when against right wall', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    board.clear();
+    board.position = [5, 8];
+    board.rotateCurrPiece();
+
+    expect(board.currPiece!.currRotIdx).toBe(1);
+    expect(board.position[1]).toBe(7);
+  });
+
+  test('I-piece does not wall kick', () => {
+    const board = new Board();
+    board.setCurrPiece('I');
+    board.clear();
+    board.position = [0, 8];
+    board.rotateCurrPiece();
+
+    expect(board.currPiece!.currRotIdx).toBe(0);
+    expect(board.position[1]).toBe(8);
+  });
+
+  test('O-piece does not rotate', () => {
+    const board = new Board();
+    board.setCurrPiece('O');
+    const initialRotIdx = board.currPiece!.currRotIdx;
+
+    board.rotateCurrPiece();
+
+    expect(board.currPiece!.currRotIdx).toBe(initialRotIdx);
+  });
+
+  test('S-piece toggles between 2 states', () => {
+    const board = new Board();
+    board.setCurrPiece('S');
+    board.clear();
+    board.position = [5, 4];
+
+    board.rotateCurrPiece();
+    expect(board.currPiece!.currRotIdx).toBe(1);
+
+    board.rotateCurrPiece();
+    expect(board.currPiece!.currRotIdx).toBe(0);
+  });
+
+  test('Z-piece toggles between 2 states', () => {
+    const board = new Board();
+    board.setCurrPiece('Z');
+    board.clear();
+    board.position = [5, 4];
+
+    board.rotateCurrPiece();
+    expect(board.currPiece!.currRotIdx).toBe(1);
+
+    board.rotateCurrPiece();
+    expect(board.currPiece!.currRotIdx).toBe(0);
+  });
+
+  test('S-piece wall kicks when near wall', () => {
+    const board = new Board();
+    board.setCurrPiece('S');
+    board.clear();
+    board.position = [5, 8];
+    board.rotateCurrPiece();
+
+    expect(board.currPiece!.currRotIdx).toBe(1);
+  });
+
+  test('center column rule blocks kick for T-piece', () => {
+    const board = new Board();
+    board.setCurrPiece('T');
+    board.clear();
+    board.position = [5, 4];
+    board.grid[5][5] = 'J';
+
+    board.rotateCurrPiece();
+
+    expect(board.currPiece!.currRotIdx).toBe(0);
   });
 });

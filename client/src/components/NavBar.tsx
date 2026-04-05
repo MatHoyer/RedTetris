@@ -1,14 +1,15 @@
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Events } from '../../../events';
 import { Settings } from '../pages/Settings';
-import socket from '../socket';
+import { leaveAll, type AppDispatch } from '../redux';
 import { Button } from './Button';
 
 export const Navbar = () => {
   const [openSettings, setOpenSettings] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleClick = () => setOpenSettings(true);
 
@@ -16,7 +17,7 @@ export const Navbar = () => {
 
   return (
     <nav>
-      <Link to="/" onClick={() => socket.emit(Events.LEAVE_GAMES)}>
+      <Link to="/" onClick={() => dispatch(leaveAll())}>
         <img src="/assets/RedTetris-logo.png" alt="logo" style={{ width: '100px', margin: '10px' }} />
       </Link>
       <FontAwesomeIcon

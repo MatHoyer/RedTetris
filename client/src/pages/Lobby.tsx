@@ -1,32 +1,64 @@
-import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Events } from '../../../events';
 import { Button } from '../components/Button';
-import { Table, TableCell, TableLine } from '../components/Table';
-import type { RootState } from '../redux';
 import socket from '../socket';
+import { Table, TableCell, TableLine } from '../components/Table';
+import { createGame, joinGame, leaveAll, startGame, updatePlayer, type AppDispatch, type RootState } from '../redux';
 import { NotFound } from './NotFound';
 
 export const Lobby = () => {
   const nav = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
-
-  const leaveRoom = () => {
-    socket.emit(Events.LEAVE_GAMES);
-  };
+  const needsAutoJoin = !user.name && !!nav.playerName;
+  const joiningRef = useRef(false);
 
   useEffect(() => {
-    window.addEventListener('beforeunload', leaveRoom);
-
+    const handleBeforeUnload = () => {
+      const socketId = socket.id ?? '';
+      const blob = new Blob([JSON.stringify({ socketId })], { type: 'application/json' });
+      navigator.sendBeacon('/api/games/leave-all', blob);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
-      window.removeEventListener('beforeunload', leaveRoom);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
+  useEffect(() => {
+    if (!needsAutoJoin || !nav.playerName) return;
+    dispatch(updatePlayer(nav.playerName));
+  }, [needsAutoJoin, nav.playerName]);
+
+  useEffect(() => {
+    if (!user.name || !nav.roomId || joiningRef.current) return;
+
+    const isInGame = gamesList.some((game) => game.id === nav.roomId && game.players.some((p) => p.id === user.id));
+    if (isInGame) return;
+
+    joiningRef.current = true;
+    const existingGame = gamesList.find((game) => game.id === nav.roomId);
+    if (existingGame) {
+      dispatch(joinGame(nav.roomId)).finally(() => {
+        joiningRef.current = false;
+      });
+    } else {
+      dispatch(createGame({ roomName: nav.roomId, maxPlayers: 8 })).finally(() => {
+        joiningRef.current = false;
+      });
+    }
+  }, [user.name, user.id, nav.roomId, gamesList]);
+
   if (!nav.roomId) return <NotFound />;
+
+  if (needsAutoJoin || !gamesList.some((g) => g.id === nav.roomId && g.players.some((p) => p.id === user.id))) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>Joining...</div>
+    );
+  }
 
   const goodGame = gamesList.find((game) => game.id === nav.roomId!);
   if (!goodGame) return <NotFound />;
@@ -51,9 +83,7 @@ export const Lobby = () => {
           gap: '20px',
         }}
       >
-        {user.id === goodGame.admin.id && (
-          <Button onClick={() => socket.emit(Events.GAME_START, { roomName: goodGame.id })}>Start</Button>
-        )}
+        {user.id === goodGame.admin.id && <Button onClick={() => dispatch(startGame(goodGame.id))}>Start</Button>}
       </div>
       <div
         style={{
@@ -76,7 +106,7 @@ export const Lobby = () => {
         </div>
         <Button
           onClick={() => {
-            leaveRoom();
+            dispatch(leaveAll());
             navigate('/online');
           }}
         >

@@ -27,6 +27,7 @@ export enum Events {
   UPDATED_GAME_LIST = 'updated_game_list',
   UPDATED_BOARD = 'updated_board',
   UPDATED_SCORE = 'updated_score',
+  UPDATED_LEVEL = 'updated_level',
   UPDATED_NEXT_PIECE = 'updated_next_piece',
   UPDATED_GAME_DATA = 'updated_game_data',
   UPDATED_SPECTRUM = 'updated_spectrum',
@@ -45,20 +46,24 @@ export enum Events {
   PING = 'ping',
   ERROR = 'error',
 
-  KEY_ROTATE = 'ArrowUp',
-  KEY_DOWN = 'ArrowDown',
-  KEY_LEFT = 'ArrowLeft',
-  KEY_RIGHT = 'ArrowRight',
+  KEY_DOWN_PRESS = 'key_down_press',
+  KEY_DOWN_RELEASE = 'key_down_release',
+  KEY_LEFT_PRESS = 'key_left_press',
+  KEY_LEFT_RELEASE = 'key_left_release',
+  KEY_RIGHT_PRESS = 'key_right_press',
+  KEY_RIGHT_RELEASE = 'key_right_release',
+  KEY_ROTATE_PRESS = 'key_rotate_press',
+  KEY_ROTATE_RELEASE = 'key_rotate_release',
+  KEY_HARD_DROP = 'key_hard_drop',
 }
 
 export interface ServerToClientEvents {
-  [Events.GAME_CREATED]: (evt: { roomName: string }) => void;
-  [Events.GAME_JOINED]: (evt: { roomName: string }) => void;
   [Events.GAME_STARTED]: (evt: { roomName: string }) => void;
   [Events.GAME_ENDED]: (evt: { status: 'win' | 'loose' }) => void;
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
   [Events.UPDATED_BOARD]: (evt: { board: (TTetromino | 'empty' | 'penalty')[][] }) => void;
   [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
+  [Events.UPDATED_LEVEL]: (evt: { level: number }) => void;
   [Events.UPDATED_NEXT_PIECE]: (evt: { nextPiece: TTetromino; nextPieceShape: TShape }) => void;
   [Events.UPDATED_GAME_DATA]: (evt: {
     player: {
@@ -66,30 +71,24 @@ export interface ServerToClientEvents {
       name: string;
       alive: boolean;
       score: number;
+      level: number;
     };
   }) => void;
   [Events.UPDATED_SPECTRUM]: (evt: { playerId: number; spectrum: number[] }) => void;
   [Events.PLAYER_CREATED]: (evt: { id: number }) => void;
-  [Events.PLAYER_UPDATED]: (evt: { id: number; name: string }) => void;
-  [Events.UPDATE_PLAYER_ERROR]: (evt: { message: string }) => void;
   [Events.PLAYER_DISCONNECTED]: (evt: { id: number }) => void;
-  [Events.ERROR]: (evt: { message: string }) => void;
 }
 
 export interface ClientToServerEvents {
-  [Events.NEW_GAME]: (evt: { roomName: string; maxPlayers: number }) => void;
-  [Events.GAME_START]: (evt: { roomName: string }) => void;
-  [Events.GAME_RESTART]: (evt: { roomName: string }) => void;
-  [Events.UPDATE_PLAYER]: (evt: { name: string }) => void;
-  [Events.UPDATE_GAMES_LIST]: () => void;
-  [Events.JOIN_GAME]: (evt: { roomName: string }) => void;
-  [Events.LEAVE_GAME]: (evt: { roomName: string }) => void;
-  [Events.LEAVE_GAMES]: () => void;
-
-  [Events.KEY_ROTATE]: () => void;
-  [Events.KEY_DOWN]: () => void;
-  [Events.KEY_LEFT]: () => void;
-  [Events.KEY_RIGHT]: () => void;
+  [Events.KEY_DOWN_PRESS]: () => void;
+  [Events.KEY_DOWN_RELEASE]: () => void;
+  [Events.KEY_LEFT_PRESS]: () => void;
+  [Events.KEY_LEFT_RELEASE]: () => void;
+  [Events.KEY_RIGHT_PRESS]: () => void;
+  [Events.KEY_RIGHT_RELEASE]: () => void;
+  [Events.KEY_ROTATE_PRESS]: () => void;
+  [Events.KEY_ROTATE_RELEASE]: () => void;
+  [Events.KEY_HARD_DROP]: () => void;
 }
 
 export interface InterServerEvents {

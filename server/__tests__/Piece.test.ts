@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { Piece } from '../src/game/Piece';
+import { Piece } from '../src/domain/Piece';
 
 describe('Piece', () => {
   test('should initialize with the correct shape and configurations', () => {

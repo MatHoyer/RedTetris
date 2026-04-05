@@ -14,6 +14,9 @@ export default defineConfig({
         target: 'http://localhost:3004',
         ws: true,
       },
+      '/api': {
+        target: 'http://localhost:3004',
+      },
     },
   },
   build: {

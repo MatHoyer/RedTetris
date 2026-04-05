@@ -1,19 +1,23 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { Events } from '../../../events';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { AppLoader } from '../components/Loader';
-import type { RootState } from '../redux';
-import socket from '../socket';
+import { createGame, type AppDispatch, type RootState } from '../redux';
 
 export const Home = () => {
   const user = useSelector((state: RootState) => state.user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateSolo = () => {
+  const handleCreateSolo = async () => {
     setIsLoading(true);
-    socket.emit(Events.NEW_GAME, { maxPlayers: 1, roomName: `solo-${user.name}` });
+    const roomName = `solo-${user.name}`;
+    const result = await dispatch(createGame({ roomName, maxPlayers: 1 }));
+    if (createGame.fulfilled.match(result)) {
+      navigate(`/${roomName}/${user.name}`);
+    }
     setIsLoading(false);
   };
 
