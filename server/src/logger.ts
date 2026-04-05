@@ -1,3 +1,4 @@
+import './env.js';
 import pino from 'pino';
 
 const logger = pino({

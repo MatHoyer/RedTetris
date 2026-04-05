@@ -4,4 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 3004:3004
+      - '3004:3004'
+    env_file:
+      - .env
+    networks:
+      - redtetris
+
+networks:
+  redtetris:
+    external: true
+    name: redtetris_net

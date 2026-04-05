@@ -1,8 +1,11 @@
 import type React from 'react';
 import type { PropsWithChildren } from 'react';
 
-export const TableCell: React.FC<PropsWithChildren> = ({ children }) => {
-  return <td>{children}</td>;
+export const TableCell: React.FC<PropsWithChildren<React.TdHTMLAttributes<HTMLTableCellElement>>> = ({
+  children,
+  ...props
+}) => {
+  return <td {...props}>{children}</td>;
 };
 
 export const TableLine: React.FC<PropsWithChildren> = ({ children }) => {

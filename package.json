@@ -22,8 +22,10 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@tsconfig/node22": "^22.0.5",
+    "dotenv": "^16.6.1",
     "express": "^5.2.1",
     "lucide-react": "^0.575.0",
+    "pg": "^8.13.1",
     "pino": "^10.3.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -35,6 +37,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
+    "@types/pg": "^8.11.10",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^4.2.3",

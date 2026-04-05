@@ -1,32 +1,66 @@
-import fs from 'fs/promises';
-import { join } from 'path';
+import { getPool } from './db.js';
 
-const SCORE_JSON_FILE = join(process.cwd(), 'score.json');
+const upsertSql = `
+  INSERT INTO player_high_scores (player_name, high_score)
+  VALUES ($1, $2)
+  ON CONFLICT (player_name) DO UPDATE SET
+    high_score = GREATEST(player_high_scores.high_score, EXCLUDED.high_score),
+    updated_at = NOW();
+`;
 
-export const loadScores = async (): Promise<Record<string, number>> => {
+export type HighScoreEntry = {
+  playerName: string;
+  highScore: number;
+  updatedAt: string;
+};
+
+export async function saveScores(scores: Record<string, number>): Promise<void> {
+  const pool = getPool();
+  const client = await pool.connect();
   try {
-    const raw = await fs.readFile(SCORE_JSON_FILE, 'utf8');
-    return JSON.parse(raw) as Record<string, number>;
-  } catch (e) {
-    const err = e as NodeJS.ErrnoException;
-    if (err?.code === 'ENOENT') {
-      await fs.writeFile(SCORE_JSON_FILE, '{}');
-      return {};
+    await client.query('BEGIN');
+    for (const [playerName, score] of Object.entries(scores)) {
+      if (!Number.isFinite(score) || score < 0) continue;
+      await client.query(upsertSql, [playerName, Math.floor(score)]);
     }
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
     throw e;
+  } finally {
+    client.release();
   }
-};
+}
 
-export const saveScore = async (playerName: string, score: number) => {
-  const scores = await loadScores();
-  scores[playerName] = Math.max(scores[playerName] ?? 0, score);
-  await fs.writeFile(SCORE_JSON_FILE, JSON.stringify(scores, null, 2));
-};
+export async function listHighScoresPaginated(
+  page: number,
+  pageSize: number,
+): Promise<{ items: HighScoreEntry[]; total: number }> {
+  const pool = getPool();
+  const offset = (page - 1) * pageSize;
 
-export const saveScores = async (scores: Record<string, number>) => {
-  const existingScores = await loadScores();
-  for (const [playerName, score] of Object.entries(scores)) {
-    existingScores[playerName] = Math.max(existingScores[playerName] ?? 0, score);
-  }
-  await fs.writeFile(SCORE_JSON_FILE, JSON.stringify(existingScores, null, 2));
-};
+  const countRes = await pool.query<{ count: string }>(
+    'SELECT COUNT(*)::text AS count FROM player_high_scores',
+  );
+  const total = Number(countRes.rows[0]?.count ?? 0);
+
+  const dataRes = await pool.query<{
+    player_name: string;
+    high_score: number;
+    updated_at: Date;
+  }>(
+    `SELECT player_name, high_score, updated_at FROM player_high_scores
+     ORDER BY high_score DESC, player_name ASC
+     LIMIT $1 OFFSET $2`,
+    [pageSize, offset],
+  );
+
+  return {
+    total,
+    items: dataRes.rows.map((r) => ({
+      playerName: r.player_name,
+      highScore: r.high_score,
+      updatedAt: r.updated_at.toISOString(),
+    })),
+  };
+}

@@ -1,7 +1,11 @@
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { GameSession } from '../src/domain/GameSession.js';
 import { Player, PlayerState } from '../src/domain/Player.js';
 import { PlayerPort } from '../src/domain/ports';
-import { expect, test, describe, vi, afterEach } from 'vitest';
+
+vi.mock('../src/infrastructure/save-score.js', () => ({
+  saveScores: vi.fn().mockResolvedValue(undefined),
+}));
 
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),
@@ -272,7 +276,7 @@ describe('GameSession', () => {
     const player2 = new Player(2, 'Player2', 'socket2', port2);
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
-    const data = { player: { id: 1, name: 'Admin', alive: true, score: 0 } };
+    const data = { player: { id: 1, name: 'Admin', alive: true, score: 0, level: 1 } };
 
     gameSession.broadcastGameData(data);
 

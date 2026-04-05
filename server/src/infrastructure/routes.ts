@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 import { Events } from '../../../events/index.js';
 import { GameManager } from '../domain/GameManager.js';
 import logger from '../logger.js';
+import { listHighScoresPaginated } from './save-score.js';
 
 const log = logger.child({ component: 'API' });
 const nameRegex = /^[a-zA-Z0-9]+$/;
@@ -121,6 +122,29 @@ export function createRouter(gameManager: GameManager, io: Server) {
     game.start();
     broadcastGamesList();
     res.json({ ok: true });
+  });
+
+  router.get('/api/high-scores', async (req, res) => {
+    try {
+      const pageRaw = parseInt(String(req.query.page ?? '1'), 10);
+      const limitRaw = parseInt(String(req.query.limit ?? '10'), 10);
+      const page = Math.max(1, Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1);
+      const limit = Math.min(50, Math.max(1, Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 10));
+
+      const { items, total } = await listHighScoresPaginated(page, limit);
+      const totalPages = Math.max(1, Math.ceil(total / limit));
+
+      res.json({
+        items,
+        total,
+        page,
+        pageSize: limit,
+        totalPages,
+      });
+    } catch (e) {
+      log.error(e, 'GET /api/high-scores failed');
+      res.status(500).json({ error: 'Failed to load high scores' });
+    }
   });
 
   router.post('/api/games/:roomName/restart', (req, res) => {

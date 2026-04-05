@@ -1,9 +1,11 @@
+import './env.js'; // loads root `.env` via dotenv (must run before modules that read process.env)
 import express from 'express';
 import http from 'http';
 import { join } from 'path';
 import { Server } from 'socket.io';
 import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from '../../events/index.js';
 import { GameManager } from './domain/GameManager.js';
+import { initDb } from './infrastructure/db.js';
 import { createRouter } from './infrastructure/routes.js';
 import { setupSocketHandlers } from './infrastructure/socketSetup.js';
 import logger from './logger.js';
@@ -27,6 +29,13 @@ app.use(express.static(clientDir));
 app.get('/{*path}', (_req, res) => {
   res.sendFile('index.html', { root: clientDir });
 });
+
+try {
+  await initDb();
+} catch (e) {
+  logger.fatal(e, 'Database initialization failed');
+  process.exit(1);
+}
 
 server.listen(port, () => {
   logger.info(`RedTetris running on http://localhost:${port}`);

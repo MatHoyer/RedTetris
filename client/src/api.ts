@@ -6,6 +6,9 @@ const headers = () => ({
 });
 
 export const api = {
+  getHighScores: (page: number, limit: number) =>
+    fetch(`/api/high-scores?page=${encodeURIComponent(String(page))}&limit=${encodeURIComponent(String(limit))}`),
+
   updatePlayer: (name: string) =>
     fetch('/api/player', { method: 'PUT', headers: headers(), body: JSON.stringify({ name }) }),
 
