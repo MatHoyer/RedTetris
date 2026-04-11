@@ -16,9 +16,12 @@ export const Navbar = () => {
   const handleClose = () => setOpenSettings(false);
 
   return (
-    <nav>
+    <nav style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
       <Link to="/" onClick={() => dispatch(leaveAll())}>
         <img src="/assets/RedTetris-logo.png" alt="logo" style={{ width: '100px', margin: '10px' }} />
+      </Link>
+      <Link to="/high-scores" style={{ color: '#60a5fa', fontSize: 14 }}>
+        <Button>High scores</Button>
       </Link>
       <FontAwesomeIcon
         style={{

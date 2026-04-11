@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: redtetris
+      POSTGRES_PASSWORD: redtetris
+      POSTGRES_DB: redtetris
+    ports:
+      - '5432:5432'
+    volumes:
+      - redtetris_pgdata:/var/lib/postgresql/data
+      - ../server/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U redtetris -d redtetris']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+    networks:
+      - redtetris
+
+networks:
+  redtetris:
+    name: redtetris_net
+
+volumes:
+  redtetris_pgdata:
+    name: redtetris_pgdata

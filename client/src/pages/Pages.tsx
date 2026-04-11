@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import type { RootState } from '../redux';
 import { CreateGame } from './CreateGame';
+import { HighScores } from './HighScores';
 import { Home } from './Home';
 import { Lobby } from './Lobby';
 import { LoginHub } from './LoginHub';
@@ -22,6 +23,7 @@ export const Pages = () => {
   return (
     <Routes>
       <Route path="/login-hub" element={<LoginHub />} />
+      <Route path="/high-scores" element={<HighScores />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/:roomId/:playerName" element={<Lobby />} />
       <Route element={<PrivateRoute />}>

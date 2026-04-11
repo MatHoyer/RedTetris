@@ -1,3 +1,4 @@
+import { saveScores } from '../infrastructure/save-score.js';
 import logger from '../logger.js';
 import { Player } from './Player.js';
 import { Tetrominos } from './Tetrominos.js';
@@ -68,13 +69,29 @@ export class GameSession {
     this.log.info(`Player ${deadPlayer.name || deadPlayer.id} died (${alivePlayers.length} alive remaining)`);
     deadPlayer.port?.emitGameEnded('loose');
 
+    let gameEnded = false;
     if (alivePlayers.length === 1 && this.players.length > 1) {
       this.log.info(`Player ${alivePlayers[0].name || alivePlayers[0].id} wins!`);
       alivePlayers[0].port?.emitGameEnded('win');
       this.end();
+      gameEnded = true;
     } else if (alivePlayers.length === 0) {
       this.end();
+      gameEnded = true;
     }
+
+    if (!gameEnded) {
+      this.persistScores();
+    }
+  }
+
+  private persistScores() {
+    const scores: Record<string, number> = {};
+    for (const player of this.players) {
+      const key = player.name.trim() || `player${player.id}`;
+      scores[key] = player.score;
+    }
+    void saveScores(scores);
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
@@ -161,11 +178,15 @@ export class GameSession {
   }
 
   end() {
+    const wasActive = this.active;
     this.log.info(`Ended`);
     this.active = false;
     this.stopLoop();
     for (const p of this.players) {
       if (p.alive) p.forceStop();
+    }
+    if (wasActive) {
+      this.persistScores();
     }
   }
 
