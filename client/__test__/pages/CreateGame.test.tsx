@@ -1,15 +1,23 @@
 import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { CreateGame } from '../../src/pages/CreateGame';
 import { store } from '../../src/redux';
-import { setInputValue } from '../helpers';
 
 vi.mock('../../src/socket', () => ({
   default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
+
+const renderCreateGame = () =>
+  render(
+    <Provider store={store}>
+      <MemoryRouter>
+        <CreateGame />
+      </MemoryRouter>
+    </Provider>,
+  );
 
 describe('CreateGame', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
@@ -25,78 +33,45 @@ describe('CreateGame', () => {
   });
 
   it('renders Back link, room name input, max players range and Create button', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <CreateGame />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const backLink = div.querySelector('a[href="/online"]');
+    const { container } = renderCreateGame();
+    const backLink = container.querySelector('a[href="/online"]');
     expect(backLink?.textContent).toMatch(/Back/i);
-    expect(div.querySelector('#roomName')).toBeTruthy();
-    expect(div.querySelector('label[for="roomName"]')?.textContent).toMatch(/Room name/i);
-    expect(div.querySelector('#number')).toBeTruthy();
-    const submitBtn = div.querySelector('button[type="submit"]');
-    expect(submitBtn?.textContent).toMatch(/Create/i);
+    expect(container.querySelector('#roomName')).toBeTruthy();
+    expect(container.querySelector('label[for="roomName"]')?.textContent).toMatch(/Room name/i);
+    expect(container.querySelector('#number')).toBeTruthy();
+    expect(screen.getByText(/Create/i)).toBeTruthy();
   });
 
-  it('submit with empty roomName does not call API', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <CreateGame />
-          </MemoryRouter>
-        </Provider>,
-      );
+  it('submit with empty roomName does not call API', async () => {
+    let container: HTMLElement;
+    await act(async () => {
+      ({ container } = renderCreateGame());
     });
     fetchSpy.mockClear();
-    const form = div.querySelector('form');
-    act(() => {
-      form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    });
+    fireEvent.submit(container!.querySelector('form')!);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('submit with roomName and maxPlayers calls createGame API', async () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <CreateGame />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const roomInput = div.querySelector('#roomName') as HTMLInputElement;
-    const rangeInput = div.querySelector('#number') as HTMLInputElement;
-    act(() => {
-      setInputValue(roomInput, ' my-room ');
-    });
-    act(() => {
-      setInputValue(rangeInput, '4');
-    });
-    fetchSpy.mockClear();
+    let container: HTMLElement;
     await act(async () => {
-      (div.querySelector('form') as HTMLFormElement).dispatchEvent(
-        new Event('submit', { bubbles: true, cancelable: true }),
+      ({ container } = renderCreateGame());
+    });
+    const inputs = container!.querySelectorAll('input');
+    const roomInput = Array.from(inputs).find((i) => i.id === 'roomName') as HTMLInputElement;
+    const rangeInput = Array.from(inputs).find((i) => i.id === 'number') as HTMLInputElement;
+    fireEvent.change(roomInput, { target: { value: ' my-room ' } });
+    fireEvent.change(rangeInput, { target: { value: '4', valueAsNumber: 4 } });
+    fetchSpy.mockClear();
+    fireEvent.submit(container!.querySelector('form')!);
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/games',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ roomName: 'my-room', maxPlayers: 4, modes: [] }),
+        }),
       );
     });
-    expect(fetchSpy).toHaveBeenCalledWith(
-      '/api/games',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ roomName: 'my-room', maxPlayers: 4, modes: [] }),
-      }),
-    );
   });
 });

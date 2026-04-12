@@ -1,5 +1,5 @@
 import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -38,22 +38,17 @@ const tetrisGame = {
   active: false,
 };
 
-function renderTetris(initialEntries = ['/room1/Alice/game']) {
-  const div = document.createElement('div');
-  const root = createRoot(div);
-  act(() => {
-    root.render(
-      <Provider store={store}>
-        <MemoryRouter initialEntries={initialEntries}>
-          <Routes>
-            <Route path="/:roomId/:playerName/game" element={<Tetris />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>,
-    );
-  });
-  return { div, root };
-}
+const renderTetris = (initialEntries = ['/room1/Alice/game']) =>
+  render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Routes>
+          <Route path="/:roomId/:playerName/game" element={<Tetris />} />
+          <Route path="*" element={<Tetris />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>,
+  );
 
 describe('Tetris', () => {
   beforeEach(() => {
@@ -72,51 +67,35 @@ describe('Tetris', () => {
   });
 
   it('renders NotFound when roomId is missing', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter initialEntries={['/']}>
-            <Routes>
-              <Route path="*" element={<Tetris />} />
-            </Routes>
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(div.querySelector('h1')?.textContent).toBe('Page not found');
+    renderTetris(['/']);
+    expect(screen.getByText('Page not found')).toBeTruthy();
   });
 
   it('renders NotFound when game not in store', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter initialEntries={['/fake-room/Player/game']}>
-            <Routes>
-              <Route path="/:roomId/:playerName/game" element={<Tetris />} />
-            </Routes>
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(div.querySelector('h1')?.textContent).toBe('Page not found');
+    const { container } = render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/fake-room/Player/game']}>
+          <Routes>
+            <Route path="/:roomId/:playerName/game" element={<Tetris />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>,
+    );
+    expect(container.querySelector('h1')?.textContent).toBe('Page not found');
   });
 
   it('renders game UI when game exists and user is in players', () => {
-    const { div } = renderTetris();
-    expect(div.querySelector('.app')).toBeTruthy();
-    expect(div.textContent).toMatch(/TETRIS|Score/);
-    expect(div.querySelector('.board')).toBeTruthy();
-    expect(div.textContent).toMatch(/Quit|Alice/);
+    const { container } = renderTetris();
+    expect(container.querySelector('.app')).toBeTruthy();
+    expect(container.textContent).toMatch(/TETRIS|Score/);
+    expect(container.querySelector('.board')).toBeTruthy();
+    expect(container.textContent).toMatch(/Quit|Alice/);
   });
 
   it('displays score from store', () => {
     store.dispatch(setScore(150));
-    const { div } = renderTetris();
-    expect(div.textContent).toContain('150');
+    const { container } = renderTetris();
+    expect(container.textContent).toContain('150');
   });
 
   it('displays nextPiece preview when nextPieceShape has data', () => {
@@ -126,8 +105,8 @@ describe('Tetris', () => {
         nextPieceShape: [[1, 1, 1, 1]],
       }),
     );
-    const { div } = renderTetris();
-    const cells = div.querySelectorAll('.controls .cell');
+    const { container } = renderTetris();
+    const cells = container.querySelectorAll('.controls .cell');
     expect(cells.length).toBeGreaterThan(0);
     expect(Array.from(cells).some((c) => c.classList.contains('I'))).toBe(true);
   });
@@ -171,64 +150,61 @@ describe('Tetris', () => {
   it('renders otherPlayersData with Alive/Dead and score', () => {
     store.dispatch(updatePlayerData({ id: 2, name: 'Bob', alive: true, score: 100 }));
     store.dispatch(updatePlayerData({ id: 3, name: 'Eve', alive: false, score: 50 }));
-    const { div } = renderTetris();
-    expect(div.textContent).toContain('Bob');
-    expect(div.textContent).toContain('Eve');
-    expect(div.textContent).toContain('Alive');
-    expect(div.textContent).toContain('Dead');
-    expect(div.textContent).toContain('100');
-    expect(div.textContent).toContain('50');
+    const { container } = renderTetris();
+    expect(container.textContent).toContain('Bob');
+    expect(container.textContent).toContain('Eve');
+    expect(container.textContent).toContain('Alive');
+    expect(container.textContent).toContain('Dead');
+    expect(container.textContent).toContain('100');
+    expect(container.textContent).toContain('50');
   });
 
   it('renders spectrum bars when spectrums[player.id] is set', () => {
     store.dispatch(updatePlayerData({ id: 2, name: 'Bob', alive: true, score: 0 }));
     store.dispatch(updateSpectrum({ playerId: 2, spectrum: [5, 0, 10] }));
-    const { div } = renderTetris();
-    const spectrumBars = div.querySelectorAll('[style*="height"]');
+    const { container } = renderTetris();
+    const spectrumBars = container.querySelectorAll('[style*="height"]');
     expect(spectrumBars.length).toBeGreaterThan(0);
   });
 
   it('shows win overlay when status is win', () => {
     store.dispatch(setStatus('win'));
-    const { div } = renderTetris();
-    expect(div.textContent).toMatch(/You won|won/);
+    const { container } = renderTetris();
+    expect(container.textContent).toMatch(/You won|won/);
   });
 
   it('shows lost overlay when status is loose', () => {
     store.dispatch(setStatus('loose'));
-    const { div } = renderTetris();
-    expect(div.textContent).toMatch(/You lost|lost/);
+    const { container } = renderTetris();
+    expect(container.textContent).toMatch(/You lost|lost/);
   });
 
   it('status effect calls leaveAll API on cleanup', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     store.dispatch(setStatus('win'));
-    const { root } = renderTetris();
-    await act(async () => {
-      root.unmount();
+    renderTetris();
+    cleanup();
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
     });
-    expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
     fetchSpy.mockRestore();
   });
 
   it('Quit link click calls leaveAll API', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })));
-    const { div } = renderTetris();
+    renderTetris();
     fetchSpy.mockClear();
-    const quitLink = div.querySelector('a[href="/"]');
-    await act(async () => {
-      quitLink?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    fireEvent.click(screen.getByText('Quit'));
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
     });
-    expect(fetchSpy).toHaveBeenCalledWith('/api/games/leave-all', expect.objectContaining({ method: 'POST' }));
     fetchSpy.mockRestore();
   });
 
   it('unmount dispatches resetBoard and resetGame', () => {
     store.dispatch(setScore(999));
-    const { root } = renderTetris();
-    act(() => {
-      root.unmount();
-    });
+    renderTetris();
+    cleanup();
     expect(
       store
         .getState()
@@ -256,19 +232,7 @@ describe('Tetris', () => {
       players: [{ id: 99, name: 'Other', alive: true, board: [] }],
     };
     store.dispatch(updateGamesList([gameWithoutUser]));
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter initialEntries={['/room1/Alice/game']}>
-            <Routes>
-              <Route path="/:roomId/:playerName/game" element={<Tetris />} />
-            </Routes>
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(div.querySelector('h1')?.textContent).toBe('Page not found');
+    const { container } = renderTetris();
+    expect(container.querySelector('h1')?.textContent).toBe('Page not found');
   });
 });

@@ -1,25 +1,16 @@
-import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import Cell from '../../src/components/Cell';
 
 describe('Cell', () => {
   it('renders with type class', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(<Cell type="I" />);
-    });
-    const cell = div.querySelector('.cell.I');
-    expect(cell).toBeTruthy();
+    const { container } = render(<Cell type="I" />);
+    expect(container.querySelector('.cell.I')).toBeTruthy();
   });
 
   it('renders Empty type', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(<Cell type="Empty" />);
-    });
-    expect(div.querySelector('.cell.Empty')).toBeTruthy();
+    const { container } = render(<Cell type="Empty" />);
+    expect(container.querySelector('.cell.Empty')).toBeTruthy();
   });
 });
