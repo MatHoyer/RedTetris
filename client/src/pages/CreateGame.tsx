@@ -78,7 +78,7 @@ export const CreateGame = () => {
           </div>
         </div>
         <div>
-          <Button style={{ display: 'block', width: '100%' }} type="submit">
+          <Button style={{ display: 'block', width: '100%' }} type="submit" disabled={!roomName.trim()}>
             Create
           </Button>
         </div>
