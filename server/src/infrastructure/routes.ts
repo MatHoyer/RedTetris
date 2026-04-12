@@ -16,6 +16,8 @@ const playerNameSchema = z.object({
     .regex(/^[a-zA-Z0-9]+$/, 'Name can only contain letters and numbers'),
 });
 
+const gameModeSchema = z.enum(['fast', 'inverted', 'easy']);
+
 const createGameSchema = z.object({
   roomName: z
     .string()
@@ -23,6 +25,7 @@ const createGameSchema = z.object({
     .max(32, 'Room name must be at most 32 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Room name can only contain letters, numbers, _ and -'),
   maxPlayers: z.number().int().min(1).max(8),
+  modes: z.array(gameModeSchema).default([]),
 });
 
 export function createRouter(gameManager: GameManager, io: Server) {
@@ -75,9 +78,9 @@ export function createRouter(gameManager: GameManager, io: Server) {
       return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
-    const { roomName, maxPlayers } = parsed.data;
-    log.info(`${socketId} creating room "${roomName}" (max: ${maxPlayers})`);
-    const createdRoomName = gameManager.createGameSession(admin, maxPlayers, roomName);
+    const { roomName, maxPlayers, modes } = parsed.data;
+    log.info(`${socketId} creating room "${roomName}" (max: ${maxPlayers}, modes: [${modes.join(',')}])`);
+    const createdRoomName = gameManager.createGameSession(admin, maxPlayers, roomName, modes);
     if (!createdRoomName) {
       return res.status(400).json({ error: 'Invalid room name or room already exists' });
     }

@@ -363,3 +363,8 @@ input[type='checkbox']:checked::after {
     inset 4px 4px 0px rgba(0, 0, 0, 0.2),
     0 4px 8px rgba(0, 0, 0, 0.3);
 }
+
+.cell.ghost {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+}

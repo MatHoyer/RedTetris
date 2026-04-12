@@ -68,7 +68,7 @@ describe('Home', () => {
       '/api/games',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ roomName: 'solo-Alice', maxPlayers: 1 }),
+        body: JSON.stringify({ roomName: 'solo-Alice', maxPlayers: 1, modes: [] }),
       }),
     );
   });

@@ -14,11 +14,11 @@ export const api = {
 
   getGames: () => fetch('/api/games', { headers: headers() }),
 
-  createGame: (roomName: string, maxPlayers: number) =>
+  createGame: (roomName: string, maxPlayers: number, modes: string[] = []) =>
     fetch('/api/games', {
       method: 'POST',
       headers: headers(),
-      body: JSON.stringify({ roomName, maxPlayers }),
+      body: JSON.stringify({ roomName, maxPlayers, modes }),
     }),
 
   joinGame: (roomName: string) =>

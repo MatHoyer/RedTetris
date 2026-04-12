@@ -47,7 +47,7 @@ const App = () => {
       navigate(`/${roomName}/${userNameRef.current}/game`);
     });
 
-    socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty' | 'penalty')[][] }) => {
+    socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty' | 'penalty' | 'ghost')[][] }) => {
       dispatch(updateBoard(board.map((row) => row.map((cell) => cell ?? EmptyCell))));
     });
     socket.on(Events.UPDATED_SCORE, ({ score }: { score: number }) => {

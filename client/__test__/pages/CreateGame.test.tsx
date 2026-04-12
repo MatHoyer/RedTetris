@@ -95,7 +95,7 @@ describe('CreateGame', () => {
       '/api/games',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ roomName: 'my-room', maxPlayers: 4 }),
+        body: JSON.stringify({ roomName: 'my-room', maxPlayers: 4, modes: [] }),
       }),
     );
   });

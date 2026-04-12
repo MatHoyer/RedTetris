@@ -78,11 +78,30 @@ export const Lobby = () => {
       <div
         style={{
           display: 'flex',
+          flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: '20px',
+          gap: '10px',
         }}
       >
+        {goodGame.modes && goodGame.modes.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {goodGame.modes.map((mode) => (
+              <span
+                key={mode}
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  fontSize: '0.85em',
+                }}
+              >
+                {mode}
+              </span>
+            ))}
+          </div>
+        )}
         {user.id === goodGame.admin.id && <Button onClick={() => dispatch(startGame(goodGame.id))}>Start</Button>}
       </div>
       <div

@@ -1,3 +1,4 @@
+import { type TGameMode } from '../../../events/index.js';
 import { Board } from './Board.js';
 import { Tetrominos } from './Tetrominos.js';
 import { Shapes } from './shapes.js';
@@ -37,6 +38,7 @@ export class Player {
   dasCounter = 0;
   irsRotation = false;
 
+  modes: TGameMode[] = [];
   bag!: Tetrominos;
   bagIndex = 0;
   notify: (data: PlayerPayload) => void = () => {};
@@ -73,9 +75,11 @@ export class Player {
     onStop: () => void,
     onLinesCleared: (count: number) => void,
     onBoardUpdate: (playerId: number, spectrum: number[]) => void,
+    modes: TGameMode[] = [],
   ) {
     if (!this.port) return;
 
+    this.modes = modes;
     this.score = 0;
     this.level = 0;
     this.combo = 1;
@@ -109,24 +113,28 @@ export class Player {
   }
 
   private registerKeyHandlers() {
+    const inverted = this.modes.includes('inverted');
+    const leftDir = inverted ? 'right' : 'left';
+    const rightDir = inverted ? 'left' : 'right';
+
     this.keyDownHandlers = {
       down: () => {
         this.heldKeys['down'] = true;
       },
       left: () => {
         this.heldKeys['left'] = true;
-        this.dasDirection = 'left';
+        this.dasDirection = leftDir;
         this.dasCounter = 0;
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
-          this.board.moveHorizontal('left');
+          this.board.moveHorizontal(leftDir);
         }
       },
       right: () => {
         this.heldKeys['right'] = true;
-        this.dasDirection = 'right';
+        this.dasDirection = rightDir;
         this.dasCounter = 0;
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
-          this.board.moveHorizontal('right');
+          this.board.moveHorizontal(rightDir);
         }
       },
       rotate: () => {
@@ -162,15 +170,15 @@ export class Player {
       },
       left: () => {
         this.heldKeys['left'] = false;
-        if (this.dasDirection === 'left') {
-          this.dasDirection = this.heldKeys['right'] ? 'right' : null;
+        if (this.dasDirection === leftDir) {
+          this.dasDirection = this.heldKeys['right'] ? rightDir : null;
           this.dasCounter = 0;
         }
       },
       right: () => {
         this.heldKeys['right'] = false;
-        if (this.dasDirection === 'right') {
-          this.dasDirection = this.heldKeys['left'] ? 'left' : null;
+        if (this.dasDirection === rightDir) {
+          this.dasDirection = this.heldKeys['left'] ? leftDir : null;
           this.dasCounter = 0;
         }
       },
@@ -213,7 +221,7 @@ export class Player {
 
     this.applyDasMovement();
 
-    this.gravityAccumulator += 4;
+    this.gravityAccumulator += this.modes.includes('fast') ? 8 : 4;
 
     if (this.heldKeys['down']) {
       this.gravityAccumulator += 256;
@@ -361,7 +369,7 @@ export class Player {
   }
 
   sendBoard() {
-    this.port?.emitBoard(this.board.toPayload());
+    this.port?.emitBoard(this.board.toPayload(this.modes.includes('easy')));
     this.onBoardUpdate(this.id, this.board.getSpectrum());
   }
 

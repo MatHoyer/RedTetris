@@ -8,7 +8,7 @@ const log = logger.child({ component: 'Board' });
 export const GRID_HEIGHT = 21;
 const GRID_WIDTH = 10;
 
-export type TCell = TTetromino | 'empty' | 'penalty';
+export type TCell = TTetromino | 'empty' | 'penalty' | 'ghost';
 
 const createEmptyRow = (): TCell[] => Array<TCell>(GRID_WIDTH).fill('empty');
 
@@ -309,7 +309,53 @@ export class Board {
     }
   }
 
-  toPayload() {
-    return this.grid.slice(1);
+  toPayload(showGhost = false) {
+    if (!showGhost || !this.currPiece) {
+      return this.grid.slice(1);
+    }
+    return this.getGhostPayload();
+  }
+
+  private getGhostPayload(): TCell[][] {
+    const payload = this.grid.slice(1).map((row) => [...row]);
+    if (!this.currPiece) return payload;
+
+    const shape = this.currPiece.getCurrentConfig();
+    let ghostRow = this.position[0];
+
+    this.clear();
+    while (true) {
+      let canPlace = true;
+      for (let r = 0; r < shape.length && canPlace; r++) {
+        for (let c = 0; c < shape[r].length && canPlace; c++) {
+          if (shape[r][c]) {
+            const nr = ghostRow + 1 + r;
+            const nc = this.position[1] + c;
+            if (nr >= GRID_HEIGHT || nc < 0 || nc >= GRID_WIDTH || this.grid[nr][nc] !== 'empty') {
+              canPlace = false;
+            }
+          }
+        }
+      }
+      if (!canPlace) break;
+      ghostRow++;
+    }
+    this.draw();
+
+    if (ghostRow !== this.position[0]) {
+      for (let r = 0; r < shape.length; r++) {
+        for (let c = 0; c < shape[r].length; c++) {
+          if (shape[r][c]) {
+            const payloadRow = ghostRow + r - 1;
+            const payloadCol = this.position[1] + c;
+            if (payloadRow >= 0 && payloadRow < payload.length && payload[payloadRow][payloadCol] === 'empty') {
+              payload[payloadRow][payloadCol] = 'ghost';
+            }
+          }
+        }
+      }
+    }
+
+    return payload;
   }
 }

@@ -1,3 +1,4 @@
+import { type TGameMode } from '../../../events/index.js';
 import { saveScores } from '../infrastructure/save-score.js';
 import logger from '../logger.js';
 import { Player } from './Player.js';
@@ -18,6 +19,7 @@ export class GameSession {
     readonly id: string,
     readonly maxPlayers: number,
     public admin: Player,
+    readonly modes: TGameMode[] = [],
   ) {
     this.players = [admin];
     this.log = logger.child({ component: 'Session', sessionId: id });
@@ -157,6 +159,7 @@ export class GameSession {
         () => this.handlePlayerDeath(p),
         (count) => this.distributePenalty(p, count),
         (playerId, spectrum) => this.broadcastSpectrum(playerId, spectrum),
+        this.modes,
       );
     }
 
@@ -194,6 +197,7 @@ export class GameSession {
     return {
       id: this.id,
       maxPlayers: this.maxPlayers,
+      modes: this.modes,
       admin: { id: this.admin?.id, name: this.admin?.name },
       active: this.active,
       players: this.players.map((p) => p.toPayload()),

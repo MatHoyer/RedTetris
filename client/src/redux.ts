@@ -127,9 +127,9 @@ export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: s
 
 export const createGame = createAsyncThunk(
   'games/create',
-  async (params: { roomName: string; maxPlayers: number }, { rejectWithValue }) => {
+  async (params: { roomName: string; maxPlayers: number; modes?: string[] }, { rejectWithValue }) => {
     try {
-      const res = await api.createGame(params.roomName, params.maxPlayers);
+      const res = await api.createGame(params.roomName, params.maxPlayers, params.modes ?? []);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data as { roomName: string };
