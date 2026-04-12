@@ -1,4 +1,19 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: redtetris
+      POSTGRES_PASSWORD: redtetris
+      POSTGRES_DB: redtetris
+    volumes:
+      - redtetris_pgdata:/var/lib/postgresql/data
+      - ./server/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U redtetris -d redtetris']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
   app:
     build:
       context: .
@@ -9,10 +24,10 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgresql://redtetris:redtetris@postgres:5432/redtetris
-    networks:
-      - redtetris
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-networks:
-  redtetris:
-    external: true
-    name: redtetris_net
+volumes:
+  redtetris_pgdata:
+    name: redtetris_pgdata
