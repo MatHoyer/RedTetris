@@ -6,7 +6,7 @@ import logger from '../logger.js';
 import { listHighScoresPaginated } from './save-score.js';
 
 const log = logger.child({ component: 'API' });
-const nameRegex = /^[a-zA-Z0-9]+$/;
+const nameRegex = /^[a-zA-Z0-9_-]+$/;
 
 export function createRouter(gameManager: GameManager, io: Server) {
   const router = Router();
@@ -54,6 +54,10 @@ export function createRouter(gameManager: GameManager, io: Server) {
     const socketId = req.headers['x-socket-id'] as string;
     const admin = getPlayerFromSocket(socketId);
     if (!admin) return res.status(401).json({ error: 'Player not found' });
+
+    if (!roomName || typeof roomName !== 'string' || !nameRegex.test(roomName) || roomName.length > 32) {
+      return res.status(400).json({ error: 'Room name must be 1-32 alphanumeric characters (a-z, 0-9, _, -)' });
+    }
 
     log.info(`${socketId} creating room "${roomName}" (max: ${maxPlayers})`);
     const createdRoomName = gameManager.createGameSession(admin, maxPlayers, roomName);

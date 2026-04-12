@@ -286,6 +286,7 @@ export class Board {
   }
 
   getSpectrum(): number[] {
+    this.clear();
     const spectrum: number[] = [];
     const visibleHeight = GRID_HEIGHT - 1; // 20 visible rows
     for (let col = 0; col < GRID_WIDTH; col++) {
@@ -298,6 +299,7 @@ export class Board {
       }
       spectrum.push(height);
     }
+    this.draw();
     return spectrum;
   }
 
