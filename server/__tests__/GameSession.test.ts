@@ -10,7 +10,6 @@ vi.mock('../src/infrastructure/save-score.js', () => ({
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),
   emitScore: vi.fn(),
-  emitLevel: vi.fn(),
   emitNextPiece: vi.fn(),
   emitGameEnded: vi.fn(),
   emitGameStarted: vi.fn(),
@@ -276,7 +275,7 @@ describe('GameSession', () => {
     const player2 = new Player(2, 'Player2', 'socket2', port2);
     const gameSession = new GameSession('room1', 4, admin);
     gameSession.addPlayer(player2);
-    const data = { player: { id: 1, name: 'Admin', alive: true, score: 0, level: 1 } };
+    const data = { player: { id: 1, name: 'Admin', alive: true, score: 0 } };
 
     gameSession.broadcastGameData(data);
 

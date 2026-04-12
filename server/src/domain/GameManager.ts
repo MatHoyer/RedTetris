@@ -1,3 +1,4 @@
+import { type TGameMode } from '../../../events/index.js';
 import logger from '../logger.js';
 import { GameSession } from './GameSession.js';
 import { Player } from './Player.js';
@@ -10,7 +11,7 @@ export class GameManager {
   readonly players: Record<string, Player> = {};
   private playerIdCounter = 0;
 
-  createGameSession(admin: Player, maxPlayers: number, roomName: string) {
+  createGameSession(admin: Player, maxPlayers: number, roomName: string, modes: TGameMode[] = []) {
     if (maxPlayers < 1 || maxPlayers > 8) {
       log.warn(`Cannot create "${roomName}": invalid maxPlayers (${maxPlayers})`);
       return undefined;
@@ -19,9 +20,9 @@ export class GameManager {
       log.warn(`Cannot create "${roomName}": room already exists`);
       return undefined;
     }
-    const session = new GameSession(roomName, maxPlayers, admin);
+    const session = new GameSession(roomName, maxPlayers, admin, modes);
     this.sessions[roomName] = session;
-    log.info(`Session "${roomName}" created (max: ${maxPlayers}, admin: ${admin.id})`);
+    log.info(`Session "${roomName}" created (max: ${maxPlayers}, modes: [${modes.join(',')}], admin: ${admin.id})`);
     return roomName;
   }
 

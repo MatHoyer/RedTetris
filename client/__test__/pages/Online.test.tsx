@@ -1,11 +1,10 @@
-import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Online } from '../../src/pages/Online';
 import { store, updateGamesList } from '../../src/redux';
-import { setInputValue } from '../helpers';
 
 vi.mock('../../src/socket', () => ({
   default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
@@ -31,6 +30,15 @@ const mockGame = (
     overrides,
   );
 
+const renderOnline = () =>
+  render(
+    <Provider store={store}>
+      <MemoryRouter>
+        <Online />
+      </MemoryRouter>
+    </Provider>,
+  );
+
 describe('Online', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
@@ -45,180 +53,83 @@ describe('Online', () => {
   });
 
   it('renders Back link, filter UI and No games when list is empty', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(updateGamesList([]));
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const backLink = div.querySelector('a[href="/"]');
-    expect(backLink?.textContent).toMatch(/Back/i);
-    expect(div.textContent).toMatch(/No games/);
-    const createLink = div.querySelector('a[href="/create-game"]');
-    expect(createLink).toBeTruthy();
-    expect(div.querySelector('button')?.textContent).toMatch(/Create Game/i);
+    store.dispatch(updateGamesList([]));
+    const { container } = renderOnline();
+    expect(container.querySelector('a[href="/"]')?.textContent).toMatch(/Back/i);
+    expect(container.textContent).toMatch(/No games/);
+    expect(container.querySelector('a[href="/create-game"]')).toBeTruthy();
+    expect(screen.getByText(/Create Game/i)).toBeTruthy();
   });
 
   it('renders table with games when gamesList has data', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(updateGamesList([mockGame()]));
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(div.querySelector('table')).toBeTruthy();
-    expect(div.textContent).toContain('room-a');
-    expect(div.textContent).toContain('Admin');
-    expect(div.textContent).toMatch(/1\/4/);
-    const joinBtns = div.querySelectorAll('button');
-    const joinBtn = Array.from(joinBtns).find((b) => b.textContent?.trim() === 'Join');
-    expect(joinBtn).toBeTruthy();
+    store.dispatch(updateGamesList([mockGame()]));
+    const { container } = renderOnline();
+    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.textContent).toContain('room-a');
+    expect(container.textContent).toContain('Admin');
+    expect(container.textContent).toMatch(/1\/4/);
+    expect(screen.getAllByText('Join').length).toBeGreaterThan(0);
   });
 
   it('filters games by research text on admin name', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(
-        updateGamesList([
-          mockGame({ id: 'r1', admin: { name: 'Alice' } }),
-          mockGame({ id: 'r2', admin: { name: 'Bob' } }),
-        ]),
-      );
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(div.querySelectorAll('tbody tr')).toHaveLength(2);
-    const researchInput = div.querySelector('input[type="text"]') as HTMLInputElement;
-    act(() => {
-      setInputValue(researchInput, 'alice');
-    });
-    expect(div.textContent).toContain('Alice');
-    expect(div.textContent).not.toContain('Bob');
-    act(() => {
-      setInputValue(researchInput, 'xyz');
-    });
-    expect(div.textContent).toMatch(/No games/);
+    store.dispatch(
+      updateGamesList([
+        mockGame({ id: 'r1', admin: { name: 'Alice' } }),
+        mockGame({ id: 'r2', admin: { name: 'Bob' } }),
+      ]),
+    );
+    const { container } = renderOnline();
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(2);
+    const researchInput = container.querySelector('input[type="text"]') as HTMLInputElement;
+    fireEvent.change(researchInput, { target: { value: 'alice' } });
+    expect(container.textContent).toContain('Alice');
+    expect(container.textContent).not.toContain('Bob');
+    fireEvent.change(researchInput, { target: { value: 'xyz' } });
+    expect(container.textContent).toMatch(/No games/);
   });
 
   it('filter showInGame hides active games by default, checkbox click shows them', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(updateGamesList([mockGame({ id: 'active-room', active: true })]));
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    expect(div.textContent).toMatch(/No games/);
-    const checkbox = div.querySelector('input[type="checkbox"]') as HTMLInputElement;
-    act(() => {
-      checkbox.click();
-    });
-    expect(div.querySelector('table')).toBeTruthy();
-    expect(div.textContent).toContain('active-room');
+    store.dispatch(updateGamesList([mockGame({ id: 'active-room', active: true })]));
+    const { container } = renderOnline();
+    expect(container.textContent).toMatch(/No games/);
+    const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(checkbox);
+    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.textContent).toContain('active-room');
   });
 
   it('active game shows Join disabled', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(updateGamesList([mockGame({ id: 'r1', active: true })]));
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const checkbox = div.querySelector('input[type="checkbox"]') as HTMLInputElement;
-    act(() => {
-      checkbox.click();
-    });
-    const joinBtn = Array.from(div.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Join');
-    expect(joinBtn).toBeTruthy();
-    expect((joinBtn as HTMLButtonElement).disabled).toBe(true);
+    store.dispatch(updateGamesList([mockGame({ id: 'r1', active: true })]));
+    const { container } = renderOnline();
+    const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(checkbox);
+    const joinBtns = screen.getAllByText('Join');
+    expect((joinBtns[0] as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('Join disabled when room is full', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(
-        updateGamesList([
-          mockGame({
-            id: 'full-room',
-            players: [{ id: 1 }, { id: 2 }],
-            maxPlayers: 2,
-          }),
-        ]),
-      );
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const joinBtn = Array.from(div.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Join');
-    expect((joinBtn as HTMLButtonElement).disabled).toBe(true);
+    store.dispatch(
+      updateGamesList([
+        mockGame({
+          id: 'full-room',
+          players: [{ id: 1 }, { id: 2 }],
+          maxPlayers: 2,
+        }),
+      ]),
+    );
+    renderOnline();
+    const joinBtns = screen.getAllByText('Join');
+    expect((joinBtns[0] as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('clicking Join calls joinGame API', async () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      store.dispatch(updateGamesList([mockGame({ id: 'join-me' })]));
-    });
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <Online />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
+    store.dispatch(updateGamesList([mockGame({ id: 'join-me' })]));
+    renderOnline();
     fetchSpy.mockClear();
-    const joinBtn = Array.from(div.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Join');
-    await act(async () => {
-      joinBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const joinBtns = screen.getAllByText('Join');
+    fireEvent.click(joinBtns[0]);
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith('/api/games/join-me/join', expect.objectContaining({ method: 'POST' }));
     });
-    expect(fetchSpy).toHaveBeenCalledWith('/api/games/join-me/join', expect.objectContaining({ method: 'POST' }));
   });
 });

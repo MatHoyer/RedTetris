@@ -1,20 +1,29 @@
 import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { LoginHub } from '../../src/pages/LoginHub';
-import { store } from '../../src/redux';
-import { setInputValue } from '../helpers';
+import { changeName, store } from '../../src/redux';
 
 vi.mock('../../src/socket', () => ({
   default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
 
+const renderLoginHub = () =>
+  render(
+    <Provider store={store}>
+      <MemoryRouter>
+        <LoginHub />
+      </MemoryRouter>
+    </Provider>,
+  );
+
 describe('LoginHub', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    store.dispatch(changeName(''));
     fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ id: 1, name: 'Bob' }), { status: 200 }),
     );
@@ -24,46 +33,27 @@ describe('LoginHub', () => {
     fetchSpy.mockRestore();
   });
 
-  it('renders form with username input and Register button', () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <LoginHub />
-          </MemoryRouter>
-        </Provider>,
-      );
+  it('renders form with username input and Register button', async () => {
+    let container: HTMLElement;
+    await act(async () => {
+      ({ container } = renderLoginHub());
     });
-    expect(div.querySelector('img[alt="Title"]')).toBeTruthy();
-    expect(div.querySelector('form')).toBeTruthy();
-    expect(div.querySelector('#nameSelect')).toBeTruthy();
-    expect(div.querySelector('label[for="nameSelect"]')?.textContent).toMatch(/username/i);
-    const submitBtn = div.querySelector('button[type="submit"]');
-    expect(submitBtn?.textContent).toMatch(/Register/i);
+    expect(container!.querySelector('img[alt="Title"]')).toBeTruthy();
+    expect(container!.querySelector('form')).toBeTruthy();
+    expect(Array.from(container!.querySelectorAll('input')).find((i) => i.id === 'nameSelect')).toBeTruthy();
+    expect(container!.querySelector('label[for="nameSelect"]')?.textContent).toMatch(/username/i);
+    expect(container!.querySelector('button[type="submit"]')?.textContent).toMatch(/Register/i);
   });
 
   it('form submit calls updatePlayer API', async () => {
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <LoginHub />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const input = div.querySelector('#nameSelect') as HTMLInputElement;
-    act(() => {
-      setInputValue(input, 'Bob');
-    });
+    let container: HTMLElement;
     await act(async () => {
-      (div.querySelector('form') as HTMLFormElement).dispatchEvent(
-        new Event('submit', { bubbles: true, cancelable: true }),
-      );
+      ({ container } = renderLoginHub());
+    });
+    const input = Array.from(container!.querySelectorAll('input')).find((i) => i.id === 'nameSelect') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Bob' } });
+    await act(async () => {
+      fireEvent.submit(container.querySelector('form')!);
     });
     expect(fetchSpy).toHaveBeenCalledWith(
       '/api/player',
@@ -75,27 +65,17 @@ describe('LoginHub', () => {
     fetchSpy.mockResolvedValueOnce(
       new Response(JSON.stringify({ error: 'Name taken' }), { status: 409 }),
     );
-    const div = document.createElement('div');
-    const root = createRoot(div);
-    act(() => {
-      root.render(
-        <Provider store={store}>
-          <MemoryRouter>
-            <LoginHub />
-          </MemoryRouter>
-        </Provider>,
-      );
-    });
-    const input = div.querySelector('#nameSelect') as HTMLInputElement;
-    act(() => {
-      setInputValue(input, 'Taken');
-    });
+    let container: HTMLElement;
     await act(async () => {
-      (div.querySelector('form') as HTMLFormElement).dispatchEvent(
-        new Event('submit', { bubbles: true, cancelable: true }),
-      );
+      ({ container } = renderLoginHub());
     });
-    expect(div.textContent).toContain('Name taken');
+    const input = Array.from(container!.querySelectorAll('input')).find((i) => i.id === 'nameSelect') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Taken' } });
+    await act(async () => {
+      fireEvent.submit(container.querySelector('form')!);
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain('Name taken');
+    });
   });
-
 });

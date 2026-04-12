@@ -11,7 +11,6 @@ import {
   updateGamesList,
   updateBoard,
   setScore,
-  setLevel,
   setNextPiece,
   setStatus,
   updatePlayerData,
@@ -47,14 +46,11 @@ const App = () => {
       navigate(`/${roomName}/${userNameRef.current}/game`);
     });
 
-    socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty' | 'penalty')[][] }) => {
+    socket.on(Events.UPDATED_BOARD, ({ board }: { board: (TTetromino | 'empty' | 'penalty' | 'ghost')[][] }) => {
       dispatch(updateBoard(board.map((row) => row.map((cell) => cell ?? EmptyCell))));
     });
     socket.on(Events.UPDATED_SCORE, ({ score }: { score: number }) => {
       dispatch(setScore(score));
-    });
-    socket.on(Events.UPDATED_LEVEL, ({ level }: { level: number }) => {
-      dispatch(setLevel(level));
     });
     socket.on(
       Events.UPDATED_NEXT_PIECE,
@@ -67,11 +63,10 @@ const App = () => {
       ({
         player,
       }: {
-        player: { id: number; name: string; alive: boolean; score: number; level: number };
+        player: { id: number; name: string; alive: boolean; score: number };
       }) => {
         if (player.id === store.getState().user.id) {
           dispatch(setScore(player.score));
-          dispatch(setLevel(player.level));
         } else {
           dispatch(updatePlayerData(player));
         }
@@ -95,7 +90,6 @@ const App = () => {
       socket.off(Events.GAME_STARTED);
       socket.off(Events.UPDATED_BOARD);
       socket.off(Events.UPDATED_SCORE);
-      socket.off(Events.UPDATED_LEVEL);
       socket.off(Events.UPDATED_NEXT_PIECE);
       socket.off(Events.UPDATED_GAME_DATA);
       socket.off(Events.UPDATED_SPECTRUM);

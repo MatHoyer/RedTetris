@@ -1,4 +1,4 @@
-export type TCell = 'I' | 'J' | 'L' | 'O' | 'S' | 'T' | 'Z' | 'Empty' | 'penalty';
+export type TCell = 'I' | 'J' | 'L' | 'O' | 'S' | 'T' | 'Z' | 'Empty' | 'penalty' | 'ghost';
 
 export const Block = {
   I: 'I',

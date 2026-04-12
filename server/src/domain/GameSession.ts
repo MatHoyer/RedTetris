@@ -1,3 +1,4 @@
+import { type TGameMode } from '../../../events/index.js';
 import { saveScores } from '../infrastructure/save-score.js';
 import logger from '../logger.js';
 import { Player } from './Player.js';
@@ -18,6 +19,7 @@ export class GameSession {
     readonly id: string,
     readonly maxPlayers: number,
     public admin: Player,
+    readonly modes: TGameMode[] = [],
   ) {
     this.players = [admin];
     this.log = logger.child({ component: 'Session', sessionId: id });
@@ -58,6 +60,9 @@ export class GameSession {
   removePlayer(playerId: number) {
     const player = this.players.find((p) => p.id === playerId);
     this.log.info(`Player ${player?.name || playerId} removed`);
+    if (this.active) {
+      this.persistScores();
+    }
     this.players = this.players.filter((p) => p.id !== playerId);
     if (!this.players.length) {
       this.end();
@@ -91,7 +96,7 @@ export class GameSession {
       const key = player.name.trim() || `player${player.id}`;
       scores[key] = player.score;
     }
-    void saveScores(scores);
+    void saveScores(scores, this.modes);
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
@@ -119,7 +124,7 @@ export class GameSession {
     }
   }
 
-  broadcastGameData(data: { player: { id: number; name: string; alive: boolean; score: number; level: number } }) {
+  broadcastGameData(data: { player: { id: number; name: string; alive: boolean; score: number } }) {
     for (const player of this.players) {
       player.port?.emitGameData(data);
     }
@@ -157,6 +162,7 @@ export class GameSession {
         () => this.handlePlayerDeath(p),
         (count) => this.distributePenalty(p, count),
         (playerId, spectrum) => this.broadcastSpectrum(playerId, spectrum),
+        this.modes,
       );
     }
 
@@ -194,6 +200,7 @@ export class GameSession {
     return {
       id: this.id,
       maxPlayers: this.maxPlayers,
+      modes: this.modes,
       admin: { id: this.admin?.id, name: this.admin?.name },
       active: this.active,
       players: this.players.map((p) => p.toPayload()),

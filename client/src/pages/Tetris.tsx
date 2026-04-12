@@ -15,7 +15,6 @@ export const Tetris = () => {
   const user = useSelector((state: RootState) => state.user);
   const gamesList = useSelector((state: RootState) => state.gamesList);
   const score = useSelector((state: RootState) => state.game.score);
-  const level = useSelector((state: RootState) => state.game.level);
   const nextPiece = useSelector((state: RootState) => state.game.nextPiece);
   const status = useSelector((state: RootState) => state.game.status);
   const otherPlayersData = useSelector((state: RootState) => state.game.otherPlayersData);
@@ -99,7 +98,6 @@ export const Tetris = () => {
       <Board />
       <div className="controls">
         <h2>Score: {score}</h2>
-        <h3>Level: {level}</h3>
         <div>
           {Array.from({ length: 4 }).map((_, rowIndex) => (
             <div className="row" key={`${rowIndex}`}>

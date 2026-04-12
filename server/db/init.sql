@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS player_high_scores (
   player_name VARCHAR(32) PRIMARY KEY,
   high_score INTEGER NOT NULL DEFAULT 0 CHECK (high_score >= 0),
+  modes TEXT[] NOT NULL DEFAULT '{}',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
