@@ -10,7 +10,8 @@ export type TGame = {
     id: number;
     name: string;
     alive: boolean;
-    board: number[][];
+    score: number;
+    level: number;
   }[];
 };
 
@@ -20,10 +21,7 @@ export type TTetromino = (typeof tetrominoes)[number];
 export type TShape = number[][];
 
 export enum Events {
-  NEW_GAME = 'new_game',
-  GAME_CREATED = 'game_created',
   GAME_ENDED = 'game_ended',
-  UPDATE_GAMES_LIST = 'update_games_list',
   UPDATED_GAME_LIST = 'updated_game_list',
   UPDATED_BOARD = 'updated_board',
   UPDATED_SCORE = 'updated_score',
@@ -31,20 +29,10 @@ export enum Events {
   UPDATED_NEXT_PIECE = 'updated_next_piece',
   UPDATED_GAME_DATA = 'updated_game_data',
   UPDATED_SPECTRUM = 'updated_spectrum',
-  JOIN_GAME = 'join_game',
-  GAME_JOINED = 'game_joined',
-  GAME_START = 'game_start',
   GAME_STARTED = 'game_started',
-  GAME_RESTART = 'game_restart',
-  LEAVE_GAME = 'leave_game',
-  LEAVE_GAMES = 'leave_games',
   PLAYER_CREATED = 'player_created',
-  UPDATE_PLAYER = 'update_player',
-  UPDATE_PLAYER_ERROR = 'update_player_error',
-  PLAYER_UPDATED = 'player_updated',
   PLAYER_DISCONNECTED = 'player_disconnected',
   PING = 'ping',
-  ERROR = 'error',
 
   KEY_DOWN_PRESS = 'key_down_press',
   KEY_DOWN_RELEASE = 'key_down_release',

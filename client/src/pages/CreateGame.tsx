@@ -50,7 +50,7 @@ export const CreateGame = () => {
             }}
             defaultValue={2}
             min={2}
-            max={10}
+            max={8}
             label={`Max number of players: ${maxPlayers} `}
           />
         </div>
