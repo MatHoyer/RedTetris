@@ -1,12 +1,29 @@
 import { Router } from 'express';
 import { Server } from 'socket.io';
+import { z } from 'zod';
 import { Events } from '../../../events/index.js';
 import { GameManager } from '../domain/GameManager.js';
 import logger from '../logger.js';
 import { listHighScoresPaginated } from './save-score.js';
 
 const log = logger.child({ component: 'API' });
-const nameRegex = /^[a-zA-Z0-9_-]+$/;
+
+const playerNameSchema = z.object({
+  name: z
+    .string()
+    .min(3, 'Name must be between 3 and 16 characters')
+    .max(16, 'Name must be between 3 and 16 characters')
+    .regex(/^[a-zA-Z0-9]+$/, 'Name can only contain letters and numbers'),
+});
+
+const createGameSchema = z.object({
+  roomName: z
+    .string()
+    .min(1, 'Room name is required')
+    .max(32, 'Room name must be at most 32 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Room name can only contain letters, numbers, _ and -'),
+  maxPlayers: z.number().int().min(1).max(8),
+});
 
 export function createRouter(gameManager: GameManager, io: Server) {
   const router = Router();
@@ -22,19 +39,18 @@ export function createRouter(gameManager: GameManager, io: Server) {
   };
 
   router.put('/api/player', (req, res) => {
-    const { name } = req.body;
     const socketId = req.headers['x-socket-id'] as string;
     const user = getPlayerFromSocket(socketId);
     if (!user) return res.status(401).json({ error: 'Player not found' });
 
+    const parsed = playerNameSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+
+    const { name } = parsed.data;
     log.info(`${socketId} attempting name change to "${name}"`);
 
-    if (!name || name.length < 3 || name.length > 16) {
-      return res.status(400).json({ error: 'Name must be between 3 and 16 characters' });
-    }
-    if (!nameRegex.test(name)) {
-      return res.status(400).json({ error: 'Name can only contain letters and numbers' });
-    }
     if (Object.values(gameManager.players).some((player) => player.name === name && player.id !== user.id)) {
       return res.status(409).json({ error: 'Name already exists' });
     }
@@ -50,15 +66,16 @@ export function createRouter(gameManager: GameManager, io: Server) {
   });
 
   router.post('/api/games', (req, res) => {
-    const { roomName, maxPlayers } = req.body;
     const socketId = req.headers['x-socket-id'] as string;
     const admin = getPlayerFromSocket(socketId);
     if (!admin) return res.status(401).json({ error: 'Player not found' });
 
-    if (!roomName || typeof roomName !== 'string' || !nameRegex.test(roomName) || roomName.length > 32) {
-      return res.status(400).json({ error: 'Room name must be 1-32 alphanumeric characters (a-z, 0-9, _, -)' });
+    const parsed = createGameSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
+    const { roomName, maxPlayers } = parsed.data;
     log.info(`${socketId} creating room "${roomName}" (max: ${maxPlayers})`);
     const createdRoomName = gameManager.createGameSession(admin, maxPlayers, roomName);
     if (!createdRoomName) {
