@@ -11,7 +11,7 @@ export enum PlayerState {
   LOCK_DELAY = 'LOCK_DELAY',
   LINE_CLEAR = 'LINE_CLEAR',
 }
-type PlayerPayload = { id: number; name: string; alive: boolean; score: number; level: number };
+type PlayerPayload = { id: number; name: string; alive: boolean; score: number };
 
 const LOCK_DELAY_FRAMES = 30;
 const ARE_FRAMES = 30;
@@ -22,7 +22,6 @@ export class Player {
   board = new Board();
   alive = true;
   score = 0;
-  level = 0;
   combo = 1;
   state: PlayerState = PlayerState.IDLE;
 
@@ -81,7 +80,6 @@ export class Player {
 
     this.modes = modes;
     this.score = 0;
-    this.level = 0;
     this.combo = 1;
     this.bagIndex = 0;
     this.softDropFrames = 0;
@@ -106,7 +104,6 @@ export class Player {
     this.alive = true;
     this.sendBoard();
     this.sendScore();
-    this.sendLevel();
     this.notify(this.toPayload());
 
     this.registerKeyHandlers();
@@ -156,7 +153,6 @@ export class Player {
             this.areCounter = 0;
             this.state = PlayerState.ARE;
           }
-          this.incrementLevelOnPlace();
           this.sendBoard();
           this.sendScore();
           this.notify(this.toPayload());
@@ -274,7 +270,6 @@ export class Player {
         this.areCounter = 0;
         this.state = PlayerState.ARE;
       }
-      this.incrementLevelOnPlace();
       this.sendBoard();
       this.sendScore();
       this.notify(this.toPayload());
@@ -286,11 +281,9 @@ export class Player {
     if (this.lineClearCounter >= LINE_CLEAR_FRAMES) {
       const cleared = this.board.removeMarkedRows();
       this.applyScoring(cleared);
-      this.level = Math.min(999, this.level + cleared);
       if (cleared > 0) this.onLinesCleared(cleared);
       this.sendBoard();
       this.sendScore();
-      this.sendLevel();
       this.notify(this.toPayload());
       this.areCounter = 0;
       this.state = PlayerState.ARE;
@@ -317,7 +310,6 @@ export class Player {
 
       this.state = PlayerState.ACTIVE;
       this.sendBoard();
-      this.sendLevel();
       this.notify(this.toPayload());
     }
   }
@@ -329,18 +321,10 @@ export class Player {
     }
   }
 
-  private incrementLevelOnPlace() {
-    if (this.level % 100 !== 99 && this.level < 999) {
-      this.level = Math.min(999, this.level + 1);
-      this.sendLevel();
-    }
-  }
-
   private applyScoring(linesCleared: number) {
     this.combo = this.combo + 2 * linesCleared - 2;
     const bravo = this.board.isBoardEmpty() ? 4 : 1;
-    const levelFactor = Math.ceil((this.level + linesCleared) / 4);
-    this.score += (levelFactor + this.softDropFrames) * linesCleared * this.combo * bravo;
+    this.score += (1 + this.softDropFrames) * linesCleared * this.combo * bravo;
   }
 
   stop() {
@@ -377,12 +361,8 @@ export class Player {
     this.port?.emitScore(this.score);
   }
 
-  sendLevel() {
-    this.port?.emitLevel(this.level);
-  }
-
   toPayload(): PlayerPayload {
-    const { id, name, alive, score, level } = this;
-    return { id, name, alive, score, level };
+    const { id, name, alive, score } = this;
+    return { id, name, alive, score };
   }
 }

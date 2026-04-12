@@ -10,6 +10,7 @@ import { Text } from '../components/Text';
 type HighScoreItem = {
   playerName: string;
   highScore: number;
+  modes: string[];
   updatedAt: string;
 };
 
@@ -105,13 +106,18 @@ export const HighScores = () => {
               {data.items.length === 0 ? (
                 <Text style={{ marginTop: '20px' }}>No scores yet — play a game!</Text>
               ) : (
-                <Table header={['#', 'Player', 'Score']}>
+                <Table header={['#', 'Player', 'Score', 'Modes']}>
                   {data.items.map((row, i) => (
                     <TableLine key={`${row.playerName}-${row.updatedAt}`}>
                       <TableCell>{(page - 1) * data.pageSize + i + 1}</TableCell>
                       <TableCell>{row.playerName}</TableCell>
                       <TableCell>
                         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{row.highScore.toLocaleString()}</span>
+                      </TableCell>
+                      <TableCell>
+                        {row.modes && row.modes.length > 0
+                          ? row.modes.join(', ')
+                          : '—'}
                       </TableCell>
                     </TableLine>
                   ))}

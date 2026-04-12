@@ -14,7 +14,6 @@ export type TGame = {
     name: string;
     alive: boolean;
     score: number;
-    level: number;
   }[];
 };
 
@@ -28,7 +27,7 @@ export enum Events {
   UPDATED_GAME_LIST = 'updated_game_list',
   UPDATED_BOARD = 'updated_board',
   UPDATED_SCORE = 'updated_score',
-  UPDATED_LEVEL = 'updated_level',
+
   UPDATED_NEXT_PIECE = 'updated_next_piece',
   UPDATED_GAME_DATA = 'updated_game_data',
   UPDATED_SPECTRUM = 'updated_spectrum',
@@ -54,7 +53,6 @@ export interface ServerToClientEvents {
   [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
   [Events.UPDATED_BOARD]: (evt: { board: (TTetromino | 'empty' | 'penalty' | 'ghost')[][] }) => void;
   [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
-  [Events.UPDATED_LEVEL]: (evt: { level: number }) => void;
   [Events.UPDATED_NEXT_PIECE]: (evt: { nextPiece: TTetromino; nextPieceShape: TShape }) => void;
   [Events.UPDATED_GAME_DATA]: (evt: {
     player: {
@@ -62,7 +60,6 @@ export interface ServerToClientEvents {
       name: string;
       alive: boolean;
       score: number;
-      level: number;
     };
   }) => void;
   [Events.UPDATED_SPECTRUM]: (evt: { playerId: number; spectrum: number[] }) => void;

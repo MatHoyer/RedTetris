@@ -1,5 +1,5 @@
 import { configureStore, createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { TGame, TShape, TTetromino } from '../../events';
+import type { TGame, TGameMode, TShape, TTetromino } from '../../events';
 import { api } from './api';
 import { EmptyCell, type TCell } from './globals';
 
@@ -64,7 +64,6 @@ export const { updateBoard, resetBoard } = boardSlice.actions;
 
 const gameInitialState = {
   score: 0,
-  level: 0,
   nextPiece: { nextPiece: 'empty' as TTetromino | 'empty', nextPieceShape: [] as TShape },
   status: null as 'win' | 'loose' | null,
   otherPlayersData: [] as { id: number; name: string; alive: boolean; score: number }[],
@@ -77,9 +76,6 @@ const gameSlice = createSlice({
   reducers: {
     setScore: (state, action) => {
       state.score = action.payload;
-    },
-    setLevel: (state, action) => {
-      state.level = action.payload;
     },
     setNextPiece: (state, action) => {
       state.nextPiece = action.payload;
@@ -111,7 +107,7 @@ const gameSlice = createSlice({
   },
 });
 
-export const { setScore, setLevel, setNextPiece, setStatus, updatePlayerData, updateSpectrum, markOtherPlayerDead, resetGame } =
+export const { setScore, setNextPiece, setStatus, updatePlayerData, updateSpectrum, markOtherPlayerDead, resetGame } =
   gameSlice.actions;
 
 export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: string, { rejectWithValue }) => {
@@ -127,7 +123,7 @@ export const updatePlayer = createAsyncThunk('user/updatePlayer', async (name: s
 
 export const createGame = createAsyncThunk(
   'games/create',
-  async (params: { roomName: string; maxPlayers: number; modes?: string[] }, { rejectWithValue }) => {
+  async (params: { roomName: string; maxPlayers: number; modes?: TGameMode[] }, { rejectWithValue }) => {
     try {
       const res = await api.createGame(params.roomName, params.maxPlayers, params.modes ?? []);
       const data = await res.json();

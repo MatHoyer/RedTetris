@@ -29,10 +29,6 @@ export class SocketPlayerAdapter implements PlayerPort {
     this.socket.emit(Events.UPDATED_SCORE, { score });
   }
 
-  emitLevel(level: number): void {
-    this.socket.emit(Events.UPDATED_LEVEL, { level });
-  }
-
   emitNextPiece(nextPiece: TTetromino, nextPieceShape: TShape): void {
     this.socket.emit(Events.UPDATED_NEXT_PIECE, { nextPiece, nextPieceShape });
   }
@@ -45,7 +41,7 @@ export class SocketPlayerAdapter implements PlayerPort {
     this.socket.emit(Events.GAME_STARTED, { roomName });
   }
 
-  emitGameData(data: { player: { id: number; name: string; alive: boolean; score: number; level: number } }): void {
+  emitGameData(data: { player: { id: number; name: string; alive: boolean; score: number } }): void {
     this.socket.emit(Events.UPDATED_GAME_DATA, data);
   }
 

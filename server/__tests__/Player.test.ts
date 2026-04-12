@@ -7,7 +7,6 @@ import { PlayerPort } from '../src/domain/ports';
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),
   emitScore: vi.fn(),
-  emitLevel: vi.fn(),
   emitNextPiece: vi.fn(),
   emitGameEnded: vi.fn(),
   emitGameStarted: vi.fn(),
@@ -35,7 +34,7 @@ describe('Player', () => {
     expect(player.state).toBe(PlayerState.IDLE);
   });
 
-  test('should return the correct payload with level', () => {
+  test('should return the correct payload', () => {
     const player = new Player(1, 'Player1', 'socket123');
 
     const payload = player.toPayload();
@@ -45,7 +44,6 @@ describe('Player', () => {
       name: 'Player1',
       alive: true,
       score: 0,
-      level: 0,
     });
   });
 
@@ -82,7 +80,6 @@ describe('Player', () => {
 
     expect(player.alive).toBe(true);
     expect(player.score).toBe(0);
-    expect(player.level).toBe(0);
     expect(player.state).toBe(PlayerState.ACTIVE);
     expect(player.bagIndex).toBe(1);
     expect(port.onKeyDown).toHaveBeenCalled();
@@ -345,46 +342,7 @@ describe('Player', () => {
     expect(player.state).toBe(PlayerState.ACTIVE);
   });
 
-  test('level increments on piece placement', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-
-    const initialLevel = player.level;
-    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    keyDownHandlers['hardDrop']();
-
-    expect(player.level).toBe(initialLevel + 1);
-  });
-
-  test('level does not increment past section boundary (x99)', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-
-    player.level = 99;
-    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    keyDownHandlers['hardDrop']();
-
-    expect(player.level).toBe(99);
-  });
-
-  test('level caps at 999', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-
-    player.level = 999;
-    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    keyDownHandlers['hardDrop']();
-
-    expect(player.level).toBe(999);
-  });
-
-  test('scoring applies TGM formula on line clear', () => {
+  test('scoring applies formula on line clear', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
@@ -396,7 +354,6 @@ describe('Player', () => {
 
     player.pendingLinesCleared = 1;
     player.combo = 1;
-    player.level = 0;
     player.softDropFrames = 0;
     player.state = PlayerState.LINE_CLEAR;
     player.lineClearCounter = 40;
@@ -437,16 +394,6 @@ describe('Player', () => {
     player.sendScore();
 
     expect(port.emitScore).toHaveBeenCalledWith(500);
-  });
-
-  test('sendLevel emits level', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    player.level = 42;
-
-    player.sendLevel();
-
-    expect(port.emitLevel).toHaveBeenCalledWith(42);
   });
 
   test('soft drop adds gravity when down is held', () => {

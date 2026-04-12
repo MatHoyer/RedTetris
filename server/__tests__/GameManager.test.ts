@@ -6,7 +6,6 @@ import { PlayerPort } from '../src/domain/ports';
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),
   emitScore: vi.fn(),
-  emitLevel: vi.fn(),
   emitNextPiece: vi.fn(),
   emitGameEnded: vi.fn(),
   emitGameStarted: vi.fn(),
