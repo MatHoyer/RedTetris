@@ -20,6 +20,7 @@ export const CreateGame = () => {
   const user = useSelector((state: RootState) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const [error, setError] = useState<string | null>(null);
 
   const toggleMode = (mode: TGameMode) => {
     setModes((prev) => (prev.includes(mode) ? prev.filter((m) => m !== mode) : [...prev, mode]));
@@ -31,6 +32,8 @@ export const CreateGame = () => {
     const result = await dispatch(createGame({ roomName: roomName.trim(), maxPlayers, modes }));
     if (createGame.fulfilled.match(result)) {
       navigate(`/${roomName.trim()}/${user.name}`);
+    } else {
+      setError(result.payload as string);
     }
   };
 
@@ -77,6 +80,7 @@ export const CreateGame = () => {
             ))}
           </div>
         </div>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         <div>
           <Button style={{ display: 'block', width: '100%' }} type="submit" disabled={!roomName.trim()}>
             Create
