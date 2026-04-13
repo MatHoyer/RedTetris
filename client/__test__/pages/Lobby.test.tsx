@@ -7,7 +7,7 @@ import { Lobby } from '../../src/pages/Lobby';
 import { changeId, changeName, store, updateGamesList } from '../../src/redux';
 
 vi.mock('../../src/socket', () => ({
-  default: { id: 'test-socket', emit: vi.fn(), on: vi.fn(), off: vi.fn() },
+  default: { id: 'test-socket', connected: true, emit: vi.fn(), on: vi.fn(), off: vi.fn(), once: vi.fn() },
 }));
 
 const lobbyGame = {

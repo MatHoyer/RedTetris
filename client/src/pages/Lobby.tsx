@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/Button';
@@ -15,6 +15,7 @@ export const Lobby = () => {
   const gamesList = useSelector((state: RootState) => state.gamesList);
   const needsAutoJoin = !user.name && !!nav.playerName;
   const joiningRef = useRef(false);
+  const [autoJoinError, setAutoJoinError] = useState('');
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -30,7 +31,23 @@ export const Lobby = () => {
 
   useEffect(() => {
     if (!needsAutoJoin || !nav.playerName) return;
-    dispatch(updatePlayer(nav.playerName));
+
+    const tryUpdatePlayer = () => {
+      dispatch(updatePlayer(nav.playerName!)).then((result) => {
+        if (updatePlayer.rejected.match(result)) {
+          setAutoJoinError(String(result.payload ?? 'Failed to register'));
+        }
+      });
+    };
+
+    if (socket.connected) {
+      tryUpdatePlayer();
+    } else {
+      socket.once('connect', tryUpdatePlayer);
+      return () => {
+        socket.off('connect', tryUpdatePlayer);
+      };
+    }
   }, [needsAutoJoin, nav.playerName]);
 
   useEffect(() => {
@@ -53,6 +70,15 @@ export const Lobby = () => {
   }, [user.name, user.id, nav.roomId, gamesList]);
 
   if (!nav.roomId) return <NotFound />;
+
+  if (autoJoinError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', gap: '16px' }}>
+        <div>Failed to join: {autoJoinError}</div>
+        <Button onClick={() => navigate('/login-hub')}>Go to Login</Button>
+      </div>
+    );
+  }
 
   if (needsAutoJoin || !gamesList.some((g) => g.id === nav.roomId && g.players.some((p) => p.id === user.id))) {
     return (
