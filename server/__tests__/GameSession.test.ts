@@ -82,6 +82,45 @@ describe('GameSession', () => {
     expect(gameSession.active).toBe(false);
   });
 
+  test('removePlayer during active game declares remaining player as winner', () => {
+    const port1 = createMockPort();
+    const port2 = createMockPort();
+    const admin = new Player(1, 'Admin', 'socket1', port1);
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
+    const gameSession = new GameSession('room1', 4, admin);
+    gameSession.addPlayer(player2);
+    gameSession.active = true;
+    admin.alive = true;
+    player2.alive = true;
+
+    gameSession.removePlayer(1);
+
+    expect(port2.emitGameEnded).toHaveBeenCalledWith('win');
+    expect(gameSession.active).toBe(false);
+  });
+
+  test('removePlayer during active game does not declare winner when multiple players remain', () => {
+    const port1 = createMockPort();
+    const port2 = createMockPort();
+    const port3 = createMockPort();
+    const admin = new Player(1, 'Admin', 'socket1', port1);
+    const player2 = new Player(2, 'Player2', 'socket2', port2);
+    const player3 = new Player(3, 'Player3', 'socket3', port3);
+    const gameSession = new GameSession('room1', 4, admin);
+    gameSession.addPlayer(player2);
+    gameSession.addPlayer(player3);
+    gameSession.active = true;
+    admin.alive = true;
+    player2.alive = true;
+    player3.alive = true;
+
+    gameSession.removePlayer(1);
+
+    expect(port2.emitGameEnded).not.toHaveBeenCalled();
+    expect(port3.emitGameEnded).not.toHaveBeenCalled();
+    expect(gameSession.active).toBe(true);
+  });
+
   test('start sets active and creates shared game loop', () => {
     const admin = new Player(1, 'Admin', 'socket1');
     const gameSession = new GameSession('room1', 4, admin);
