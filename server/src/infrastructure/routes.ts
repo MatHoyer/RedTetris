@@ -72,6 +72,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     const socketId = req.headers['x-socket-id'] as string;
     const admin = getPlayerFromSocket(socketId);
     if (!admin) return res.status(401).json({ error: 'Player not found' });
+    if (!admin.name) return res.status(400).json({ error: 'You must set a name before creating a game' });
 
     const parsed = createGameSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -94,6 +95,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     const socketId = req.headers['x-socket-id'] as string;
     const user = getPlayerFromSocket(socketId);
     if (!user) return res.status(401).json({ error: 'Player not found' });
+    if (!user.name) return res.status(400).json({ error: 'You must set a name before joining a game' });
 
     log.info(`${socketId} joining room "${roomName}"`);
     const joined = gameManager.addPlayerToSession(roomName, user);
