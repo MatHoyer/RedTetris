@@ -60,11 +60,22 @@ export class GameSession {
   removePlayer(playerId: number) {
     const player = this.players.find((p) => p.id === playerId);
     this.log.info(`Player ${player?.name || playerId} removed`);
-    if (this.active) {
-      this.persistScores();
+    const wasActive = this.active;
+    if (player) {
+      player.alive = false;
+      player.forceStop();
     }
     this.players = this.players.filter((p) => p.id !== playerId);
-    if (!this.players.length) {
+    if (wasActive && this.players.length > 0) {
+      const alivePlayers = this.players.filter((p) => p.alive);
+      if (alivePlayers.length === 1) {
+        this.log.info(`Player ${alivePlayers[0].name || alivePlayers[0].id} wins!`);
+        alivePlayers[0].port?.emitGameEnded('win');
+        this.end();
+      } else if (alivePlayers.length === 0) {
+        this.end();
+      }
+    } else if (!this.players.length) {
       this.end();
     }
   }
@@ -103,7 +114,9 @@ export class GameSession {
     if (linesCleared <= 0) return;
     this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${linesCleared} penalty lines`);
 
+    const wasActive = this.active;
     for (const player of this.players) {
+      if (wasActive && !this.active) break;
       if (player.id !== sender.id && player.alive) {
         const survived = player.board.addPenaltyLines(linesCleared);
         if (!survived) {
