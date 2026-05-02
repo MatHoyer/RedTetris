@@ -7,6 +7,7 @@ import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketDa
 import { GameManager } from './domain/GameManager.js';
 import { initDb } from './infrastructure/db.js';
 import { createRouter } from './infrastructure/routes.js';
+import { saveScores } from './infrastructure/save-score.js';
 import { setupSocketHandlers } from './infrastructure/socketSetup.js';
 import logger from './logger.js';
 
@@ -16,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server);
 
-const gameManager = new GameManager();
+const gameManager = new GameManager({ saveScores });
 
 app.use(express.json());
 const { router, broadcastGamesList } = createRouter(gameManager, io);

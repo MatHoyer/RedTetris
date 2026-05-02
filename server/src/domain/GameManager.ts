@@ -2,7 +2,7 @@ import { type TGameMode } from '../../../events/index.js';
 import logger from '../logger.js';
 import { GameSession } from './GameSession.js';
 import { Player } from './Player.js';
-import { PlayerPort } from './ports.js';
+import { type PlayerPort, type ScorePort } from './ports.js';
 
 const log = logger.child({ component: 'GameManager' });
 
@@ -10,6 +10,8 @@ export class GameManager {
   readonly sessions: Record<string, GameSession> = {};
   readonly players: Record<string, Player> = {};
   private playerIdCounter = 0;
+
+  constructor(private readonly scorePort?: ScorePort) {}
 
   createGameSession(admin: Player, maxPlayers: number, roomName: string, modes: TGameMode[] = []) {
     if (maxPlayers < 1 || maxPlayers > 8) {
@@ -20,7 +22,7 @@ export class GameManager {
       log.warn(`Cannot create "${roomName}": room already exists`);
       return undefined;
     }
-    const session = new GameSession(roomName, maxPlayers, admin, modes);
+    const session = new GameSession(roomName, maxPlayers, admin, modes, this.scorePort);
     this.sessions[roomName] = session;
     log.info(`Session "${roomName}" created (max: ${maxPlayers}, modes: [${modes.join(',')}], admin: ${admin.id})`);
     return roomName;

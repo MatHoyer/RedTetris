@@ -1,7 +1,7 @@
 import { GameManager } from '../src/domain/GameManager.js';
 import { expect, test, describe, vi } from 'vitest';
 import { Player } from '../src/domain/Player.js';
-import { PlayerPort } from '../src/domain/ports';
+import { type PlayerPort } from '../src/domain/ports';
 
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),

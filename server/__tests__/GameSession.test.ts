@@ -1,11 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { GameSession } from '../src/domain/GameSession.js';
 import { Player, PlayerState } from '../src/domain/Player.js';
-import { PlayerPort } from '../src/domain/ports';
-
-vi.mock('../src/infrastructure/save-score.js', () => ({
-  saveScores: vi.fn().mockResolvedValue(undefined),
-}));
+import { type PlayerPort, type ScorePort } from '../src/domain/ports';
 
 const createMockPort = (): PlayerPort => ({
   emitBoard: vi.fn(),
@@ -19,6 +15,10 @@ const createMockPort = (): PlayerPort => ({
   onKeyUp: vi.fn(),
   offKeyDown: vi.fn(),
   offKeyUp: vi.fn(),
+});
+
+const createScorePort = (): ScorePort => ({
+  saveScores: vi.fn().mockResolvedValue(undefined),
 });
 
 describe('GameSession', () => {
@@ -139,6 +139,21 @@ describe('GameSession', () => {
     gameSession.end();
 
     expect(gameSession.active).toBe(false);
+  });
+
+  test('end persists scores through injected score port when game was active', () => {
+    const scorePort = createScorePort();
+    const admin = new Player(1, 'Admin', 'socket1');
+    const player2 = new Player(2, '  ', 'socket2');
+    admin.score = 42;
+    player2.score = 7;
+    const gameSession = new GameSession('room1', 4, admin, ['fast'], scorePort);
+    gameSession.addPlayer(player2);
+    gameSession.active = true;
+
+    gameSession.end();
+
+    expect(scorePort.saveScores).toHaveBeenCalledWith({ Admin: 42, player2: 7 }, ['fast']);
   });
 
   test('start with port players initializes all players', () => {

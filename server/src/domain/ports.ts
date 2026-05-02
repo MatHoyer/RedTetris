@@ -1,5 +1,5 @@
-import { TCell } from './Board.js';
-import { TShape, TTetromino } from '../../../events/index.js';
+import { type TCell } from './Board.js';
+import { type TGameMode, type TShape, type TTetromino } from '../../../events/index.js';
 
 export interface PlayerPort {
   emitBoard(board: TCell[][]): void;
@@ -13,4 +13,8 @@ export interface PlayerPort {
   onKeyUp(handlers: Record<string, () => void>): void;
   offKeyDown(handlers: Record<string, () => void>): void;
   offKeyUp(handlers: Record<string, () => void>): void;
+}
+
+export interface ScorePort {
+  saveScores(scores: Record<string, number>, modes: TGameMode[]): Promise<void>;
 }

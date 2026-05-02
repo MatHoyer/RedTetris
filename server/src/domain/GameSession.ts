@@ -1,11 +1,14 @@
 import { type TGameMode } from '../../../events/index.js';
-import { saveScores } from '../infrastructure/save-score.js';
 import logger from '../logger.js';
 import { Player } from './Player.js';
 import { Tetrominos } from './Tetrominos.js';
+import { type ScorePort } from './ports.js';
 
 const FRAME_MS = 1000 / 60;
 const BOARD_EMIT_INTERVAL = 3; // emit every 3 frames (~20fps)
+const NOOP_SCORE_PORT: ScorePort = {
+  saveScores: async () => {},
+};
 
 export class GameSession {
   players: Player[];
@@ -20,6 +23,7 @@ export class GameSession {
     readonly maxPlayers: number,
     public admin: Player,
     readonly modes: TGameMode[] = [],
+    private readonly scorePort: ScorePort = NOOP_SCORE_PORT,
   ) {
     this.players = [admin];
     this.log = logger.child({ component: 'Session', sessionId: id });
@@ -107,7 +111,7 @@ export class GameSession {
       const key = player.name.trim() || `player${player.id}`;
       scores[key] = player.score;
     }
-    void saveScores(scores, this.modes);
+    void this.scorePort.saveScores(scores, this.modes);
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
