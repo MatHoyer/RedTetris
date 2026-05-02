@@ -50,7 +50,7 @@ export enum Events {
 export interface ServerToClientEvents {
   [Events.GAME_STARTED]: (evt: { roomName: string }) => void;
   [Events.GAME_ENDED]: (evt: { status: 'win' | 'loose' }) => void;
-  [Events.UPDATED_GAME_LIST]: (evt: { sessions: TGame[] }) => void;
+  [Events.UPDATED_GAME_LIST]: (evt: { games: TGame[] }) => void;
   [Events.UPDATED_BOARD]: (evt: { board: (TTetromino | 'empty' | 'penalty' | 'ghost')[][] }) => void;
   [Events.UPDATED_SCORE]: (evt: { score: number }) => void;
   [Events.UPDATED_NEXT_PIECE]: (evt: { nextPiece: TTetromino; nextPieceShape: TShape }) => void;

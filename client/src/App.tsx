@@ -35,9 +35,9 @@ const App = () => {
       dispatch(changeId(id));
     });
 
-    socket.on(Events.UPDATED_GAME_LIST, ({ sessions }) => {
-      console.log('UPDATED_GAME_LIST', sessions);
-      dispatch(updateGamesList(sessions));
+    socket.on(Events.UPDATED_GAME_LIST, ({ games }) => {
+      console.log('UPDATED_GAME_LIST', games);
+      dispatch(updateGamesList(games));
     });
 
     socket.on(Events.GAME_STARTED, ({ roomName }: { roomName: string }) => {

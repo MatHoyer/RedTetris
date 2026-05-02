@@ -10,7 +10,15 @@ const NOOP_SCORE_PORT: ScorePort = {
   saveScores: async () => {},
 };
 
-export class GameSession {
+type GameParams = {
+  id: string;
+  maxPlayers: number;
+  admin: Player;
+  modes?: TGameMode[];
+  scorePort?: ScorePort;
+};
+
+export class Game {
   players: Player[];
   tetromino = new Tetrominos();
   active = false;
@@ -18,15 +26,20 @@ export class GameSession {
   private loopInterval: ReturnType<typeof setInterval> | null = null;
   private frameCount = 0;
 
-  constructor(
-    readonly id: string,
-    readonly maxPlayers: number,
-    public admin: Player,
-    readonly modes: TGameMode[] = [],
-    private readonly scorePort: ScorePort = NOOP_SCORE_PORT,
-  ) {
+  readonly id: string;
+  readonly maxPlayers: number;
+  readonly modes: TGameMode[];
+  public admin: Player;
+  private readonly scorePort: ScorePort;
+
+  constructor({ id, maxPlayers, admin, modes = [], scorePort = NOOP_SCORE_PORT }: GameParams) {
+    this.id = id;
+    this.maxPlayers = maxPlayers;
+    this.admin = admin;
+    this.modes = modes;
+    this.scorePort = scorePort;
     this.players = [admin];
-    this.log = logger.child({ component: 'Session', sessionId: id });
+    this.log = logger.child({ component: 'Game', gameId: id });
   }
 
   setAdmin(player: Player) {

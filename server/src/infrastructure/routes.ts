@@ -32,8 +32,8 @@ export function createRouter(gameManager: GameManager, io: Server) {
   const router = Router();
 
   const broadcastGamesList = () => {
-    const sessions = gameManager.getGameSessions().map((game) => game.toPayload());
-    io.emit(Events.UPDATED_GAME_LIST, { sessions });
+    const games = gameManager.getGames().map((game) => game.toPayload());
+    io.emit(Events.UPDATED_GAME_LIST, { games });
   };
 
   const getPlayerFromSocket = (socketId: string | undefined) => {
@@ -64,8 +64,8 @@ export function createRouter(gameManager: GameManager, io: Server) {
   });
 
   router.get('/api/games', (_req, res) => {
-    const sessions = gameManager.getGameSessions().map((game) => game.toPayload());
-    res.json({ sessions });
+    const games = gameManager.getGames().map((game) => game.toPayload());
+    res.json({ games });
   });
 
   router.post('/api/games', (req, res) => {
@@ -81,7 +81,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
 
     const { roomName, maxPlayers, modes } = parsed.data;
     log.info(`${socketId} creating room "${roomName}" (max: ${maxPlayers}, modes: [${modes.join(',')}])`);
-    const createdRoomName = gameManager.createGameSession(admin, maxPlayers, roomName, modes);
+    const createdRoomName = gameManager.createGame(admin, maxPlayers, roomName, modes);
     if (!createdRoomName) {
       return res.status(400).json({ error: 'Invalid room name or room already exists' });
     }
@@ -98,7 +98,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     if (!user.name) return res.status(400).json({ error: 'You must set a name before joining a game' });
 
     log.info(`${socketId} joining room "${roomName}"`);
-    const joined = gameManager.addPlayerToSession(roomName, user);
+    const joined = gameManager.addPlayerToGame(roomName, user);
     if (!joined) {
       return res.status(400).json({ error: 'Cannot join game' });
     }
@@ -114,7 +114,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     if (!user) return res.status(401).json({ error: 'Player not found' });
 
     log.info(`${socketId} leaving room "${roomName}"`);
-    gameManager.removePlayerFromSession(roomName, user.id);
+    gameManager.removePlayerFromGame(roomName, user.id);
     broadcastGamesList();
     io.emit(Events.PLAYER_DISCONNECTED, { id: user.id });
     res.json({ ok: true });
@@ -126,7 +126,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     if (!user) return res.status(401).json({ error: 'Player not found' });
 
     log.info(`${socketId} leaving all rooms`);
-    gameManager.removePlayerFromSessions(socketId);
+    gameManager.removePlayerFromGames(socketId);
     broadcastGamesList();
     io.emit(Events.PLAYER_DISCONNECTED, { id: user.id });
     res.json({ ok: true });
@@ -138,7 +138,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     const user = getPlayerFromSocket(socketId);
     if (!user) return res.status(401).json({ error: 'Player not found' });
 
-    const game = gameManager.getGameSession(roomName);
+    const game = gameManager.getGame(roomName);
     if (!game) return res.status(404).json({ error: 'Room not found' });
     if (!game.isAdmin(user.id)) return res.status(403).json({ error: 'Only the admin can start the game' });
     if (game.active) return res.status(400).json({ error: 'Game is already active' });
@@ -179,7 +179,7 @@ export function createRouter(gameManager: GameManager, io: Server) {
     const user = getPlayerFromSocket(socketId);
     if (!user) return res.status(401).json({ error: 'Player not found' });
 
-    const game = gameManager.getGameSession(roomName);
+    const game = gameManager.getGame(roomName);
     if (!game) return res.status(404).json({ error: 'Room not found' });
     if (!game.isAdmin(user.id)) return res.status(403).json({ error: 'Only the admin can restart the game' });
     if (game.active) return res.status(400).json({ error: 'Game is still active' });

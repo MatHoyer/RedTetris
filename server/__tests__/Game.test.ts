@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { GameSession } from '../src/domain/GameSession.js';
+import { Game } from '../src/domain/Game.js';
 import { Player, PlayerState } from '../src/domain/Player.js';
 import { type PlayerPort, type ScorePort } from '../src/domain/ports';
 
@@ -21,65 +21,68 @@ const createScorePort = (): ScorePort => ({
   saveScores: vi.fn().mockResolvedValue(undefined),
 });
 
-describe('GameSession', () => {
+const createGame = (admin: Player, maxPlayers = 4, modes = [], scorePort?: ScorePort) =>
+  new Game({ id: 'room1', maxPlayers, admin, modes, scorePort });
+
+describe('Game', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   test('addPlayer', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
     const player = new Player(2, 'Player1', 'socket2');
 
-    const result = gameSession.addPlayer(player);
+    const result = game.addPlayer(player);
 
     expect(result).toBe(true);
-    expect(gameSession.players).toHaveLength(2);
+    expect(game.players).toHaveLength(2);
   });
 
   test('addPlayer rejects when game is active', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.active = true;
+    const game = createGame(admin);
+    game.active = true;
     const player = new Player(2, 'Player1', 'socket2');
 
-    const result = gameSession.addPlayer(player);
+    const result = game.addPlayer(player);
 
     expect(result).toBe(false);
-    expect(gameSession.players).toHaveLength(1);
+    expect(game.players).toHaveLength(1);
   });
 
   test('addPlayer rejects when full', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 2, admin);
-    gameSession.addPlayer(new Player(2, 'Player1', 'socket2'));
+    const game = createGame(admin, 2);
+    game.addPlayer(new Player(2, 'Player1', 'socket2'));
 
-    const result = gameSession.addPlayer(new Player(3, 'Player2', 'socket3'));
+    const result = game.addPlayer(new Player(3, 'Player2', 'socket3'));
 
     expect(result).toBe(false);
-    expect(gameSession.players).toHaveLength(2);
+    expect(game.players).toHaveLength(2);
   });
 
   test('removePlayer', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
     const player = new Player(2, 'Player1', 'socket2');
-    gameSession.addPlayer(player);
+    game.addPlayer(player);
 
-    gameSession.removePlayer(2);
+    game.removePlayer(2);
 
-    expect(gameSession.players).toHaveLength(1);
+    expect(game.players).toHaveLength(1);
   });
 
   test('removePlayer ends game when last player leaves', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.active = true;
+    const game = createGame(admin);
+    game.active = true;
 
-    gameSession.removePlayer(1);
+    game.removePlayer(1);
 
-    expect(gameSession.players).toHaveLength(0);
-    expect(gameSession.active).toBe(false);
+    expect(game.players).toHaveLength(0);
+    expect(game.active).toBe(false);
   });
 
   test('removePlayer during active game declares remaining player as winner', () => {
@@ -87,16 +90,16 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const admin = new Player(1, 'Admin', 'socket1', port1);
     const player2 = new Player(2, 'Player2', 'socket2', port2);
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
-    gameSession.active = true;
+    const game = createGame(admin);
+    game.addPlayer(player2);
+    game.active = true;
     admin.alive = true;
     player2.alive = true;
 
-    gameSession.removePlayer(1);
+    game.removePlayer(1);
 
     expect(port2.emitGameEnded).toHaveBeenCalledWith('win');
-    expect(gameSession.active).toBe(false);
+    expect(game.active).toBe(false);
   });
 
   test('removePlayer during active game does not declare winner when multiple players remain', () => {
@@ -106,39 +109,39 @@ describe('GameSession', () => {
     const admin = new Player(1, 'Admin', 'socket1', port1);
     const player2 = new Player(2, 'Player2', 'socket2', port2);
     const player3 = new Player(3, 'Player3', 'socket3', port3);
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
-    gameSession.addPlayer(player3);
-    gameSession.active = true;
+    const game = createGame(admin);
+    game.addPlayer(player2);
+    game.addPlayer(player3);
+    game.active = true;
     admin.alive = true;
     player2.alive = true;
     player3.alive = true;
 
-    gameSession.removePlayer(1);
+    game.removePlayer(1);
 
     expect(port2.emitGameEnded).not.toHaveBeenCalled();
     expect(port3.emitGameEnded).not.toHaveBeenCalled();
-    expect(gameSession.active).toBe(true);
+    expect(game.active).toBe(true);
   });
 
   test('start sets active and creates shared game loop', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
 
-    gameSession.start();
+    game.start();
 
-    expect(gameSession.active).toBe(true);
+    expect(game.active).toBe(true);
 
-    gameSession.end();
+    game.end();
   });
 
   test('end sets active to false and clears game loop', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
 
-    gameSession.end();
+    game.end();
 
-    expect(gameSession.active).toBe(false);
+    expect(game.active).toBe(false);
   });
 
   test('end persists scores through injected score port when game was active', () => {
@@ -147,11 +150,11 @@ describe('GameSession', () => {
     const player2 = new Player(2, '  ', 'socket2');
     admin.score = 42;
     player2.score = 7;
-    const gameSession = new GameSession('room1', 4, admin, ['fast'], scorePort);
-    gameSession.addPlayer(player2);
-    gameSession.active = true;
+    const game = createGame(admin, 4, ['fast'], scorePort);
+    game.addPlayer(player2);
+    game.active = true;
 
-    gameSession.end();
+    game.end();
 
     expect(scorePort.saveScores).toHaveBeenCalledWith({ Admin: 42, player2: 7 }, ['fast']);
   });
@@ -161,53 +164,53 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const admin = new Player(1, 'Admin', 'socket1', port1);
     const player2 = new Player(2, 'Player2', 'socket2', port2);
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
 
-    gameSession.start();
+    game.start();
 
     expect(admin.state).toBe(PlayerState.ACTIVE);
     expect(player2.state).toBe(PlayerState.ACTIVE);
     expect(admin.alive).toBe(true);
     expect(player2.alive).toBe(true);
 
-    gameSession.end();
+    game.end();
   });
 
   test('isAdmin', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
 
-    expect(gameSession.isAdmin(1)).toBe(true);
-    expect(gameSession.isAdmin(2)).toBe(false);
+    expect(game.isAdmin(1)).toBe(true);
+    expect(game.isAdmin(2)).toBe(false);
   });
 
   test('isFull', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 1, admin);
+    const game = createGame(admin, 1);
 
-    expect(gameSession.isFull()).toBe(true);
+    expect(game.isFull()).toBe(true);
   });
 
   test('restart resets tetromino bag and starts game', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.active = false;
-    const oldBag = gameSession.tetromino;
+    const game = createGame(admin);
+    game.active = false;
+    const oldBag = game.tetromino;
 
-    gameSession.restart();
+    game.restart();
 
-    expect(gameSession.active).toBe(true);
-    expect(gameSession.tetromino).not.toBe(oldBag);
+    expect(game.active).toBe(true);
+    expect(game.tetromino).not.toBe(oldBag);
 
-    gameSession.end();
+    game.end();
   });
 
   test('toPayload', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
 
-    const payload = gameSession.toPayload();
+    const payload = game.toPayload();
 
     expect(payload.id).toBe('room1');
     expect(payload.admin).toEqual({ id: 1, name: 'Admin' });
@@ -218,22 +221,22 @@ describe('GameSession', () => {
 
   test('setAdmin changes the admin', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
     const newAdmin = new Player(2, 'NewAdmin', 'socket2');
-    gameSession.addPlayer(newAdmin);
+    game.addPlayer(newAdmin);
 
-    gameSession.setAdmin(newAdmin);
+    game.setAdmin(newAdmin);
 
-    expect(gameSession.isAdmin(2)).toBe(true);
-    expect(gameSession.isAdmin(1)).toBe(false);
+    expect(game.isAdmin(2)).toBe(true);
+    expect(game.isAdmin(1)).toBe(false);
   });
 
   test('isPlayerInGame', () => {
     const admin = new Player(1, 'Admin', 'socket1');
-    const gameSession = new GameSession('room1', 4, admin);
+    const game = createGame(admin);
 
-    expect(gameSession.isPlayerInGame(1)).toBe(true);
-    expect(gameSession.isPlayerInGame(99)).toBe(false);
+    expect(game.isPlayerInGame(1)).toBe(true);
+    expect(game.isPlayerInGame(99)).toBe(false);
   });
 
   test('handlePlayerDeath emits loose to dead player in multiplayer', () => {
@@ -241,28 +244,28 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const admin = new Player(1, 'Admin', 'socket1', port1);
     const player2 = new Player(2, 'Player2', 'socket2', port2);
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
     admin.alive = false;
     player2.alive = true;
 
-    gameSession.handlePlayerDeath(admin);
+    game.handlePlayerDeath(admin);
 
     expect(port1.emitGameEnded).toHaveBeenCalledWith('loose');
     expect(port2.emitGameEnded).toHaveBeenCalledWith('win');
-    expect(gameSession.active).toBe(false);
+    expect(game.active).toBe(false);
   });
 
   test('handlePlayerDeath ends game when all players dead in solo', () => {
     const port1 = createMockPort();
     const admin = new Player(1, 'Admin', 'socket1', port1);
-    const gameSession = new GameSession('room1', 1, admin);
+    const game = createGame(admin, 1);
     admin.alive = false;
 
-    gameSession.handlePlayerDeath(admin);
+    game.handlePlayerDeath(admin);
 
     expect(port1.emitGameEnded).toHaveBeenCalledWith('loose');
-    expect(gameSession.active).toBe(false);
+    expect(game.active).toBe(false);
   });
 
   test('distributePenalty sends penalty lines to other alive players', () => {
@@ -270,11 +273,11 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const player2 = new Player(2, 'Player2', 'socket2', port2);
     player2.onBoardUpdate = vi.fn();
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
     player2.alive = true;
 
-    gameSession.distributePenalty(admin, 3);
+    game.distributePenalty(admin, 3);
 
     expect(player2.board.grid[20].every((c) => c === 'penalty')).toBe(true);
     expect(player2.board.grid[19].every((c) => c === 'penalty')).toBe(true);
@@ -286,11 +289,11 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const player2 = new Player(2, 'Player2', 'socket2', port2);
     player2.onBoardUpdate = vi.fn();
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
     player2.alive = true;
 
-    gameSession.distributePenalty(admin, 1);
+    game.distributePenalty(admin, 1);
 
     expect(player2.board.grid[20].every((c) => c === 'penalty')).toBe(true);
     expect(player2.board.grid[19].every((c) => c === 'empty')).toBe(true);
@@ -299,10 +302,10 @@ describe('GameSession', () => {
   test('distributePenalty does nothing for 0 or fewer lines', () => {
     const admin = new Player(1, 'Admin', 'socket1');
     const player2 = new Player(2, 'Player2', 'socket2');
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
 
-    gameSession.distributePenalty(admin, 0);
+    game.distributePenalty(admin, 0);
 
     expect(player2.board.grid[20].every((c) => c === 'empty')).toBe(true);
   });
@@ -312,11 +315,11 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const admin = new Player(1, 'Admin', 'socket1', port1);
     const player2 = new Player(2, 'Player2', 'socket2', port2);
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
     const spectrum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    gameSession.broadcastSpectrum(1, spectrum);
+    game.broadcastSpectrum(1, spectrum);
 
     expect(port2.emitSpectrum).toHaveBeenCalledWith(1, spectrum);
     expect(port1.emitSpectrum).not.toHaveBeenCalled();
@@ -327,11 +330,11 @@ describe('GameSession', () => {
     const port2 = createMockPort();
     const admin = new Player(1, 'Admin', 'socket1', port1);
     const player2 = new Player(2, 'Player2', 'socket2', port2);
-    const gameSession = new GameSession('room1', 4, admin);
-    gameSession.addPlayer(player2);
+    const game = createGame(admin);
+    game.addPlayer(player2);
     const data = { player: { id: 1, name: 'Admin', alive: true, score: 0 } };
 
-    gameSession.broadcastGameData(data);
+    game.broadcastGameData(data);
 
     expect(port1.emitGameData).toHaveBeenCalledWith(data);
     expect(port2.emitGameData).toHaveBeenCalledWith(data);
