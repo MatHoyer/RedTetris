@@ -1,13 +1,24 @@
 import { type TGameMode } from '../../../events/index.js';
-import { saveScores } from '../infrastructure/save-score.js';
 import logger from '../logger.js';
 import { Player } from './Player.js';
 import { Tetrominos } from './Tetrominos.js';
+import { type ScorePort } from './ports.js';
 
 const FRAME_MS = 1000 / 60;
 const BOARD_EMIT_INTERVAL = 3; // emit every 3 frames (~20fps)
+const NOOP_SCORE_PORT: ScorePort = {
+  saveScores: async () => {},
+};
 
-export class GameSession {
+type GameParams = {
+  id: string;
+  maxPlayers: number;
+  admin: Player;
+  modes?: TGameMode[];
+  scorePort?: ScorePort;
+};
+
+export class Game {
   players: Player[];
   tetromino = new Tetrominos();
   active = false;
@@ -15,14 +26,20 @@ export class GameSession {
   private loopInterval: ReturnType<typeof setInterval> | null = null;
   private frameCount = 0;
 
-  constructor(
-    readonly id: string,
-    readonly maxPlayers: number,
-    public admin: Player,
-    readonly modes: TGameMode[] = [],
-  ) {
+  readonly id: string;
+  readonly maxPlayers: number;
+  readonly modes: TGameMode[];
+  public admin: Player;
+  private readonly scorePort: ScorePort;
+
+  constructor({ id, maxPlayers, admin, modes = [], scorePort = NOOP_SCORE_PORT }: GameParams) {
+    this.id = id;
+    this.maxPlayers = maxPlayers;
+    this.admin = admin;
+    this.modes = modes;
+    this.scorePort = scorePort;
     this.players = [admin];
-    this.log = logger.child({ component: 'Session', sessionId: id });
+    this.log = logger.child({ component: 'Game', gameId: id });
   }
 
   setAdmin(player: Player) {
@@ -107,7 +124,7 @@ export class GameSession {
       const key = player.name.trim() || `player${player.id}`;
       scores[key] = player.score;
     }
-    void saveScores(scores, this.modes);
+    void this.scorePort.saveScores(scores, this.modes);
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
