@@ -128,14 +128,15 @@ export class Game {
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
-    if (linesCleared <= 0) return;
-    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${linesCleared} penalty lines`);
+    const penaltyLines = linesCleared - 1;
+    if (penaltyLines <= 0) return;
+    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyLines} penalty lines`);
 
     const wasActive = this.active;
     for (const player of this.players) {
       if (wasActive && !this.active) break;
       if (player.id !== sender.id && player.alive) {
-        const survived = player.board.addPenaltyLines(linesCleared);
+        const survived = player.board.addPenaltyLines(penaltyLines);
         if (!survived) {
           player.alive = false;
           player.stop();
