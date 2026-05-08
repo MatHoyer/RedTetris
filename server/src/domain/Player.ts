@@ -57,6 +57,7 @@ export class Player {
   }
 
   handleNextPiece() {
+    this.lockDelayCounter = 0;
     const { current, next } = this.bag.getPiece(this.bagIndex);
     this.port?.emitNextPiece(next, Shapes[next][0]);
     this.bagIndex++;
@@ -196,7 +197,6 @@ export class Player {
       } else {
         this.board.draw();
         this.fallProgress = 0;
-        this.lockDelayCounter = 0;
         this.state = PlayerState.LOCK_DELAY;
         return;
       }
