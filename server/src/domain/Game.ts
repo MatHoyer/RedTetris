@@ -76,12 +76,12 @@ export class Game {
 
   removePlayer(playerId: number) {
     const player = this.players.find((p) => p.id === playerId);
-    this.log.info(`Player ${player?.name || playerId} removed`);
+    if (!player) return;
+    this.log.info(`Player ${player.name || playerId} removed`);
     const wasActive = this.active;
-    if (player) {
-      player.alive = false;
-      player.forceStop();
-    }
+
+    player.alive = false;
+    player.forceStop();
     this.players = this.players.filter((p) => p.id !== playerId);
     if (wasActive && this.players.length > 0) {
       const alivePlayers = this.players.filter((p) => p.alive);
