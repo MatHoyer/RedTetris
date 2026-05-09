@@ -6,38 +6,35 @@ import { PlayerPort } from './ports.js';
 
 export enum PlayerState {
   IDLE = 'IDLE',
-  ARE = 'ARE',
   ACTIVE = 'ACTIVE',
   LOCK_DELAY = 'LOCK_DELAY',
-  LINE_CLEAR = 'LINE_CLEAR',
 }
 type PlayerPayload = { id: number; name: string; alive: boolean; score: number };
+type EnabledModes = Record<TGameMode, boolean>;
 
-const LOCK_DELAY_FRAMES = 30;
-const ARE_FRAMES = 30;
-const LINE_CLEAR_FRAMES = 41;
-const DAS_CHARGE_FRAMES = 16;
+const LOCK_DELAY_TICKS = 30;
+const FALL_PROGRESS_PER_ROW = 256;
+const NORMAL_FALL_PROGRESS_PER_TICK = 4;
+const FAST_FALL_PROGRESS_PER_TICK = 8;
+const SOFT_DROP_FALL_PROGRESS_PER_TICK = FALL_PROGRESS_PER_ROW;
 
 export class Player {
   board = new Board();
   alive = true;
   score = 0;
-  combo = 1;
   state: PlayerState = PlayerState.IDLE;
 
-  gravityAccumulator = 0;
-  softDropFrames = 0;
+  fallProgress = 0;
   lockDelayCounter = 0;
-  areCounter = 0;
-  lineClearCounter = 0;
-  pendingLinesCleared = 0;
 
   heldKeys: Record<string, boolean> = {};
-  dasDirection: 'left' | 'right' | null = null;
-  dasCounter = 0;
-  irsRotation = false;
 
   modes: TGameMode[] = [];
+  enabledModes: EnabledModes = {
+    fast: false,
+    inverted: false,
+    easy: false,
+  };
   bag!: Tetrominos;
   bagIndex = 0;
   notify: (data: PlayerPayload) => void = () => {};
@@ -63,9 +60,7 @@ export class Player {
     const { current, next } = this.bag.getPiece(this.bagIndex);
     this.port?.emitNextPiece(next, Shapes[next][0]);
     this.bagIndex++;
-    const initialRotation = this.irsRotation ? 1 : undefined;
-    this.irsRotation = false;
-    return this.board.setCurrPiece(current, initialRotation);
+    return this.board.setCurrentPiece(current);
   }
 
   start(
@@ -79,19 +74,12 @@ export class Player {
     if (!this.port) return;
 
     this.modes = modes;
+    this.enabledModes = this.toEnabledModes(modes);
     this.score = 0;
-    this.combo = 1;
     this.bagIndex = 0;
-    this.softDropFrames = 0;
-    this.gravityAccumulator = 0;
+    this.fallProgress = 0;
     this.lockDelayCounter = 0;
-    this.areCounter = 0;
-    this.lineClearCounter = 0;
-    this.pendingLinesCleared = 0;
     this.heldKeys = {};
-    this.dasDirection = null;
-    this.dasCounter = 0;
-    this.irsRotation = false;
     this.notify = notify;
     this.onStop = onStop;
     this.onLinesCleared = onLinesCleared;
@@ -109,8 +97,22 @@ export class Player {
     this.registerKeyHandlers();
   }
 
+  private toEnabledModes(modes: TGameMode[]): EnabledModes {
+    const enabledModes: EnabledModes = {
+      fast: false,
+      inverted: false,
+      easy: false,
+    };
+
+    for (const mode of modes) {
+      enabledModes[mode] = true;
+    }
+
+    return enabledModes;
+  }
+
   private registerKeyHandlers() {
-    const inverted = this.modes.includes('inverted');
+    const inverted = this.enabledModes.inverted;
     const leftDir = inverted ? 'right' : 'left';
     const rightDir = inverted ? 'left' : 'right';
 
@@ -120,42 +122,23 @@ export class Player {
       },
       left: () => {
         this.heldKeys['left'] = true;
-        this.dasDirection = leftDir;
-        this.dasCounter = 0;
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
           this.board.moveHorizontal(leftDir);
         }
       },
       right: () => {
         this.heldKeys['right'] = true;
-        this.dasDirection = rightDir;
-        this.dasCounter = 0;
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
           this.board.moveHorizontal(rightDir);
         }
       },
       rotate: () => {
         this.heldKeys['rotate'] = true;
-        if (this.state === PlayerState.ARE) {
-          this.irsRotation = true;
-        }
       },
       hardDrop: () => {
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
           this.board.hardMoveDown();
-          const cleared = this.board.markCompleteRows();
-          if (cleared > 0) {
-            this.pendingLinesCleared = cleared;
-            this.lineClearCounter = 0;
-            this.state = PlayerState.LINE_CLEAR;
-          } else {
-            this.combo = 1;
-            this.areCounter = 0;
-            this.state = PlayerState.ARE;
-          }
-          this.sendBoard();
-          this.sendScore();
-          this.notify(this.toPayload());
+          this.finishTurn();
         }
       },
     };
@@ -166,21 +149,12 @@ export class Player {
       },
       left: () => {
         this.heldKeys['left'] = false;
-        if (this.dasDirection === leftDir) {
-          this.dasDirection = this.heldKeys['right'] ? rightDir : null;
-          this.dasCounter = 0;
-        }
       },
       right: () => {
         this.heldKeys['right'] = false;
-        if (this.dasDirection === rightDir) {
-          this.dasDirection = this.heldKeys['left'] ? leftDir : null;
-          this.dasCounter = 0;
-        }
       },
       rotate: () => {
         this.heldKeys['rotate'] = false;
-        this.irsRotation = false;
       },
     };
 
@@ -188,51 +162,40 @@ export class Player {
     this.port!.onKeyUp(this.keyUpHandlers);
   }
 
-  frame() {
-    if (this.state !== PlayerState.IDLE && this.dasDirection) {
-      this.dasCounter++;
-    }
-
+  tick() {
     switch (this.state) {
       case PlayerState.ACTIVE:
-        this.frameActive();
+        this.tickActive();
         break;
       case PlayerState.LOCK_DELAY:
-        this.frameLockDelay();
-        break;
-      case PlayerState.LINE_CLEAR:
-        this.frameLineClear();
-        break;
-      case PlayerState.ARE:
-        this.frameAre();
+        this.tickLockDelay();
         break;
     }
   }
 
-  private frameActive() {
+  private tickActive() {
     if (this.heldKeys['rotate']) {
       this.board.rotateCurrPiece();
       this.heldKeys['rotate'] = false;
     }
 
-    this.applyDasMovement();
+    this.applyHeldHorizontalMovement();
 
-    this.gravityAccumulator += this.modes.includes('fast') ? 8 : 4;
+    this.fallProgress += this.enabledModes.fast ? FAST_FALL_PROGRESS_PER_TICK : NORMAL_FALL_PROGRESS_PER_TICK;
 
     if (this.heldKeys['down']) {
-      this.gravityAccumulator += 256;
-      this.softDropFrames++;
+      this.fallProgress += SOFT_DROP_FALL_PROGRESS_PER_TICK;
     }
 
-    while (this.gravityAccumulator >= 256) {
-      this.gravityAccumulator -= 256;
+    while (this.fallProgress >= FALL_PROGRESS_PER_ROW) {
+      this.fallProgress -= FALL_PROGRESS_PER_ROW;
       this.board.clear();
       if (this.board.canMoveCurrPieceDown()) {
         this.board.moveDown();
         this.board.draw();
       } else {
         this.board.draw();
-        this.gravityAccumulator = 0;
+        this.fallProgress = 0;
         this.lockDelayCounter = 0;
         this.state = PlayerState.LOCK_DELAY;
         return;
@@ -240,91 +203,61 @@ export class Player {
     }
   }
 
-  private frameLockDelay() {
+  private tickLockDelay() {
     if (this.heldKeys['rotate']) {
       this.board.rotateCurrPiece();
       this.heldKeys['rotate'] = false;
     }
 
-    this.applyDasMovement();
+    this.applyHeldHorizontalMovement();
 
     this.board.clear();
     if (this.board.canMoveCurrPieceDown()) {
       this.board.draw();
       this.state = PlayerState.ACTIVE;
-      this.gravityAccumulator = 0;
+      this.fallProgress = 0;
       return;
     }
     this.board.draw();
 
     this.lockDelayCounter++;
-    if (this.lockDelayCounter >= LOCK_DELAY_FRAMES) {
+    if (this.lockDelayCounter >= LOCK_DELAY_TICKS) {
       this.board.lockCurrentPiece();
-      const cleared = this.board.markCompleteRows();
-      if (cleared > 0) {
-        this.pendingLinesCleared = cleared;
-        this.lineClearCounter = 0;
-        this.state = PlayerState.LINE_CLEAR;
-      } else {
-        this.combo = 1;
-        this.areCounter = 0;
-        this.state = PlayerState.ARE;
-      }
-      this.sendBoard();
-      this.sendScore();
-      this.notify(this.toPayload());
+      this.finishTurn();
     }
   }
 
-  private frameLineClear() {
-    this.lineClearCounter++;
-    if (this.lineClearCounter >= LINE_CLEAR_FRAMES) {
-      const cleared = this.board.removeMarkedRows();
-      this.applyScoring(cleared);
-      if (cleared > 0) this.onLinesCleared(cleared);
-      this.sendBoard();
-      this.sendScore();
-      this.notify(this.toPayload());
-      this.areCounter = 0;
-      this.state = PlayerState.ARE;
+  private applyHeldHorizontalMovement() {
+    if (this.heldKeys['left']) {
+      this.board.moveHorizontal(this.enabledModes.inverted ? 'right' : 'left');
     }
-  }
-
-  private frameAre() {
-    if (this.heldKeys['rotate']) {
-      this.irsRotation = true;
-    }
-
-    this.areCounter++;
-    if (this.areCounter >= ARE_FRAMES) {
-      this.softDropFrames = 0;
-      this.gravityAccumulator = 0;
-
-      if (!this.handleNextPiece()) {
-        this.alive = false;
-        this.stop();
-        return;
-      }
-
-      this.applyDasMovement();
-
-      this.state = PlayerState.ACTIVE;
-      this.sendBoard();
-      this.notify(this.toPayload());
-    }
-  }
-
-  private applyDasMovement() {
-    if (!this.dasDirection) return;
-    if (this.dasCounter >= DAS_CHARGE_FRAMES) {
-      this.board.moveHorizontal(this.dasDirection);
+    if (this.heldKeys['right']) {
+      this.board.moveHorizontal(this.enabledModes.inverted ? 'left' : 'right');
     }
   }
 
   private applyScoring(linesCleared: number) {
-    this.combo = this.combo + 2 * linesCleared - 2;
-    const bravo = this.board.isBoardEmpty() ? 4 : 1;
-    this.score += (1 + this.softDropFrames) * linesCleared * this.combo * bravo;
+    this.score += linesCleared;
+  }
+
+  private finishTurn() {
+    const cleared = this.board.removeMarkedRows();
+    this.applyScoring(cleared);
+    if (cleared > 0) this.onLinesCleared(cleared);
+
+    this.fallProgress = 0;
+    this.lockDelayCounter = 0;
+
+    if (!this.handleNextPiece()) {
+      this.alive = false;
+      this.stop();
+      return;
+    }
+
+    this.state = PlayerState.ACTIVE;
+    this.sendBoard();
+    this.sendScore();
+    this.notify(this.toPayload());
   }
 
   stop() {
@@ -353,7 +286,7 @@ export class Player {
   }
 
   sendBoard() {
-    this.port?.emitBoard(this.board.toPayload(this.modes.includes('easy')));
+    this.port?.emitBoard(this.board.toPayload(this.enabledModes.easy));
     this.onBoardUpdate(this.id, this.board.getSpectrum());
   }
 

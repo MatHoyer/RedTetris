@@ -4,8 +4,8 @@ import { Player } from './Player.js';
 import { Tetrominos } from './Tetrominos.js';
 import { type ScorePort } from './ports.js';
 
-const FRAME_MS = 1000 / 60;
-const BOARD_EMIT_INTERVAL = 3; // emit every 3 frames (~20fps)
+const TICK_MS = 1000 / 60;
+const BOARD_EMIT_INTERVAL_TICKS = 3; // emit every 3 ticks (~20fps)
 const NOOP_SCORE_PORT: ScorePort = {
   saveScores: async () => {},
 };
@@ -24,7 +24,7 @@ export class Game {
   active = false;
   private log;
   private loopInterval: ReturnType<typeof setInterval> | null = null;
-  private frameCount = 0;
+  private tickCount = 0;
 
   readonly id: string;
   readonly maxPlayers: number;
@@ -167,12 +167,12 @@ export class Game {
   }
 
   private tick() {
-    this.frameCount++;
-    const shouldEmitBoard = this.frameCount % BOARD_EMIT_INTERVAL === 0;
+    this.tickCount++;
+    const shouldEmitBoard = this.tickCount % BOARD_EMIT_INTERVAL_TICKS === 0;
 
     for (const p of this.players) {
       if (p.alive) {
-        p.frame();
+        p.tick();
         if (shouldEmitBoard) {
           p.sendBoard();
         }
@@ -183,7 +183,7 @@ export class Game {
   start() {
     this.log.info(`Started with ${this.players.length} players`);
     this.active = true;
-    this.frameCount = 0;
+    this.tickCount = 0;
 
     for (const p of this.players) {
       p.start(
@@ -196,7 +196,7 @@ export class Game {
       );
     }
 
-    this.loopInterval = setInterval(() => this.tick(), FRAME_MS);
+    this.loopInterval = setInterval(() => this.tick(), TICK_MS);
   }
 
   restart() {
