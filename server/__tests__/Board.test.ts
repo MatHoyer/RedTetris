@@ -9,27 +9,18 @@ describe('Board', () => {
     expect(board.grid[0]).toHaveLength(10);
   });
 
-  test('setCurrPiece', () => {
+  test('setCurrentPiece', () => {
     const board = new Board();
 
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     expect(board.currPiece).not.toBeNull();
     expect(board.currPiece?.shape).toBe('I');
   });
 
-  test('setCurrPiece with initial rotation (IRS)', () => {
-    const board = new Board();
-
-    board.setCurrPiece('T', 1);
-
-    expect(board.currPiece).not.toBeNull();
-    expect(board.currPiece?.currRotIdx).toBe(1);
-  });
-
   test('moveDown returns true when piece can move', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     const result = board.moveCurrPieceDown();
 
@@ -38,7 +29,7 @@ describe('Board', () => {
 
   test('canMoveCurrPieceDown', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     const result = board.canMoveCurrPieceDown();
 
@@ -47,7 +38,7 @@ describe('Board', () => {
 
   test('clear', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     expect(board.grid[1][4]).toBe('I');
 
     board.clear();
@@ -57,7 +48,7 @@ describe('Board', () => {
 
   test('moveDown changes position', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
 
     board.moveDown();
@@ -68,7 +59,7 @@ describe('Board', () => {
 
   test('lock', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     board.lock();
 
@@ -79,7 +70,7 @@ describe('Board', () => {
   test('draw', () => {
     const board = new Board();
 
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     expect(board.grid[1][4]).toBe('I');
   });
@@ -147,7 +138,7 @@ describe('Board', () => {
 
   test('rotateCurrPiece', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     board.currPiece?.rotate();
 
@@ -156,7 +147,7 @@ describe('Board', () => {
 
   test('canRotateCurrPiece', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
 
     const result = board.canRotateCurrPiece();
@@ -166,7 +157,7 @@ describe('Board', () => {
 
   test('moveHorizontal left', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     board.moveHorizontal('left');
 
@@ -175,7 +166,7 @@ describe('Board', () => {
 
   test('canMoveHorizontal left', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
 
     const result = board.canMoveHorizontal('left');
@@ -185,7 +176,7 @@ describe('Board', () => {
 
   test('moveHorizontal right', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     board.moveHorizontal('right');
 
@@ -194,7 +185,7 @@ describe('Board', () => {
 
   test('canMoveHorizontal right', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
 
     const result = board.canMoveHorizontal('right');
@@ -204,7 +195,7 @@ describe('Board', () => {
 
   test('cannotMoveHorizontal left when blocked', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
     board.grid[1][3] = 'J';
 
@@ -215,7 +206,7 @@ describe('Board', () => {
 
   test('cannotMoveHorizontal right when blocked', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
     board.grid[1][8] = 'J';
 
@@ -226,7 +217,7 @@ describe('Board', () => {
 
   test('pieceCannotMoveDown when blocked', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
     board.grid[2][4] = 'J';
 
@@ -237,7 +228,7 @@ describe('Board', () => {
 
   test('pieceCanMoveDownAfterRotation', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
     board.grid[2][4] = 'J';
     board.rotateCurrPiece();
@@ -249,7 +240,7 @@ describe('Board', () => {
 
   test('lockCurrentPiece nulls currPiece', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     board.lockCurrentPiece();
 
@@ -258,7 +249,7 @@ describe('Board', () => {
 
   test('hardMoveDown locks piece at bottom', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     board.hardMoveDown();
 
@@ -268,7 +259,7 @@ describe('Board', () => {
 
   test('hardMoveDown returns drop distance', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
 
     const distance = board.hardMoveDown();
 
@@ -289,7 +280,7 @@ describe('Board', () => {
 
   test('addPenaltyLines clears and redraws current piece at adjusted position', () => {
     const board = new Board();
-    board.setCurrPiece('T');
+    board.setCurrentPiece('T');
     // Move piece down a few rows
     for (let i = 0; i < 5; i++) {
       board.moveCurrPieceDown();
@@ -307,7 +298,7 @@ describe('Board', () => {
 
   test('addPenaltyLines returns false when piece is crushed', () => {
     const board = new Board();
-    board.setCurrPiece('T');
+    board.setCurrentPiece('T');
     // Piece is at row 0, adding many penalty lines should crush it
 
     const survived = board.addPenaltyLines(19);
@@ -344,21 +335,21 @@ describe('Board', () => {
     expect(payload).toHaveLength(20);
   });
 
-  test('setCurrPiece returns false when top rows are occupied (game over)', () => {
+  test('setCurrentPiece returns false when top rows are occupied (game over)', () => {
     const board = new Board();
     board.grid[1][4] = 'J';
     board.grid[1][5] = 'J';
     board.grid[1][6] = 'J';
     board.grid[1][7] = 'J';
 
-    const result = board.setCurrPiece('I');
+    const result = board.setCurrentPiece('I');
 
     expect(result).toBe(false);
   });
 
   test('canRotateCurrPiece returns false when rotation would exceed grid bottom', () => {
     const board = new Board();
-    board.setCurrPiece('T');
+    board.setCurrentPiece('T');
     board.clear();
     board.currPiece!.currRotIdx = 0;
     board.position = [GRID_HEIGHT - 2, 4];
@@ -370,7 +361,7 @@ describe('Board', () => {
 
   test('canRotateCurrPiece returns false for I-piece when rotation would exceed grid right', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
     board.currPiece!.currRotIdx = 1;
     board.position = [0, 8];
@@ -382,7 +373,7 @@ describe('Board', () => {
 
   test('moveCurrPieceDown does not auto-lock', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     while (board.canMoveCurrPieceDown()) {
       board.clear();
       board.moveDown();
@@ -397,7 +388,7 @@ describe('Board', () => {
 
   test('T-piece wall kicks right when blocked on the left', () => {
     const board = new Board();
-    board.setCurrPiece('T');
+    board.setCurrentPiece('T');
     board.clear();
     board.currPiece!.currRotIdx = 1;
     board.position = [5, 4];
@@ -411,7 +402,7 @@ describe('Board', () => {
 
   test('T-piece wall kicks left when against right wall', () => {
     const board = new Board();
-    board.setCurrPiece('T');
+    board.setCurrentPiece('T');
     board.clear();
     board.position = [5, 8];
     board.rotateCurrPiece();
@@ -422,7 +413,7 @@ describe('Board', () => {
 
   test('I-piece does not wall kick', () => {
     const board = new Board();
-    board.setCurrPiece('I');
+    board.setCurrentPiece('I');
     board.clear();
     board.position = [0, 8];
     board.rotateCurrPiece();
@@ -433,7 +424,7 @@ describe('Board', () => {
 
   test('O-piece does not rotate', () => {
     const board = new Board();
-    board.setCurrPiece('O');
+    board.setCurrentPiece('O');
     const initialRotIdx = board.currPiece!.currRotIdx;
 
     board.rotateCurrPiece();
@@ -443,7 +434,7 @@ describe('Board', () => {
 
   test('S-piece toggles between 2 states', () => {
     const board = new Board();
-    board.setCurrPiece('S');
+    board.setCurrentPiece('S');
     board.clear();
     board.position = [5, 4];
 
@@ -456,7 +447,7 @@ describe('Board', () => {
 
   test('Z-piece toggles between 2 states', () => {
     const board = new Board();
-    board.setCurrPiece('Z');
+    board.setCurrentPiece('Z');
     board.clear();
     board.position = [5, 4];
 
@@ -469,7 +460,7 @@ describe('Board', () => {
 
   test('S-piece wall kicks when near wall', () => {
     const board = new Board();
-    board.setCurrPiece('S');
+    board.setCurrentPiece('S');
     board.clear();
     board.position = [5, 8];
     board.rotateCurrPiece();
@@ -479,7 +470,7 @@ describe('Board', () => {
 
   test('center column rule blocks kick for T-piece', () => {
     const board = new Board();
-    board.setCurrPiece('T');
+    board.setCurrentPiece('T');
     board.clear();
     board.position = [5, 4];
     board.grid[5][5] = 'J';

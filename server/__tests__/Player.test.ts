@@ -102,7 +102,7 @@ describe('Player', () => {
     expect(port.emitNextPiece).toHaveBeenCalled();
   });
 
-  test('frame in ACTIVE state applies gravity', () => {
+  test('tick in ACTIVE state applies gravity', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
@@ -110,13 +110,13 @@ describe('Player', () => {
     const initialPos = player.board.position[0];
 
     for (let i = 0; i < 100; i++) {
-      player.frame();
+      player.tick();
     }
 
     expect(player.board.position[0]).toBeGreaterThan(initialPos);
   });
 
-  test('frame transitions to LOCK_DELAY when piece hits bottom', () => {
+  test('tick transitions to LOCK_DELAY when piece hits bottom', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
@@ -124,86 +124,69 @@ describe('Player', () => {
 
     while (player.board.moveCurrPieceDown()) {}
     player.state = PlayerState.ACTIVE;
-    player.gravityAccumulator = 256;
+    player.fallProgress = 256;
 
-    player.frame();
+    player.tick();
 
     expect(player.state).toBe(PlayerState.LOCK_DELAY);
   });
 
-  test('LOCK_DELAY transitions to ARE after 30 frames', () => {
+  test('LOCK_DELAY spawns next piece after 30 ticks', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    const initialBagIndex = player.bagIndex;
 
     while (player.board.moveCurrPieceDown()) {}
     player.state = PlayerState.LOCK_DELAY;
     player.lockDelayCounter = 0;
 
     for (let i = 0; i < 30; i++) {
-      player.frame();
-    }
-
-    expect([PlayerState.ARE, PlayerState.LINE_CLEAR]).toContain(player.state);
-  });
-
-  test('ARE transitions to ACTIVE after 30 frames', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-
-    player.board.hardMoveDown();
-    player.state = PlayerState.ARE;
-    player.areCounter = 0;
-
-    for (let i = 0; i < 30; i++) {
-      player.frame();
+      player.tick();
     }
 
     expect(player.state).toBe(PlayerState.ACTIVE);
+    expect(player.bagIndex).toBe(initialBagIndex + 1);
   });
 
-  test('LINE_CLEAR transitions to ARE after 41 frames', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-
-    for (let col = 0; col < 10; col++) {
-      player.board.grid[20][col] = 'I';
-      player.board.grid[19][col] = 'I';
-    }
-
-    player.pendingLinesCleared = 2;
-    player.state = PlayerState.LINE_CLEAR;
-    player.lineClearCounter = 0;
-
-    for (let i = 0; i < 41; i++) {
-      player.frame();
-    }
-
-    expect(player.state).toBe(PlayerState.ARE);
-  });
-
-  test('LINE_CLEAR calls onLinesCleared for a single line (multiplayer penalty)', () => {
+  test('line clears are resolved without a line clear delay state', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     const onLinesCleared = vi.fn();
     player.start(bag, vi.fn(), vi.fn(), onLinesCleared, vi.fn());
 
+    player.board.hardMoveDown();
+    for (let col = 0; col < 10; col++) {
+      player.board.grid[20][col] = 'I';
+      player.board.grid[19][col] = 'I';
+    }
+
+    player.state = PlayerState.LOCK_DELAY;
+    player.lockDelayCounter = 29;
+    player.tick();
+
+    expect(player.state).toBe(PlayerState.ACTIVE);
+    expect(player.score).toBe(2);
+    expect(onLinesCleared).toHaveBeenCalledWith(2);
+  });
+
+  test('single line clear sends multiplayer penalty immediately', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    const onLinesCleared = vi.fn();
+    player.start(bag, vi.fn(), vi.fn(), onLinesCleared, vi.fn());
+
+    player.board.hardMoveDown();
     for (let col = 0; col < 10; col++) {
       player.board.grid[20][col] = 'I';
     }
 
-    player.state = PlayerState.LINE_CLEAR;
-    player.lineClearCounter = 0;
-
-    for (let i = 0; i < 41; i++) {
-      player.frame();
-    }
+    player.state = PlayerState.LOCK_DELAY;
+    player.lockDelayCounter = 29;
+    player.tick();
 
     expect(onLinesCleared).toHaveBeenCalledWith(1);
   });
@@ -289,11 +272,11 @@ describe('Player', () => {
     const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
     keyDownHandlers['hardDrop']();
 
-    expect([PlayerState.ARE, PlayerState.LINE_CLEAR]).toContain(player.state);
+    expect(player.state).toBe(PlayerState.ACTIVE);
     expect(port.emitBoard).toHaveBeenCalled();
   });
 
-  test('DAS charges and moves piece after threshold', () => {
+  test('held horizontal movement repeats without a charge tick threshold', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
@@ -303,11 +286,9 @@ describe('Player', () => {
     const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
     keyDownHandlers['left']();
 
-    for (let i = 0; i < 17; i++) {
-      player.frame();
-    }
+    player.tick();
 
-    expect(player.board.position[1]).toBeLessThan(initialCol);
+    expect(player.board.position[1]).toBeLessThan(initialCol - 1);
   });
 
   test('single tap moves piece once', () => {
@@ -325,51 +306,22 @@ describe('Player', () => {
     expect(player.board.position[1]).toBe(initialCol - 1);
   });
 
-  test('IRS spawns piece with rotation', () => {
+  test('scoring adds one point per cleared line', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
 
     player.board.hardMoveDown();
-
-    player.irsRotation = true;
-    player.state = PlayerState.ARE;
-    player.areCounter = 29;
-
-    player.frame();
-
-    expect(player.state).toBe(PlayerState.ACTIVE);
-  });
-
-  test('scoring applies formula on line clear', () => {
-    const port = createMockPort();
-    const player = new Player(1, 'Player1', 'socket1', port);
-    const bag = new Tetrominos();
-    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
-
     for (let col = 0; col < 10; col++) {
       player.board.grid[20][col] = 'I';
     }
 
-    player.pendingLinesCleared = 1;
-    player.combo = 1;
-    player.softDropFrames = 0;
-    player.state = PlayerState.LINE_CLEAR;
-    player.lineClearCounter = 40;
+    player.state = PlayerState.LOCK_DELAY;
+    player.lockDelayCounter = 29;
+    player.tick();
 
-    player.frame();
-
-    expect(player.score).toBeGreaterThan(0);
-  });
-
-  test('combo increases with consecutive line clears', () => {
-    const player = new Player(1, 'Player1', 'socket1');
-    player.combo = 1;
-
-    expect(1 + 2 * 1 - 2).toBe(1);
-    expect(1 + 2 * 2 - 2).toBe(3);
-    expect(3 + 2 * 1 - 2).toBe(3);
+    expect(player.score).toBe(1);
   });
 
   test('sendBoard emits board payload and spectrum', () => {
@@ -404,10 +356,9 @@ describe('Player', () => {
     const initialPos = player.board.position[0];
 
     player.heldKeys['down'] = true;
-    player.frame();
+    player.tick();
 
     expect(player.board.position[0]).toBeGreaterThan(initialPos);
-    expect(player.softDropFrames).toBe(1);
   });
 
   test('key release handlers work correctly', () => {
@@ -421,7 +372,6 @@ describe('Player', () => {
 
     keyDownHandlers['left']();
     expect(player.heldKeys['left']).toBe(true);
-    expect(player.dasDirection).toBe('left');
 
     keyUpHandlers['left']();
     expect(player.heldKeys['left']).toBe(false);
@@ -436,27 +386,26 @@ describe('Player', () => {
     const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
     keyDownHandlers['rotate']();
 
-    player.frame();
+    player.tick();
 
     expect(player.heldKeys['rotate']).toBe(false);
   });
 
-  test('ARE state ends game when no piece can be placed', () => {
+  test('game ends when the next piece cannot be placed', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
     const onStop = vi.fn();
     player.start(bag, vi.fn(), onStop, vi.fn(), vi.fn());
 
-    for (let col = 0; col < 10; col++) {
-      player.board.grid[0][col] = 'J';
+    player.board.hardMoveDown();
+    for (let col = 4; col <= 7; col++) {
       player.board.grid[1][col] = 'J';
     }
 
-    player.state = PlayerState.ARE;
-    player.areCounter = 29;
-
-    player.frame();
+    player.state = PlayerState.LOCK_DELAY;
+    player.lockDelayCounter = 29;
+    player.tick();
 
     expect(player.alive).toBe(false);
     expect(onStop).toHaveBeenCalled();

@@ -17,11 +17,8 @@ export class Board {
   currPiece: Piece | null = null;
   position: [number, number] = [0, 0];
 
-  setCurrPiece(tetromino: TTetromino, initialRotation?: number) {
+  setCurrentPiece(tetromino: TTetromino) {
     this.currPiece = new Piece(tetromino, Shapes[tetromino]);
-    if (initialRotation !== undefined) {
-      this.currPiece.currRotIdx = initialRotation % this.currPiece.configs.length;
-    }
     this.position = [0, 4];
     const canPlace = this.canPlaceCurrPiece({});
     if (canPlace) this.draw();
