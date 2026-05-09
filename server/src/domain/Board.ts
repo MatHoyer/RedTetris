@@ -20,7 +20,7 @@ export class Board {
   setCurrentPiece(tetromino: TTetromino) {
     this.currentPiece = new Piece(tetromino, Shapes[tetromino]);
     this.position = [0, 4];
-    const canPlace = this.canPlaceCurrentPiece({});
+    const canPlace = this.canPlaceCurrentPiece();
     if (canPlace) this.draw();
     return canPlace;
   }
@@ -61,32 +61,17 @@ export class Board {
     this.draw();
   }
 
-  canPlaceCurrentPiece({ modX = 0, modY = 0 }: { modX?: 0 | 1; modY?: 0 | 1 | -1 }) {
+  private canPlaceCurrentPiece(rowOffset = 0, colOffset = 0) {
     if (!this.currentPiece) return false;
-    const shape = this.currentPiece.getCurrentConfig();
-    for (let row = 0; row < shape.length; row++) {
-      for (let col = 0; col < shape[row].length; col++) {
-        if (shape[row][col]) {
-          const newRow = this.position[0] + row + modX;
-          const newCol = this.position[1] + col + modY;
-          if (newRow < 0 || newRow >= GRID_HEIGHT || newCol < 0 || newCol >= GRID_WIDTH) {
-            return false;
-          }
-          if (this.grid[newRow][newCol] !== 'empty') {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
+    return this.canPlaceConfig(this.currentPiece.getCurrentConfig(), rowOffset, colOffset);
   }
 
   canMoveCurrentPieceDown() {
-    return this.canPlaceCurrentPiece({ modX: 1 });
+    return this.canPlaceCurrentPiece(1);
   }
 
   canMoveHorizontal(direction: 'left' | 'right') {
-    return this.canPlaceCurrentPiece({ modY: direction === 'left' ? -1 : 1 });
+    return this.canPlaceCurrentPiece(0, direction === 'left' ? -1 : 1);
   }
 
   rotateCurrentPiece() {
@@ -100,11 +85,11 @@ export class Board {
       return;
     }
 
-    const nextRotIdx = (this.currentPiece.currentRotIdx + 1) % this.currentPiece.configs.length;
-    const nextConf = this.currentPiece.configs[nextRotIdx];
+    const nextRotationIndex = (this.currentPiece.currentRotationIndex + 1) % this.currentPiece.configs.length;
+    const nextConf = this.currentPiece.configs[nextRotationIndex];
 
     if (this.canPlaceConfig(nextConf, 0, 0)) {
-      this.currentPiece.currentRotIdx = nextRotIdx;
+      this.currentPiece.currentRotationIndex = nextRotationIndex;
       this.draw();
       return;
     }
@@ -123,7 +108,7 @@ export class Board {
     for (const colOff of [1, -1]) {
       if (this.canPlaceConfig(nextConf, 0, colOff)) {
         this.position[1] += colOff;
-        this.currentPiece.currentRotIdx = nextRotIdx;
+        this.currentPiece.currentRotationIndex = nextRotationIndex;
         this.draw();
         return;
       }
@@ -136,8 +121,8 @@ export class Board {
     if (!this.currentPiece) return false;
     if (this.currentPiece.shape === 'O') return false;
 
-    const nextRotIdx = (this.currentPiece.currentRotIdx + 1) % this.currentPiece.configs.length;
-    const nextConf = this.currentPiece.configs[nextRotIdx];
+    const nextRotationIndex = (this.currentPiece.currentRotationIndex + 1) % this.currentPiece.configs.length;
+    const nextConf = this.currentPiece.configs[nextRotationIndex];
 
     if (this.canPlaceConfig(nextConf, 0, 0)) return true;
     if (this.currentPiece.shape === 'I') return false;
@@ -277,7 +262,7 @@ export class Board {
     }
     if (!this.currentPiece) return true;
     this.position[0] = Math.max(0, this.position[0] - count);
-    if (!this.canPlaceCurrentPiece({})) return false;
+    if (!this.canPlaceCurrentPiece()) return false;
     this.draw();
     return true;
   }

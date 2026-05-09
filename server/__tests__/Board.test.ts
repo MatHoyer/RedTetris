@@ -142,7 +142,7 @@ describe('Board', () => {
 
     board.currentPiece?.rotate();
 
-    expect(board.currentPiece?.currentRotIdx).toBe(1);
+    expect(board.currentPiece?.currentRotationIndex).toBe(1);
   });
 
   test('canRotateCurrentPiece', () => {
@@ -351,7 +351,7 @@ describe('Board', () => {
     const board = new Board();
     board.setCurrentPiece('T');
     board.clear();
-    board.currentPiece!.currentRotIdx = 0;
+    board.currentPiece!.currentRotationIndex = 0;
     board.position = [GRID_HEIGHT - 2, 4];
 
     const result = board.canRotateCurrentPiece();
@@ -363,7 +363,7 @@ describe('Board', () => {
     const board = new Board();
     board.setCurrentPiece('I');
     board.clear();
-    board.currentPiece!.currentRotIdx = 1;
+    board.currentPiece!.currentRotationIndex = 1;
     board.position = [0, 8];
 
     const result = board.canRotateCurrentPiece();
@@ -390,13 +390,13 @@ describe('Board', () => {
     const board = new Board();
     board.setCurrentPiece('T');
     board.clear();
-    board.currentPiece!.currentRotIdx = 1;
+    board.currentPiece!.currentRotationIndex = 1;
     board.position = [5, 4];
     board.grid[7][4] = 'J';
 
     board.rotateCurrentPiece();
 
-    expect(board.currentPiece!.currentRotIdx).toBe(2);
+    expect(board.currentPiece!.currentRotationIndex).toBe(2);
     expect(board.position[1]).toBe(5);
   });
 
@@ -407,7 +407,7 @@ describe('Board', () => {
     board.position = [5, 8];
     board.rotateCurrentPiece();
 
-    expect(board.currentPiece!.currentRotIdx).toBe(1);
+    expect(board.currentPiece!.currentRotationIndex).toBe(1);
     expect(board.position[1]).toBe(7);
   });
 
@@ -418,18 +418,18 @@ describe('Board', () => {
     board.position = [0, 8];
     board.rotateCurrentPiece();
 
-    expect(board.currentPiece!.currentRotIdx).toBe(0);
+    expect(board.currentPiece!.currentRotationIndex).toBe(0);
     expect(board.position[1]).toBe(8);
   });
 
   test('O-piece does not rotate', () => {
     const board = new Board();
     board.setCurrentPiece('O');
-    const initialRotIdx = board.currentPiece!.currentRotIdx;
+    const initialRotationIndex = board.currentPiece!.currentRotationIndex;
 
     board.rotateCurrentPiece();
 
-    expect(board.currentPiece!.currentRotIdx).toBe(initialRotIdx);
+    expect(board.currentPiece!.currentRotationIndex).toBe(initialRotationIndex);
   });
 
   test('S-piece toggles between 2 states', () => {
@@ -439,10 +439,10 @@ describe('Board', () => {
     board.position = [5, 4];
 
     board.rotateCurrentPiece();
-    expect(board.currentPiece!.currentRotIdx).toBe(1);
+    expect(board.currentPiece!.currentRotationIndex).toBe(1);
 
     board.rotateCurrentPiece();
-    expect(board.currentPiece!.currentRotIdx).toBe(0);
+    expect(board.currentPiece!.currentRotationIndex).toBe(0);
   });
 
   test('Z-piece toggles between 2 states', () => {
@@ -452,10 +452,10 @@ describe('Board', () => {
     board.position = [5, 4];
 
     board.rotateCurrentPiece();
-    expect(board.currentPiece!.currentRotIdx).toBe(1);
+    expect(board.currentPiece!.currentRotationIndex).toBe(1);
 
     board.rotateCurrentPiece();
-    expect(board.currentPiece!.currentRotIdx).toBe(0);
+    expect(board.currentPiece!.currentRotationIndex).toBe(0);
   });
 
   test('S-piece wall kicks when near wall', () => {
@@ -465,7 +465,7 @@ describe('Board', () => {
     board.position = [5, 8];
     board.rotateCurrentPiece();
 
-    expect(board.currentPiece!.currentRotIdx).toBe(1);
+    expect(board.currentPiece!.currentRotationIndex).toBe(1);
   });
 
   test('center column rule blocks kick for T-piece', () => {
@@ -477,6 +477,6 @@ describe('Board', () => {
 
     board.rotateCurrentPiece();
 
-    expect(board.currentPiece!.currentRotIdx).toBe(0);
+    expect(board.currentPiece!.currentRotationIndex).toBe(0);
   });
 });

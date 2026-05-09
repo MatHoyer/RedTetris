@@ -1,7 +1,7 @@
 import { TShape, TTetromino } from '../../../events/index.js';
 
 export class Piece {
-  currentRotIdx = 0;
+  currentRotationIndex = 0;
 
   constructor(
     readonly shape: TTetromino,
@@ -10,13 +10,13 @@ export class Piece {
 
   rotate(clockwise = true) {
     if (clockwise) {
-      this.currentRotIdx = (this.currentRotIdx + 1) % this.configs.length;
+      this.currentRotationIndex = (this.currentRotationIndex + 1) % this.configs.length;
     } else {
-      this.currentRotIdx = (this.currentRotIdx - 1 + this.configs.length) % this.configs.length;
+      this.currentRotationIndex = (this.currentRotationIndex - 1 + this.configs.length) % this.configs.length;
     }
   }
 
   getCurrentConfig() {
-    return this.configs[this.currentRotIdx];
+    return this.configs[this.currentRotationIndex];
   }
 }
