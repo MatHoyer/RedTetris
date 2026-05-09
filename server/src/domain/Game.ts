@@ -76,12 +76,12 @@ export class Game {
 
   removePlayer(playerId: number) {
     const player = this.players.find((p) => p.id === playerId);
-    this.log.info(`Player ${player?.name || playerId} removed`);
+    if (!player) return;
+    this.log.info(`Player ${player.name || playerId} removed`);
     const wasActive = this.active;
-    if (player) {
-      player.alive = false;
-      player.forceStop();
-    }
+
+    player.alive = false;
+    player.forceStop();
     this.players = this.players.filter((p) => p.id !== playerId);
     if (wasActive && this.players.length > 0) {
       const alivePlayers = this.players.filter((p) => p.alive);
@@ -128,14 +128,15 @@ export class Game {
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
-    if (linesCleared <= 0) return;
-    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${linesCleared} penalty lines`);
+    const penaltyLines = linesCleared - 1;
+    if (penaltyLines <= 0) return;
+    this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyLines} penalty lines`);
 
     const wasActive = this.active;
     for (const player of this.players) {
       if (wasActive && !this.active) break;
       if (player.id !== sender.id && player.alive) {
-        const survived = player.board.addPenaltyLines(linesCleared);
+        const survived = player.board.addPenaltyLines(penaltyLines);
         if (!survived) {
           player.alive = false;
           player.stop();

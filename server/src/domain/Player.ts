@@ -57,6 +57,7 @@ export class Player {
   }
 
   handleNextPiece() {
+    this.lockDelayCounter = 0;
     const { current, next } = this.bag.getPiece(this.bagIndex);
     this.port?.emitNextPiece(next, Shapes[next][0]);
     this.bagIndex++;
@@ -175,7 +176,7 @@ export class Player {
 
   private tickActive() {
     if (this.heldKeys['rotate']) {
-      this.board.rotateCurrPiece();
+      this.board.rotateCurrentPiece();
       this.heldKeys['rotate'] = false;
     }
 
@@ -190,13 +191,12 @@ export class Player {
     while (this.fallProgress >= FALL_PROGRESS_PER_ROW) {
       this.fallProgress -= FALL_PROGRESS_PER_ROW;
       this.board.clear();
-      if (this.board.canMoveCurrPieceDown()) {
+      if (this.board.canMoveCurrentPieceDown()) {
         this.board.moveDown();
         this.board.draw();
       } else {
         this.board.draw();
         this.fallProgress = 0;
-        this.lockDelayCounter = 0;
         this.state = PlayerState.LOCK_DELAY;
         return;
       }
@@ -205,14 +205,14 @@ export class Player {
 
   private tickLockDelay() {
     if (this.heldKeys['rotate']) {
-      this.board.rotateCurrPiece();
+      this.board.rotateCurrentPiece();
       this.heldKeys['rotate'] = false;
     }
 
     this.applyHeldHorizontalMovement();
 
     this.board.clear();
-    if (this.board.canMoveCurrPieceDown()) {
+    if (this.board.canMoveCurrentPieceDown()) {
       this.board.draw();
       this.state = PlayerState.ACTIVE;
       this.fallProgress = 0;
