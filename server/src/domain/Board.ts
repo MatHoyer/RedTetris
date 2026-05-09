@@ -14,20 +14,20 @@ const createEmptyRow = (): TCell[] => Array<TCell>(GRID_WIDTH).fill('empty');
 
 export class Board {
   grid: TCell[][] = Array.from({ length: GRID_HEIGHT }, createEmptyRow);
-  currPiece: Piece | null = null;
+  currentPiece: Piece | null = null;
   position: [number, number] = [0, 0];
 
   setCurrentPiece(tetromino: TTetromino) {
-    this.currPiece = new Piece(tetromino, Shapes[tetromino]);
+    this.currentPiece = new Piece(tetromino, Shapes[tetromino]);
     this.position = [0, 4];
-    const canPlace = this.canPlaceCurrPiece({});
+    const canPlace = this.canPlaceCurrentPiece({});
     if (canPlace) this.draw();
     return canPlace;
   }
 
-  moveCurrPieceDown() {
+  moveCurrentPieceDown() {
     this.clear();
-    if (this.canMoveCurrPieceDown()) {
+    if (this.canMoveCurrentPieceDown()) {
       this.moveDown();
       this.draw();
       return true;
@@ -39,7 +39,7 @@ export class Board {
   hardMoveDown() {
     this.clear();
     let dropDistance = 0;
-    while (this.canMoveCurrPieceDown()) {
+    while (this.canMoveCurrentPieceDown()) {
       this.moveDown();
       dropDistance++;
     }
@@ -49,7 +49,7 @@ export class Board {
 
   lockCurrentPiece() {
     this.draw();
-    this.currPiece = null;
+    this.currentPiece = null;
   }
 
   moveHorizontal(direction: 'left' | 'right') {
@@ -61,9 +61,9 @@ export class Board {
     this.draw();
   }
 
-  canPlaceCurrPiece({ modX = 0, modY = 0 }: { modX?: 0 | 1; modY?: 0 | 1 | -1 }) {
-    if (!this.currPiece) return false;
-    const shape = this.currPiece.getCurrentConfig();
+  canPlaceCurrentPiece({ modX = 0, modY = 0 }: { modX?: 0 | 1; modY?: 0 | 1 | -1 }) {
+    if (!this.currentPiece) return false;
+    const shape = this.currentPiece.getCurrentConfig();
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (shape[row][col]) {
@@ -81,30 +81,30 @@ export class Board {
     return true;
   }
 
-  canMoveCurrPieceDown() {
-    return this.canPlaceCurrPiece({ modX: 1 });
+  canMoveCurrentPieceDown() {
+    return this.canPlaceCurrentPiece({ modX: 1 });
   }
 
   canMoveHorizontal(direction: 'left' | 'right') {
-    return this.canPlaceCurrPiece({ modY: direction === 'left' ? -1 : 1 });
+    return this.canPlaceCurrentPiece({ modY: direction === 'left' ? -1 : 1 });
   }
 
-  rotateCurrPiece() {
-    if (!this.currPiece) return;
+  rotateCurrentPiece() {
+    if (!this.currentPiece) return;
     this.clear();
 
-    const shape = this.currPiece.shape;
+    const shape = this.currentPiece.shape;
 
     if (shape === 'O') {
       this.draw();
       return;
     }
 
-    const nextRotIdx = (this.currPiece.currRotIdx + 1) % this.currPiece.configs.length;
-    const nextConf = this.currPiece.configs[nextRotIdx];
+    const nextRotIdx = (this.currentPiece.currentRotIdx + 1) % this.currentPiece.configs.length;
+    const nextConf = this.currentPiece.configs[nextRotIdx];
 
     if (this.canPlaceConfig(nextConf, 0, 0)) {
-      this.currPiece.currRotIdx = nextRotIdx;
+      this.currentPiece.currentRotIdx = nextRotIdx;
       this.draw();
       return;
     }
@@ -123,7 +123,7 @@ export class Board {
     for (const colOff of [1, -1]) {
       if (this.canPlaceConfig(nextConf, 0, colOff)) {
         this.position[1] += colOff;
-        this.currPiece.currRotIdx = nextRotIdx;
+        this.currentPiece.currentRotIdx = nextRotIdx;
         this.draw();
         return;
       }
@@ -132,18 +132,18 @@ export class Board {
     this.draw();
   }
 
-  canRotateCurrPiece() {
-    if (!this.currPiece) return false;
-    if (this.currPiece.shape === 'O') return false;
+  canRotateCurrentPiece() {
+    if (!this.currentPiece) return false;
+    if (this.currentPiece.shape === 'O') return false;
 
-    const nextRotIdx = (this.currPiece.currRotIdx + 1) % this.currPiece.configs.length;
-    const nextConf = this.currPiece.configs[nextRotIdx];
+    const nextRotIdx = (this.currentPiece.currentRotIdx + 1) % this.currentPiece.configs.length;
+    const nextConf = this.currentPiece.configs[nextRotIdx];
 
     if (this.canPlaceConfig(nextConf, 0, 0)) return true;
-    if (this.currPiece.shape === 'I') return false;
+    if (this.currentPiece.shape === 'I') return false;
 
     const hasCenterColumnRule =
-      this.currPiece.shape === 'L' || this.currPiece.shape === 'J' || this.currPiece.shape === 'T';
+      this.currentPiece.shape === 'L' || this.currentPiece.shape === 'J' || this.currentPiece.shape === 'T';
     if (hasCenterColumnRule && this.firstCollisionInCenterColumn(nextConf)) return false;
 
     for (const colOff of [1, -1]) {
@@ -191,8 +191,8 @@ export class Board {
   }
 
   clear() {
-    if (!this.currPiece) return;
-    const shape = this.currPiece.getCurrentConfig();
+    if (!this.currentPiece) return;
+    const shape = this.currentPiece.getCurrentConfig();
     for (let row = 0; row < shape.length; row++) {
       for (let col = 0; col < shape[row].length; col++) {
         if (shape[row][col]) {
@@ -216,17 +216,17 @@ export class Board {
 
   lock() {
     this.draw();
-    this.currPiece = null;
+    this.currentPiece = null;
     this.checkCompleteRows();
   }
 
   draw() {
-    if (!this.currPiece) return;
-    const shape = this.currPiece.getCurrentConfig();
+    if (!this.currentPiece) return;
+    const shape = this.currentPiece.getCurrentConfig();
     for (let i = 0; i < shape.length; i++) {
       for (let j = 0; j < shape[i].length; j++) {
         if (shape[i][j]) {
-          this.grid[this.position[0] + i][this.position[1] + j] = this.currPiece.shape;
+          this.grid[this.position[0] + i][this.position[1] + j] = this.currentPiece.shape;
         }
       }
     }
@@ -275,9 +275,9 @@ export class Board {
     for (let i = 0; i < count; i++) {
       this.grid.push(Array<TCell>(GRID_WIDTH).fill('penalty'));
     }
-    if (!this.currPiece) return true;
+    if (!this.currentPiece) return true;
     this.position[0] = Math.max(0, this.position[0] - count);
-    if (!this.canPlaceCurrPiece({})) return false;
+    if (!this.canPlaceCurrentPiece({})) return false;
     this.draw();
     return true;
   }
@@ -307,7 +307,7 @@ export class Board {
   }
 
   toPayload(showGhost = false) {
-    if (!showGhost || !this.currPiece) {
+    if (!showGhost || !this.currentPiece) {
       return this.grid.slice(1);
     }
     return this.getGhostPayload();
@@ -315,9 +315,9 @@ export class Board {
 
   private getGhostPayload(): TCell[][] {
     const payload = this.grid.slice(1).map((row) => [...row]);
-    if (!this.currPiece) return payload;
+    if (!this.currentPiece) return payload;
 
-    const shape = this.currPiece.getCurrentConfig();
+    const shape = this.currentPiece.getCurrentConfig();
     let ghostRow = this.position[0];
 
     this.clear();

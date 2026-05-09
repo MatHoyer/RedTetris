@@ -32,7 +32,7 @@ describe('Piece', () => {
     // Then
     expect(piece.shape).toBe(shape);
     expect(piece.configs).toEqual(configs);
-    expect(piece.currRotIdx).toBe(0);
+    expect(piece.currentRotIdx).toBe(0);
   });
 
   test('should rotate clockwise', () => {
@@ -62,7 +62,7 @@ describe('Piece', () => {
     piece.rotate();
 
     // Then
-    expect(piece.currRotIdx).toBe(1);
+    expect(piece.currentRotIdx).toBe(1);
     expect(piece.getCurrentConfig()).toEqual([
       [1, 0],
       [1, 1],
@@ -97,7 +97,7 @@ describe('Piece', () => {
     piece.rotate(false);
 
     // Then
-    expect(piece.currRotIdx).toBe(3);
+    expect(piece.currentRotIdx).toBe(3);
     expect(piece.getCurrentConfig()).toEqual([
       [0, 1],
       [1, 1],

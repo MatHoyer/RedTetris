@@ -176,7 +176,7 @@ export class Player {
 
   private tickActive() {
     if (this.heldKeys['rotate']) {
-      this.board.rotateCurrPiece();
+      this.board.rotateCurrentPiece();
       this.heldKeys['rotate'] = false;
     }
 
@@ -191,7 +191,7 @@ export class Player {
     while (this.fallProgress >= FALL_PROGRESS_PER_ROW) {
       this.fallProgress -= FALL_PROGRESS_PER_ROW;
       this.board.clear();
-      if (this.board.canMoveCurrPieceDown()) {
+      if (this.board.canMoveCurrentPieceDown()) {
         this.board.moveDown();
         this.board.draw();
       } else {
@@ -205,14 +205,14 @@ export class Player {
 
   private tickLockDelay() {
     if (this.heldKeys['rotate']) {
-      this.board.rotateCurrPiece();
+      this.board.rotateCurrentPiece();
       this.heldKeys['rotate'] = false;
     }
 
     this.applyHeldHorizontalMovement();
 
     this.board.clear();
-    if (this.board.canMoveCurrPieceDown()) {
+    if (this.board.canMoveCurrentPieceDown()) {
       this.board.draw();
       this.state = PlayerState.ACTIVE;
       this.fallProgress = 0;

@@ -98,7 +98,7 @@ describe('Player', () => {
 
     expect(result).toBe(true);
     expect(player.bagIndex).toBe(1);
-    expect(player.board.currPiece).not.toBeNull();
+    expect(player.board.currentPiece).not.toBeNull();
     expect(port.emitNextPiece).toHaveBeenCalled();
   });
 
@@ -122,7 +122,7 @@ describe('Player', () => {
     const bag = new Tetrominos();
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
 
-    while (player.board.moveCurrPieceDown()) {}
+    while (player.board.moveCurrentPieceDown()) {}
     player.state = PlayerState.ACTIVE;
     player.fallProgress = 256;
 
@@ -138,7 +138,7 @@ describe('Player', () => {
     player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
     const initialBagIndex = player.bagIndex;
 
-    while (player.board.moveCurrPieceDown()) {}
+    while (player.board.moveCurrentPieceDown()) {}
     player.state = PlayerState.LOCK_DELAY;
     player.lockDelayCounter = 0;
 

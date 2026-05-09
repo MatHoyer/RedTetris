@@ -14,24 +14,24 @@ describe('Board', () => {
 
     board.setCurrentPiece('I');
 
-    expect(board.currPiece).not.toBeNull();
-    expect(board.currPiece?.shape).toBe('I');
+    expect(board.currentPiece).not.toBeNull();
+    expect(board.currentPiece?.shape).toBe('I');
   });
 
   test('moveDown returns true when piece can move', () => {
     const board = new Board();
     board.setCurrentPiece('I');
 
-    const result = board.moveCurrPieceDown();
+    const result = board.moveCurrentPieceDown();
 
     expect(result).toBe(true);
   });
 
-  test('canMoveCurrPieceDown', () => {
+  test('canMoveCurrentPieceDown', () => {
     const board = new Board();
     board.setCurrentPiece('I');
 
-    const result = board.canMoveCurrPieceDown();
+    const result = board.canMoveCurrentPieceDown();
 
     expect(result).toBe(true);
   });
@@ -64,7 +64,7 @@ describe('Board', () => {
     board.lock();
 
     expect(board.grid[1][4]).toBe('I');
-    expect(board.currPiece).toBeNull();
+    expect(board.currentPiece).toBeNull();
   });
 
   test('draw', () => {
@@ -136,21 +136,21 @@ describe('Board', () => {
     expect(board.isBoardEmpty()).toBe(false);
   });
 
-  test('rotateCurrPiece', () => {
+  test('rotateCurrentPiece', () => {
     const board = new Board();
     board.setCurrentPiece('I');
 
-    board.currPiece?.rotate();
+    board.currentPiece?.rotate();
 
-    expect(board.currPiece?.currRotIdx).toBe(1);
+    expect(board.currentPiece?.currentRotIdx).toBe(1);
   });
 
-  test('canRotateCurrPiece', () => {
+  test('canRotateCurrentPiece', () => {
     const board = new Board();
     board.setCurrentPiece('I');
     board.clear();
 
-    const result = board.canRotateCurrPiece();
+    const result = board.canRotateCurrentPiece();
 
     expect(result).toBe(true);
   });
@@ -221,7 +221,7 @@ describe('Board', () => {
     board.clear();
     board.grid[2][4] = 'J';
 
-    const result = board.moveCurrPieceDown();
+    const result = board.moveCurrentPieceDown();
 
     expect(result).toBe(false);
   });
@@ -231,20 +231,20 @@ describe('Board', () => {
     board.setCurrentPiece('I');
     board.clear();
     board.grid[2][4] = 'J';
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    const result = board.moveCurrPieceDown();
+    const result = board.moveCurrentPieceDown();
 
     expect(result).toBe(true);
   });
 
-  test('lockCurrentPiece nulls currPiece', () => {
+  test('lockCurrentPiece nulls currentPiece', () => {
     const board = new Board();
     board.setCurrentPiece('I');
 
     board.lockCurrentPiece();
 
-    expect(board.currPiece).toBeNull();
+    expect(board.currentPiece).toBeNull();
   });
 
   test('hardMoveDown locks piece at bottom', () => {
@@ -253,7 +253,7 @@ describe('Board', () => {
 
     board.hardMoveDown();
 
-    expect(board.currPiece).toBeNull();
+    expect(board.currentPiece).toBeNull();
     expect(board.grid[GRID_HEIGHT - 1][4]).toBe('I');
   });
 
@@ -283,7 +283,7 @@ describe('Board', () => {
     board.setCurrentPiece('T');
     // Move piece down a few rows
     for (let i = 0; i < 5; i++) {
-      board.moveCurrPieceDown();
+      board.moveCurrentPieceDown();
     }
     const oldRow = board.position[0];
 
@@ -293,7 +293,7 @@ describe('Board', () => {
     expect(board.position[0]).toBe(oldRow - 2);
     expect(board.grid).toHaveLength(GRID_HEIGHT);
     // Piece should be redrawn at new position
-    expect(board.currPiece).not.toBeNull();
+    expect(board.currentPiece).not.toBeNull();
   });
 
   test('addPenaltyLines returns false when piece is crushed', () => {
@@ -347,56 +347,56 @@ describe('Board', () => {
     expect(result).toBe(false);
   });
 
-  test('canRotateCurrPiece returns false when rotation would exceed grid bottom', () => {
+  test('canRotateCurrentPiece returns false when rotation would exceed grid bottom', () => {
     const board = new Board();
     board.setCurrentPiece('T');
     board.clear();
-    board.currPiece!.currRotIdx = 0;
+    board.currentPiece!.currentRotIdx = 0;
     board.position = [GRID_HEIGHT - 2, 4];
 
-    const result = board.canRotateCurrPiece();
+    const result = board.canRotateCurrentPiece();
 
     expect(result).toBe(false);
   });
 
-  test('canRotateCurrPiece returns false for I-piece when rotation would exceed grid right', () => {
+  test('canRotateCurrentPiece returns false for I-piece when rotation would exceed grid right', () => {
     const board = new Board();
     board.setCurrentPiece('I');
     board.clear();
-    board.currPiece!.currRotIdx = 1;
+    board.currentPiece!.currentRotIdx = 1;
     board.position = [0, 8];
 
-    const result = board.canRotateCurrPiece();
+    const result = board.canRotateCurrentPiece();
 
     expect(result).toBe(false);
   });
 
-  test('moveCurrPieceDown does not auto-lock', () => {
+  test('moveCurrentPieceDown does not auto-lock', () => {
     const board = new Board();
     board.setCurrentPiece('I');
-    while (board.canMoveCurrPieceDown()) {
+    while (board.canMoveCurrentPieceDown()) {
       board.clear();
       board.moveDown();
       board.draw();
     }
 
-    const result = board.moveCurrPieceDown();
+    const result = board.moveCurrentPieceDown();
 
     expect(result).toBe(false);
-    expect(board.currPiece).not.toBeNull();
+    expect(board.currentPiece).not.toBeNull();
   });
 
   test('T-piece wall kicks right when blocked on the left', () => {
     const board = new Board();
     board.setCurrentPiece('T');
     board.clear();
-    board.currPiece!.currRotIdx = 1;
+    board.currentPiece!.currentRotIdx = 1;
     board.position = [5, 4];
     board.grid[7][4] = 'J';
 
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    expect(board.currPiece!.currRotIdx).toBe(2);
+    expect(board.currentPiece!.currentRotIdx).toBe(2);
     expect(board.position[1]).toBe(5);
   });
 
@@ -405,9 +405,9 @@ describe('Board', () => {
     board.setCurrentPiece('T');
     board.clear();
     board.position = [5, 8];
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    expect(board.currPiece!.currRotIdx).toBe(1);
+    expect(board.currentPiece!.currentRotIdx).toBe(1);
     expect(board.position[1]).toBe(7);
   });
 
@@ -416,20 +416,20 @@ describe('Board', () => {
     board.setCurrentPiece('I');
     board.clear();
     board.position = [0, 8];
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    expect(board.currPiece!.currRotIdx).toBe(0);
+    expect(board.currentPiece!.currentRotIdx).toBe(0);
     expect(board.position[1]).toBe(8);
   });
 
   test('O-piece does not rotate', () => {
     const board = new Board();
     board.setCurrentPiece('O');
-    const initialRotIdx = board.currPiece!.currRotIdx;
+    const initialRotIdx = board.currentPiece!.currentRotIdx;
 
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    expect(board.currPiece!.currRotIdx).toBe(initialRotIdx);
+    expect(board.currentPiece!.currentRotIdx).toBe(initialRotIdx);
   });
 
   test('S-piece toggles between 2 states', () => {
@@ -438,11 +438,11 @@ describe('Board', () => {
     board.clear();
     board.position = [5, 4];
 
-    board.rotateCurrPiece();
-    expect(board.currPiece!.currRotIdx).toBe(1);
+    board.rotateCurrentPiece();
+    expect(board.currentPiece!.currentRotIdx).toBe(1);
 
-    board.rotateCurrPiece();
-    expect(board.currPiece!.currRotIdx).toBe(0);
+    board.rotateCurrentPiece();
+    expect(board.currentPiece!.currentRotIdx).toBe(0);
   });
 
   test('Z-piece toggles between 2 states', () => {
@@ -451,11 +451,11 @@ describe('Board', () => {
     board.clear();
     board.position = [5, 4];
 
-    board.rotateCurrPiece();
-    expect(board.currPiece!.currRotIdx).toBe(1);
+    board.rotateCurrentPiece();
+    expect(board.currentPiece!.currentRotIdx).toBe(1);
 
-    board.rotateCurrPiece();
-    expect(board.currPiece!.currRotIdx).toBe(0);
+    board.rotateCurrentPiece();
+    expect(board.currentPiece!.currentRotIdx).toBe(0);
   });
 
   test('S-piece wall kicks when near wall', () => {
@@ -463,9 +463,9 @@ describe('Board', () => {
     board.setCurrentPiece('S');
     board.clear();
     board.position = [5, 8];
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    expect(board.currPiece!.currRotIdx).toBe(1);
+    expect(board.currentPiece!.currentRotIdx).toBe(1);
   });
 
   test('center column rule blocks kick for T-piece', () => {
@@ -475,8 +475,8 @@ describe('Board', () => {
     board.position = [5, 4];
     board.grid[5][5] = 'J';
 
-    board.rotateCurrPiece();
+    board.rotateCurrentPiece();
 
-    expect(board.currPiece!.currRotIdx).toBe(0);
+    expect(board.currentPiece!.currentRotIdx).toBe(0);
   });
 });
