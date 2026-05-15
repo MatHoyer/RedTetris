@@ -1,0 +1,7 @@
+FROM postgres:17-alpine
+
+COPY server/db/init.sql /init.sql
+COPY server/db/migrate.sh /migrate.sh
+RUN chmod +x /migrate.sh
+
+ENTRYPOINT ["/migrate.sh"]

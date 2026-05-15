@@ -7,12 +7,25 @@ services:
       POSTGRES_DB: redtetris
     volumes:
       - redtetris_pgdata:/var/lib/postgresql/data
-      - ./server/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U redtetris -d redtetris']
       interval: 2s
       timeout: 5s
       retries: 15
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    environment:
+      PGHOST: postgres
+      PGUSER: redtetris
+      PGPASSWORD: redtetris
+      PGDATABASE: redtetris
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
 
   app:
     build:
@@ -25,8 +38,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://redtetris:redtetris@postgres:5432/redtetris
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   redtetris_pgdata:
