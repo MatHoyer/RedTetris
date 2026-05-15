@@ -41,3 +41,44 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    container: alpine:3.23
+    environment: dokploy
+    steps:
+      - name: Trigger Dokploy deploy
+        env:
+          DEPLOY_API_URL: ${{ secrets.DEPLOY_API_URL }}
+          DEPLOY_APPLICATION_ID: ${{ secrets.DEPLOY_APPLICATION_ID }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+          apk add --no-cache curl jq
+          if [ -z "${DEPLOY_API_URL:-}" ]; then
+            echo "DEPLOY_API_URL secret is not set" >&2
+            exit 1
+          fi
+          if [ -z "${DEPLOY_APPLICATION_ID:-}" ]; then
+            echo "DEPLOY_APPLICATION_ID secret is not set" >&2
+            exit 1
+          fi
+          if [ -z "${DEPLOY_TOKEN:-}" ]; then
+            echo "DEPLOY_TOKEN secret is not set" >&2
+            exit 1
+          fi
+          payload="$(jq -nc --arg id "$DEPLOY_APPLICATION_ID" '{composeId: $id}')"
+          out="$(mktemp)"
+          trap 'rm -f "$out"' EXIT
+          code=$(curl -sS -o "$out" -w "%{http_code}" -X POST "$DEPLOY_API_URL" \
+            -H "accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: ${DEPLOY_TOKEN}" \
+            -d "$payload")
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "Deploy API HTTP $code — body:" >&2
+            cat "$out" >&2
+            exit 1
+          fi
+          echo "Deploy OK ($code) — tag ${GITHUB_REF_NAME}"
