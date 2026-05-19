@@ -128,7 +128,7 @@ export class Game {
   }
 
   distributePenalty(sender: Player, linesCleared: number) {
-    const penaltyLines = linesCleared - 1;
+    const penaltyLines = linesCleared;
     if (penaltyLines <= 0) return;
     this.log.info(`${sender.name || sender.id} cleared ${linesCleared} lines, sending ${penaltyLines} penalty lines`);
 
