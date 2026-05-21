@@ -303,7 +303,8 @@ describe('Player', () => {
     const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
     keyDownHandlers['left']();
 
-    for (let i = 0; i < 12; i++) {
+    // DAS_TICKS (10) + ARR_TICKS (10) before first auto-repeat after initial move
+    for (let i = 0; i < 22; i++) {
       player.tick();
     }
 

@@ -1,8 +1,8 @@
 import { type TGameMode } from '../../../events/index.js';
 import { Board } from './Board.js';
 import { Tetrominos } from './Tetrominos.js';
-import { Shapes } from './shapes.js';
 import { PlayerPort } from './ports.js';
+import { Shapes } from './shapes.js';
 
 export enum PlayerState {
   IDLE = 'IDLE',
@@ -14,7 +14,7 @@ type EnabledModes = Record<TGameMode, boolean>;
 
 const LOCK_DELAY_TICKS = 30;
 const DAS_TICKS = 10;
-const ARR_TICKS = 2;
+const ARR_TICKS = 10;
 const FALL_PROGRESS_PER_ROW = 256;
 const NORMAL_FALL_PROGRESS_PER_TICK = 4;
 const FAST_FALL_PROGRESS_PER_TICK = 8;
