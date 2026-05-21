@@ -276,7 +276,7 @@ describe('Player', () => {
     expect(port.emitBoard).toHaveBeenCalled();
   });
 
-  test('held horizontal movement repeats without a charge tick threshold', () => {
+  test('held horizontal movement does not repeat before DAS charge', () => {
     const port = createMockPort();
     const player = new Player(1, 'Player1', 'socket1', port);
     const bag = new Tetrominos();
@@ -286,7 +286,26 @@ describe('Player', () => {
     const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
     keyDownHandlers['left']();
 
-    player.tick();
+    for (let i = 0; i < 9; i++) {
+      player.tick();
+    }
+
+    expect(player.board.position[1]).toBe(initialCol - 1);
+  });
+
+  test('held horizontal movement repeats after DAS charge', () => {
+    const port = createMockPort();
+    const player = new Player(1, 'Player1', 'socket1', port);
+    const bag = new Tetrominos();
+    player.start(bag, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+    const initialCol = player.board.position[1];
+
+    const keyDownHandlers = (port.onKeyDown as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    keyDownHandlers['left']();
+
+    for (let i = 0; i < 12; i++) {
+      player.tick();
+    }
 
     expect(player.board.position[1]).toBeLessThan(initialCol - 1);
   });
