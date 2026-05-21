@@ -60,7 +60,7 @@ export const Navbar = () => {
               padding: '20px',
               borderRadius: '10px',
               width: '160px',
-              height: '400px',
+              height: '450px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',

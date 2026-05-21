@@ -14,7 +14,7 @@ type EnabledModes = Record<TGameMode, boolean>;
 
 const LOCK_DELAY_TICKS = 30;
 const DAS_TICKS = 10;
-const ARR_TICKS = 10;
+const ARR_TICKS = 2;
 const FALL_PROGRESS_PER_ROW = 256;
 const NORMAL_FALL_PROGRESS_PER_TICK = 4;
 const FAST_FALL_PROGRESS_PER_TICK = 8;
