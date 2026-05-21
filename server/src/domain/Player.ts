@@ -13,6 +13,8 @@ type PlayerPayload = { id: number; name: string; alive: boolean; score: number }
 type EnabledModes = Record<TGameMode, boolean>;
 
 const LOCK_DELAY_TICKS = 30;
+const DAS_TICKS = 10;
+const ARR_TICKS = 2;
 const FALL_PROGRESS_PER_ROW = 256;
 const NORMAL_FALL_PROGRESS_PER_TICK = 4;
 const FAST_FALL_PROGRESS_PER_TICK = 8;
@@ -28,6 +30,9 @@ export class Player {
   lockDelayCounter = 0;
 
   heldKeys: Record<string, boolean> = {};
+  dasCounter = 0;
+  dasDirection: 'left' | 'right' | null = null;
+  arrCounter = 0;
 
   modes: TGameMode[] = [];
   enabledModes: EnabledModes = {
@@ -81,6 +86,9 @@ export class Player {
     this.fallProgress = 0;
     this.lockDelayCounter = 0;
     this.heldKeys = {};
+    this.dasCounter = 0;
+    this.dasDirection = null;
+    this.arrCounter = 0;
     this.notify = notify;
     this.onStop = onStop;
     this.onLinesCleared = onLinesCleared;
@@ -123,12 +131,18 @@ export class Player {
       },
       left: () => {
         this.heldKeys['left'] = true;
+        this.dasDirection = leftDir;
+        this.dasCounter = 0;
+        this.arrCounter = 0;
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
           this.board.moveHorizontal(leftDir);
         }
       },
       right: () => {
         this.heldKeys['right'] = true;
+        this.dasDirection = rightDir;
+        this.dasCounter = 0;
+        this.arrCounter = 0;
         if (this.state === PlayerState.ACTIVE || this.state === PlayerState.LOCK_DELAY) {
           this.board.moveHorizontal(rightDir);
         }
@@ -150,9 +164,11 @@ export class Player {
       },
       left: () => {
         this.heldKeys['left'] = false;
+        if (this.dasDirection === leftDir) this.dasDirection = null;
       },
       right: () => {
         this.heldKeys['right'] = false;
+        if (this.dasDirection === rightDir) this.dasDirection = null;
       },
       rotate: () => {
         this.heldKeys['rotate'] = false;
@@ -228,12 +244,16 @@ export class Player {
   }
 
   private applyHeldHorizontalMovement() {
-    if (this.heldKeys['left']) {
-      this.board.moveHorizontal(this.enabledModes.inverted ? 'right' : 'left');
-    }
-    if (this.heldKeys['right']) {
-      this.board.moveHorizontal(this.enabledModes.inverted ? 'left' : 'right');
-    }
+    if (!this.dasDirection) return;
+
+    this.dasCounter++;
+    if (this.dasCounter < DAS_TICKS) return;
+
+    this.arrCounter++;
+    if (this.arrCounter < ARR_TICKS) return;
+    this.arrCounter = 0;
+
+    this.board.moveHorizontal(this.dasDirection);
   }
 
   private applyScoring(linesCleared: number) {
