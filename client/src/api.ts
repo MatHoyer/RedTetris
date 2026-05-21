@@ -7,6 +7,8 @@ const headers = () => ({
 });
 
 export const api = {
+  getVersion: () => fetch('/api/version'),
+
   getHighScores: (page: number, limit: number) =>
     fetch(`/api/high-scores?page=${encodeURIComponent(String(page))}&limit=${encodeURIComponent(String(limit))}`),
 

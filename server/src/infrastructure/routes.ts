@@ -150,6 +150,11 @@ export function createRouter(gameManager: GameManager, io: Server) {
     res.json({ ok: true });
   });
 
+  router.get('/api/version', (_req, res) => {
+    console.log(process.env.APP_VERSION);
+    res.json({ version: process.env.APP_VERSION ?? 'dev' });
+  });
+
   router.get('/api/high-scores', async (req, res) => {
     try {
       const pageRaw = parseInt(String(req.query.page ?? '1'), 10);

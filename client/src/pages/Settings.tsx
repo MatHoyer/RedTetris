@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Space, type LucideIcon } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { api } from '../api';
 
 const Key: React.FC<{ element: LucideIcon; text: string }> = ({ element, text }) => {
   return (
@@ -11,8 +12,23 @@ const Key: React.FC<{ element: LucideIcon; text: string }> = ({ element, text })
 };
 
 export const Settings = () => {
+  const [version, setVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .getVersion()
+      .then((res) => res.json())
+      .then((data: { version?: string }) => setVersion(data.version ?? null))
+      .catch(() => setVersion(null));
+  }, []);
+
   return (
     <div>
+      {version && (
+        <p style={{ marginTop: 16, fontSize: 11, color: '#6b7280', textAlign: 'center', userSelect: 'none' }}>
+          {version}
+        </p>
+      )}
       <h1 style={{ marginBottom: '10px' }}>Settings</h1>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30px' }}>
         <table>
