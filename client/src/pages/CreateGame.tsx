@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
@@ -50,7 +49,7 @@ export const CreateGame = () => {
             textDecoration: 'none',
           }}
         >
-          <ArrowLeft size={20} /> Back
+          ← Back
         </Link>
       </div>
       <form className="form" onSubmit={handleSubmit}>

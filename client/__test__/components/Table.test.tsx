@@ -13,12 +13,12 @@ describe('Table', () => {
         </TableLine>
       </Table>,
     );
-    const ths = container.querySelectorAll('thead th');
-    expect(ths).toHaveLength(2);
-    expect(ths[0].textContent).toBe('A');
-    expect(ths[1].textContent).toBe('B');
-    const tds = container.querySelectorAll('tbody td');
-    expect(tds[0].textContent).toBe('1');
-    expect(tds[1].textContent).toBe('2');
+    const headerCells = container.querySelectorAll('.styled-table-header .styled-table-cell');
+    expect(headerCells).toHaveLength(2);
+    expect(headerCells[0].textContent).toBe('A');
+    expect(headerCells[1].textContent).toBe('B');
+    const bodyCells = container.querySelectorAll('.styled-table-row .styled-table-cell');
+    expect(bodyCells[0].textContent).toBe('1');
+    expect(bodyCells[1].textContent).toBe('2');
   });
 });

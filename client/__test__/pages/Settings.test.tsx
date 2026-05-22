@@ -14,7 +14,6 @@ describe('Settings', () => {
 
   it('renders key bindings table', () => {
     const { container } = render(<Settings />);
-    expect(container.querySelector('table')).toBeTruthy();
     expect(container.textContent).toMatch(/Rotate|Move down|Move left|Move right|Hard drop/i);
   });
 

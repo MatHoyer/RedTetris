@@ -62,7 +62,7 @@ describe('Lobby', () => {
     store.dispatch(changeName('Alice'));
     store.dispatch(updateGamesList([lobbyGame]));
     const { container } = renderLobby();
-    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.querySelector('.styled-table')).toBeTruthy();
     expect(container.textContent).toMatch(/Start|Quit/);
     expect(container.textContent).toContain('Alice');
   });

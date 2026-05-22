@@ -64,7 +64,7 @@ describe('Online', () => {
   it('renders table with games when gamesList has data', () => {
     store.dispatch(updateGamesList([mockGame()]));
     const { container } = renderOnline();
-    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.querySelector('.styled-table')).toBeTruthy();
     expect(container.textContent).toContain('room-a');
     expect(container.textContent).toContain('Admin');
     expect(container.textContent).toMatch(/1\/4/);
@@ -79,7 +79,7 @@ describe('Online', () => {
       ]),
     );
     const { container } = renderOnline();
-    expect(container.querySelectorAll('tbody tr')).toHaveLength(2);
+    expect(container.querySelectorAll('.styled-table-row')).toHaveLength(2);
     const researchInput = container.querySelector('input[type="text"]') as HTMLInputElement;
     fireEvent.change(researchInput, { target: { value: 'alice' } });
     expect(container.textContent).toContain('Alice');
@@ -94,7 +94,7 @@ describe('Online', () => {
     expect(container.textContent).toMatch(/No games/);
     const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
     fireEvent.click(checkbox);
-    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.querySelector('.styled-table')).toBeTruthy();
     expect(container.textContent).toContain('active-room');
   });
 

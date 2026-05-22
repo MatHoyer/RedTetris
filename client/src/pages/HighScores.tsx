@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -65,7 +64,7 @@ export const HighScores = () => {
           to="/"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'white', textDecoration: 'none' }}
         >
-          <ArrowLeft size={20} /> Back
+          ← Back
         </Link>
       </div>
 
