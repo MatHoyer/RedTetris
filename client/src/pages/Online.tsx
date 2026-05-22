@@ -1,4 +1,3 @@
-import { ArrowLeft, Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
@@ -42,7 +41,7 @@ export const Online = () => {
           to="/"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'white', textDecoration: 'none' }}
         >
-          <ArrowLeft size={20} /> Back
+          ← Back
         </Link>
       </div>
       <div
@@ -83,7 +82,7 @@ export const Online = () => {
                   <TableCell>
                     {lineData.players.length}/{lineData.maxPlayers}
                   </TableCell>
-                  <TableCell>{lineData.active ? <Check /> : <X />}</TableCell>
+                  <TableCell>{lineData.active ? '✓' : '✗'}</TableCell>
                   <TableCell>
                     <Button
                       disabled={lineData.players.length === lineData.maxPlayers || lineData.active}

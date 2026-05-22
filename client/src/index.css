@@ -37,23 +37,7 @@ h1 {
 .centered-table {
   margin-left: auto;
   margin-right: auto;
-  border-collapse: collapse;
   width: 50%;
-}
-
-.centered-table th,
-.centered-table td {
-  /* border: 1px solid #ddd; */
-  padding: 8px;
-  text-align: center;
-  vertical-align: middle;
-}
-
-.centered-table th {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  text-align: center;
-  background-color: var(--primary-color);
 }
 
 .scrollable-div::-webkit-scrollbar {
@@ -235,27 +219,36 @@ input[type='checkbox']:checked::after {
   color: var(--primary-color);
 }
 
-/* real table css */
+/* grid-based table */
 .styled-table {
-  border-collapse: collapse;
-  margin: 20px 0;
-  text-align: center;
+  margin: 20px auto;
   width: 60%;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.styled-table th {
-  padding: 10px;
+.styled-table-header,
+.styled-table-row {
+  display: grid;
+  grid-template-columns: repeat(var(--col-count, 1), 1fr);
 }
 
-.styled-table td {
-  padding: 10px;
-}
-
-.styled-table thead {
+.styled-table-header {
   background-color: #ee2b47;
   font-weight: bold;
+}
+
+.styled-table-cell {
+  padding: 10px;
+  text-align: center;
+}
+
+/* CSS-only loading spinner */
+.css-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* Tetris game css */

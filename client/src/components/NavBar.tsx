@@ -1,5 +1,3 @@
-import { faCog } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -23,17 +21,18 @@ export const Navbar = () => {
       <Link to="/high-scores" style={{ color: '#60a5fa', fontSize: 14 }}>
         <Button>High scores</Button>
       </Link>
-      <FontAwesomeIcon
+      <span
+        className="icon"
         style={{
           position: 'absolute',
           top: '10px',
           right: '10px',
           cursor: 'pointer',
         }}
-        icon={faCog}
-        className="icon"
         onClick={handleClick}
-      />
+      >
+        ⚙
+      </span>
       {openSettings && (
         <div
           style={{

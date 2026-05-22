@@ -1,13 +1,15 @@
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Space, type LucideIcon } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api';
 
-const Key: React.FC<{ element: LucideIcon; text: string }> = ({ element, text }) => {
+const Key: React.FC<{ symbol: string; text: string }> = ({ symbol, text }) => {
   return (
-    <tr style={{ height: '50px' }}>
-      <td style={{ paddingRight: '10px' }}>{element && React.createElement(element, { size: 20, color: 'red' })}</td>
-      <td style={{ userSelect: 'none' }}>{text}</td>
-    </tr>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '8px 0', height: '50px' }}>
+      <span style={{ color: 'red', fontSize: '20px', minWidth: '40px', textAlign: 'center', userSelect: 'none' }}>
+        {symbol}
+      </span>
+      <span style={{ userSelect: 'none' }}>{text}</span>
+    </div>
   );
 };
 
@@ -30,16 +32,14 @@ export const Settings = () => {
         </p>
       )}
       <h1 style={{ marginBottom: '10px' }}>Settings</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30px' }}>
-        <table>
-          <tbody>
-            <Key element={ArrowUp} text="Rotate" />
-            <Key element={ArrowDown} text="Move down" />
-            <Key element={ArrowLeft} text="Move left" />
-            <Key element={ArrowRight} text="Move right" />
-            <Key element={Space} text="Hard drop" />
-          </tbody>
-        </table>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <Key symbol="↑" text="Rotate" />
+          <Key symbol="↓" text="Move down" />
+          <Key symbol="←" text="Move left" />
+          <Key symbol="→" text="Move right" />
+          <Key symbol="SPACE" text="Hard drop" />
+        </div>
       </div>
     </div>
   );
