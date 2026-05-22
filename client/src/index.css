@@ -222,7 +222,8 @@ input[type='checkbox']:checked::after {
 /* grid-based table */
 .styled-table {
   margin: 20px auto;
-  width: 60%;
+  width: 100%;
+  max-width: 800px;
 }
 
 .styled-table-header,
@@ -239,6 +240,7 @@ input[type='checkbox']:checked::after {
 .styled-table-cell {
   padding: 10px;
   text-align: center;
+  min-width: 0;
 }
 
 /* CSS-only loading spinner */
